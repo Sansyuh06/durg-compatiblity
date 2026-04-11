@@ -1,0 +1,131 @@
+{
+  "faers_data": {
+    "drug": "ROFECOXIB",
+    "brand_name": "Vioxx",
+    "total_reports": 28341,
+    "serious_reports": 15823,
+    "reporting_period": "1999-2004",
+    "indication": "Osteoarthritis, Acute Pain, Rheumatoid Arthritis, Primary Dysmenorrhea",
+    "top_adverse_events": [
+      {"event": "myocardial infarction", "count": 7823, "serious": 7823, "fatal": 2341, "onset_median_days": 547},
+      {"event": "stroke", "count": 3421, "serious": 3421, "fatal": 876, "onset_median_days": 423},
+      {"event": "heart failure", "count": 2987, "serious": 2987, "fatal": 423, "onset_median_days": 312},
+      {"event": "pulmonary embolism", "count": 2134, "serious": 2134, "fatal": 341, "onset_median_days": 389},
+      {"event": "venous thromboembolism", "count": 4123, "serious": 4123, "fatal": 567, "onset_median_days": 445}
+    ],
+    "cardiovascular_cluster": {
+      "total_cv_events": 20488,
+      "pct_of_all_serious_reports": 64.3,
+      "note": "Unprecedented concentration of serious thrombotic cardiovascular events compared to class comparators"
+    },
+    "post_marketing_timeline": [
+      {"year": 2000, "event": "VIGOR trial published — 4x MI rate vs naproxen; attributed to 'naproxen cardioprotection' hypothesis"},
+      {"year": 2001, "event": "FDA advisory committee: agrees to add cardiovascular warning to label"},
+      {"year": 2002, "event": "Internal Merck memo ('the CV story') — awareness of CV signal internally"},
+      {"year": 2004, "event": "APPROVe trial halted early — confirmed 1.92x elevated cardiovascular risk"},
+      {"year": 2004, "event": "September 30 — Merck voluntarily withdrew rofecoxib globally"}
+    ],
+    "patients_exposed_prior_to_withdrawal": "approximately 80 million worldwide",
+    "estimated_excess_mi_events": "27,785 to 55,000 (Graham et al., Lancet 2005)"
+  },
+  "label_data": {
+    "drug": "ROFECOXIB",
+    "brand_name": "Vioxx",
+    "class": "COX-2 selective NSAID",
+    "approval_year": 1999,
+    "peak_annual_sales_usd": 2500000000,
+    "black_box_warning": null,
+    "label_at_withdrawal": {
+      "cardiovascular_warning": "Added in 2002: 'Serious cardiovascular events including MI and stroke may occur'",
+      "contraindications": ["post-CABG surgery"],
+      "precautions": ["cardiovascular disease", "hypertension", "fluid retention"]
+    },
+    "current_rems": false,
+    "current_status": "VOLUNTARILY WITHDRAWN FROM GLOBAL MARKET — October 30, 2004",
+    "regulatory_history": "FDA requested black box warning in 2004; Merck withdrew before it was required"
+  },
+  "signal_analysis": {
+    "drug": "ROFECOXIB",
+    "signal": "myocardial infarction",
+    "method": "Disproportionality analysis + post-marketing RCT confirmation",
+    "PRR": 8.9,
+    "PRR_95ci_lower": 7.8,
+    "PRR_95ci_upper": 10.2,
+    "ROR": 9.7,
+    "ROR_95ci_lower": 8.5,
+    "ROR_95ci_upper": 11.1,
+    "IC025": 3.4,
+    "EB05": 4.1,
+    "signal_strength": "CRITICAL",
+    "approve_trial": {
+      "design": "Randomized controlled trial — colorectal adenoma prevention",
+      "n_patients": 2586,
+      "rofecoxib_dose_mg": 25,
+      "comparison": "placebo",
+      "relative_risk_cv_events": 1.92,
+      "CI_95_lower": 1.19,
+      "CI_95_upper": 3.11,
+      "p_value": 0.008,
+      "nnt_harm_per_year": 142,
+      "excess_events_per_1000py": 7.04,
+      "conclusion": "Confirmed: doubled risk of serious thrombotic cardiovascular events. Trial halted early for safety."
+    },
+    "vigor_trial_signal": {
+      "mi_rr_vs_naproxen": 4.0,
+      "p_value": 0.002,
+      "note": "Early warning dismissed as 'naproxen cardioprotection' — later confirmed to be rofecoxib cardiovascular harm"
+    },
+    "benefit_risk_assessment": "UNFAVORABLE — confirmed cardiovascular harm in RCT; no unique benefit over existing NSAIDs; no manageable safety strategy possible at population scale",
+    "recommendation": "WITHDRAW — confirmed RCT signal, mechanistically plausible, no risk mitigation strategy sufficient at population scale"
+  },
+  "mechanism_data": {
+    "drug": "ROFECOXIB",
+    "mechanism_class": "COX-2 Selective NSAID",
+    "primary_mechanism": "Selective inhibition of cyclooxygenase-2 (COX-2) → decreased prostaglandin E2 and prostacyclin synthesis",
+    "cardiovascular_mechanism": "COX-2 selective inhibition → decreased vascular prostacyclin (PGI2) synthesis → unopposed thromboxane A2 (TXA2) activity → prothrombotic state → platelet aggregation, vasoconstriction, arterial thrombosis",
+    "class_effect": "Shared by all COX-2 selective NSAIDs; FDA issued class warning for all COX-2 inhibitors post-Vioxx withdrawal",
+    "why_selective_cox2_risky": "Non-selective NSAIDs (e.g., naproxen) also inhibit platelet COX-1 (TXA2 production), providing some cardiovascular protection. COX-2 selective agents lose this protection while maintaining COX-2 prostacyclin inhibition.",
+    "rofecoxib_selectivity_ratio": "COX-2:COX-1 selectivity ratio of ~272:1 — exceptionally high selectivity, maximizing cardiovascular risk"
+  },
+  "literature_data": {
+    "drug": "ROFECOXIB",
+    "key_studies": [
+      {
+        "title": "APPROVe Trial: Use of rofecoxib and cardiovascular events",
+        "journal": "New England Journal of Medicine",
+        "year": 2005,
+        "pmid": "15987910",
+        "finding": "1.92x relative risk (95% CI: 1.19–3.11) of confirmed thrombotic cardiovascular events vs placebo. Trial halted early.",
+        "study_type": "Randomized controlled trial",
+        "n_patients": 2586,
+        "conclusion": "WITHDRAW"
+      },
+      {
+        "title": "VIGOR Trial: GI outcomes with rofecoxib vs naproxen",
+        "journal": "New England Journal of Medicine",
+        "year": 2000,
+        "pmid": "11087881",
+        "finding": "4x higher myocardial infarction rate with rofecoxib vs naproxen (0.4% vs 0.1%). Early warning signal.",
+        "study_type": "Randomized controlled trial",
+        "n_patients": 8076
+      },
+      {
+        "title": "Risk of acute myocardial infarction and sudden death in patients with COX-2 and other NSAIDs",
+        "journal": "Lancet",
+        "year": 2005,
+        "pmid": "16260634",
+        "authors": "Graham DJ et al.",
+        "finding": "Estimated 27,785–55,000 excess cases of serious coronary heart disease attributable to rofecoxib use between 1999-2004",
+        "study_type": "Record-linkage cohort",
+        "conclusion": "WITHDRAW was correct decision"
+      }
+    ],
+    "regulatory_precedent": "Merck voluntarily withdrew rofecoxib globally on September 30, 2004. FDA subsequently issued class cardiovascular warnings for all COX-2 selective NSAIDs. This is a landmark case study in pharmacovigilance failure and post-marketing surveillance.",
+    "international_actions": "EMA, Health Canada, TGA (Australia) all concurred with withdrawal decision."
+  },
+  "ground_truth": {
+    "drug_name": "rofecoxib",
+    "primary_signal": "myocardial infarction",
+    "regulatory_action": "withdraw"
+  }
+}

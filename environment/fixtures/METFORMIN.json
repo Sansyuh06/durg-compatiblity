@@ -1,0 +1,106 @@
+{
+  "faers_data": {
+    "drug": "METFORMIN",
+    "generic_name": "metformin hydrochloride",
+    "total_reports": 12847,
+    "serious_reports": 2341,
+    "reporting_period": "2010-2023",
+    "indication": "Type 2 Diabetes Mellitus",
+    "top_adverse_events": [
+      {"event": "lactic acidosis", "count": 847, "serious": 847, "fatal": 123, "seriousness_rate_pct": 100},
+      {"event": "nausea", "count": 4521, "serious": 102, "fatal": 0, "seriousness_rate_pct": 2.3},
+      {"event": "diarrhea", "count": 3891, "serious": 45, "fatal": 0, "seriousness_rate_pct": 1.2},
+      {"event": "vitamin b12 deficiency", "count": 923, "serious": 87, "fatal": 0, "seriousness_rate_pct": 9.4},
+      {"event": "renal impairment", "count": 512, "serious": 398, "fatal": 12, "seriousness_rate_pct": 77.7}
+    ],
+    "high_risk_populations": ["eGFR < 45 mL/min", "hepatic impairment", "excessive alcohol use", "contrast media recipients"],
+    "reporting_trend": "Stable; no new signal emergence in last 5 years",
+    "note": "Lactic acidosis signal is elevated and concentrated in patients with renal impairment. Absolute risk remains low (~8.4 cases per 100,000 patient-years) with proper contraindication adherence."
+  },
+  "label_data": {
+    "drug": "METFORMIN",
+    "brand_names": ["Glucophage", "Glumetza", "Fortamet", "Riomet"],
+    "class": "Biguanide antidiabetic agent",
+    "approval_year": 1994,
+    "black_box_warning": "LACTIC ACIDOSIS: Postmarketing cases of metformin-associated lactic acidosis have resulted in death, hypothermia, hypotension, and resistant bradyarrhythmias. Risk factors include renal impairment, hepatic impairment, congestive heart failure, and older age. Withhold for iodinated contrast imaging procedures.",
+    "mechanism_summary": "Decreases hepatic glucose production via inhibition of mitochondrial complex I; increases peripheral glucose uptake; does not stimulate insulin secretion.",
+    "contraindications": [
+      "eGFR < 30 mL/min/1.73m2",
+      "Active or unstable congestive heart failure",
+      "Severe hepatic impairment",
+      "Known hypersensitivity to metformin",
+      "Iodinated contrast media administration (temporally)"
+    ],
+    "current_rems": false,
+    "current_status": "approved — widely prescribed",
+    "annual_prescriptions_us": "~90 million",
+    "label_revision_year": 2016,
+    "label_revision_note": "FDA updated prescribing information in 2016 to allow use in patients with eGFR 30-60 with dose adjustment; lactic acidosis risk language refined."
+  },
+  "signal_analysis": {
+    "drug": "METFORMIN",
+    "signal": "lactic acidosis",
+    "method": "Multi-item Gamma Poisson Shrinker (MGPS) + Proportional Reporting Ratio",
+    "PRR": 4.7,
+    "PRR_95ci_lower": 3.9,
+    "PRR_95ci_upper": 5.6,
+    "ROR": 5.1,
+    "ROR_95ci_lower": 4.2,
+    "ROR_95ci_upper": 6.2,
+    "IC025": 1.8,
+    "EB05": 2.3,
+    "signal_strength": "STRONG",
+    "signal_maturity": "WELL-CHARACTERIZED",
+    "population_at_risk": "Patients with eGFR < 45 mL/min/1.73m2",
+    "absolute_risk_per_100k_py": 8.4,
+    "benefit_risk_assessment": "Benefit-risk remains FAVORABLE. Signal is real but manageable through existing label contraindications and monitoring. No market action warranted.",
+    "recommendation": "MONITOR — existing contraindications and labeling are adequate. Enhanced monitoring for renal impairment patients recommended.",
+    "comparators": [
+      {"drug": "glyburide", "PRR_lactic_acidosis": 0.3, "note": "Much lower; sulfonylurea class"},
+      {"drug": "phenformin", "PRR_lactic_acidosis": 28.1, "note": "Predecessor drug; withdrawn 1977 due to lactic acidosis"}
+    ]
+  },
+  "mechanism_data": {
+    "drug": "METFORMIN",
+    "mechanism_class": "Biguanide",
+    "primary_mechanism": "Inhibition of mitochondrial complex I of the respiratory chain → reduced oxidative phosphorylation → decreased hepatic gluconeogenesis",
+    "lactic_acidosis_mechanism": "Complex I inhibition → shift from oxidative to anaerobic metabolism → pyruvate accumulates → converted to lactate → lactic acidosis, particularly when hepatic lactate clearance is impaired",
+    "therapeutic_targets": ["AMP-activated protein kinase (AMPK)", "mTORC1 pathway", "mitochondrial complex I"],
+    "pharmacokinetics": {
+      "absorption": "Gut (bioavailability 50-60%)",
+      "distribution": "Not protein bound; accumulates in intestinal wall, liver, kidneys",
+      "elimination": "Renal excretion unchanged (no hepatic metabolism) — explains risk in renal impairment"
+    },
+    "clinical_relevance": "Lactic acidosis is mechanistically plausible, confirmed in clinical practice, and dose-dependent in renally impaired patients."
+  },
+  "literature_data": {
+    "drug": "METFORMIN",
+    "key_studies": [
+      {
+        "title": "Risk of lactic acidosis with metformin use in type 2 diabetes: a systematic review",
+        "journal": "BMJ",
+        "year": 2010,
+        "pmid": "20488901",
+        "finding": "Absolute risk remains low (~8.4 per 100,000 patient-years) with proper contraindication adherence. Could not confirm excess risk vs comparators.",
+        "study_type": "Systematic review/meta-analysis",
+        "n_patients": 194360
+      },
+      {
+        "title": "Metformin-associated lactic acidosis: Current perspectives",
+        "journal": "Annals of Internal Medicine",
+        "year": 2019,
+        "pmid": "30776284",
+        "finding": "Regulatory monitoring is adequate; no market withdrawal recommended. Most cases occur in contraindicated patients.",
+        "study_type": "Review",
+        "conclusion": "MONITOR"
+      }
+    ],
+    "regulatory_precedent": "EMA and FDA both reviewed the metformin lactic acidosis signal in 2016 and concluded monitoring is sufficient. Neither agency recommended market restriction or withdrawal.",
+    "expert_consensus": "International conference on harmonisation recommends enhanced renal monitoring, not market action."
+  },
+  "ground_truth": {
+    "drug_name": "metformin",
+    "primary_signal": "lactic acidosis",
+    "regulatory_action": "monitor"
+  }
+}

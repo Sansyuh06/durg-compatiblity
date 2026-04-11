@@ -1,0 +1,48 @@
+name: drug-triage-env
+version: "1.0.0"
+type: space
+runtime: python
+app: server.app:app
+port: 7860
+description: >
+  Real-world pharmacovigilance environment where AI agents investigate
+  FDA FAERS adverse event signals for 3 drugs (Metformin, Rofecoxib,
+  Isotretinoin) and recommend regulatory actions across 3 difficulty levels.
+  Implements the full OpenEnv step/reset/state API.
+tasks:
+  - id: easy
+    name: Metformin Signal Detection
+    difficulty: easy
+    drug_name: METFORMIN
+    max_steps: 5
+  - id: medium
+    name: Rofecoxib Cardiovascular Alert
+    difficulty: medium
+    drug_name: ROFECOXIB
+    max_steps: 8
+  - id: hard
+    name: Isotretinoin Multi-Signal Triage
+    difficulty: hard
+    drug_name: ISOTRETINOIN
+    max_steps: 12
+action_space:
+  types:
+    - search_faers
+    - fetch_label
+    - analyze_signal
+    - lookup_mechanism
+    - check_literature
+    - submit
+observation_type: json
+reward_range: [0.01, 0.99]
+tags:
+  - pharmacovigilance
+  - drug-safety
+  - fda-faers
+  - regulatory-affairs
+  - openenv
+api:
+  reset: "POST /reset"
+  step: "POST /step"
+  state: "GET /state"
+ui: "GET /ui"

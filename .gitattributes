@@ -1,0 +1,17 @@
+# Force LF line endings for all text files (required for HuggingFace Spaces Linux containers)
+* text=auto eol=lf
+
+# Python
+*.py text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.sh text eol=lf
+*.json text eol=lf
+
+# Binary files — keep as-is
+*.png binary
+*.jpg binary
+*.webp binary

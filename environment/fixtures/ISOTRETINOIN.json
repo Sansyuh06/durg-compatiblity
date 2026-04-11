@@ -1,0 +1,163 @@
+{
+  "faers_data": {
+    "drug": "ISOTRETINOIN",
+    "brand_names": ["Accutane (discontinued)", "Amnesteem", "Claravis", "Sotret", "Myorisan", "Absorica"],
+    "total_reports": 43891,
+    "serious_reports": 22341,
+    "reporting_period": "1982-2023",
+    "indication": "Severe recalcitrant nodular acne unresponsive to conventional therapy",
+    "top_adverse_events": [
+      {"event": "teratogenicity / congenital anomalies", "count": 8234, "serious": 8234, "fatal": 234, "risk_per_exposed_pregnancy_pct": 30},
+      {"event": "depression", "count": 9871, "serious": 6234, "fatal": 432, "seriousness_rate_pct": 63.2},
+      {"event": "suicidal ideation / attempt", "count": 3421, "serious": 3421, "fatal": 876, "seriousness_rate_pct": 100},
+      {"event": "hepatotoxicity", "count": 2341, "serious": 1234, "fatal": 45, "seriousness_rate_pct": 52.7},
+      {"event": "hypertriglyceridemia", "count": 5678, "serious": 876, "fatal": 12, "seriousness_rate_pct": 15.4},
+      {"event": "pseudotumor cerebri", "count": 1234, "serious": 1234, "fatal": 3, "seriousness_rate_pct": 100}
+    ],
+    "teratogenicity_detail": {
+      "spontaneous_abortions_pct": 19,
+      "major_birth_defects_pct": 26,
+      "common_defects": ["craniofacial anomalies", "cardiac defects", "CNS defects", "thymic abnormalities"],
+      "ipledge_reported_pregnancies_2006_2017": 423,
+      "ipledge_exposed_pregnancies_2006_2017": 189,
+      "pre_ipledge_estimate_pregnancies_per_year": 900
+    },
+    "psychiatric_detail": {
+      "depression_reporting_rate_per_1000": 12.4,
+      "controversy": "Acne itself is associated with depression; causal attribution difficult",
+      "case_reports_resolved_on_discontinuation": 312,
+      "rechallenge_positive_cases": 47,
+      "note": "Rechallenge-positive cases (symptoms return on re-exposure) strengthen causal hypothesis"
+    }
+  },
+  "label_data": {
+    "drug": "ISOTRETINOIN",
+    "class": "Retinoid (Vitamin A derivative) / Antiacne agent",
+    "approval_year": 1982,
+    "black_box_warnings": [
+      "TERATOGENICITY: Isotretinoin must not be used by females who are or may become pregnant. Category X — teratogenicity confirmed in humans. Major human fetal abnormalities have been documented. No safe dose exists during pregnancy.",
+      "PSYCHIATRIC DISORDERS: Psychiatric symptoms including depression, psychosis, suicidal ideation, suicide attempts, and suicide have been reported. Discontinue if psychiatric symptoms occur. Screen patients before and during treatment."
+    ],
+    "current_rems": true,
+    "rems_program": "iPLEDGE",
+    "rems_enrollment_required": ["prescribers", "pharmacies", "patients", "wholesalers"],
+    "rems_requirements_female_cbp": [
+      "Two concurrent forms of effective contraception (unless abstinent)",
+      "Negative pregnancy test before prescription",
+      "Monthly pregnancy tests during treatment",
+      "Pregnancy test before and 30 days after last dose",
+      "Registration in iPLEDGE system"
+    ],
+    "rems_requirements_male_all_female_non_cbp": [
+      "Registration in iPLEDGE system",
+      "Acknowledge risks and commit to not share medication"
+    ],
+    "current_status": "APPROVED with iPLEDGE REMS — market restrictions in place since 2006",
+    "dispensing_restriction": "Only from iPLEDGE-certified pharmacies; no refills without new authorization",
+    "ipledge_effectiveness": "59% reduction in isotretinoin-exposed pregnancies vs pre-REMS period",
+    "alternative_rems_programs": {
+      "S.T.E.P.S._1988": "Original pregnancy prevention program — replaced by iPLEDGE in 2006",
+      "S.M.A.R.T._2002": "Intermediate program before iPLEDGE"
+    }
+  },
+  "signal_analysis": {
+    "drug": "ISOTRETINOIN",
+    "primary_signal": "teratogenicity",
+    "secondary_signal": "depression",
+    "teratogenicity": {
+      "PRR": 47.3,
+      "PRR_95ci_lower": 41.2,
+      "PRR_95ci_upper": 54.4,
+      "ROR": 52.1,
+      "ROR_95ci_lower": 45.8,
+      "ROR_95ci_upper": 59.3,
+      "IC025": 5.2,
+      "EB05": 6.1,
+      "signal_strength": "CRITICAL — CONFIRMED",
+      "risk_absolute": "25-35% of exposed pregnancies result in birth defects or spontaneous abortion",
+      "causality": "ESTABLISHED — mechanism confirmed, human case series extensive, rechallenge not possible for ethical reasons"
+    },
+    "depression": {
+      "PRR": 6.8,
+      "PRR_95ci_lower": 6.1,
+      "PRR_95ci_upper": 7.6,
+      "ROR": 7.4,
+      "ROR_95ci_lower": 6.6,
+      "ROR_95ci_upper": 8.3,
+      "IC025": 2.1,
+      "EB05": 2.8,
+      "signal_strength": "STRONG",
+      "causality": "PROBABLE — confounded by acne-associated depression; rechallenge-positive cases support causal link",
+      "controversy": "High-quality epidemiological studies show conflicting results; Jick et al. found no excess risk vs antibiotics"
+    },
+    "benefit_risk_assessment": "Complex — teratogenic risk is certain and severe; depression risk is real but manageable. Benefit (severe acne is debilitating) justifies continued market access WITH strict restrictions. Withdrawal not warranted if REMS is effective.",
+    "recommendation": "RESTRICT — maintain and potentially strengthen iPLEDGE REMS. Market restriction (not withdrawal) is the appropriate risk management strategy."
+  },
+  "mechanism_data": {
+    "drug": "ISOTRETINOIN",
+    "mechanism_class": "Retinoid — Vitamin A analogue",
+    "primary_mechanism": "Activation of nuclear retinoic acid receptors (RAR-alpha, RAR-beta) → altered gene expression → reduced sebaceous gland size and sebum production → follicular keratinization normalization → anti-inflammatory effects",
+    "teratogenic_mechanism": "Retinoic acid is essential for normal embryonic development. Exogenous isotretinoin disrupts endogenous retinoic acid signaling gradients during organogenesis (weeks 3-12) → craniofacial, cardiac, thymic, and CNS developmental defects",
+    "psychiatric_mechanism": "Isotretinoin crosses the blood-brain barrier → potential effects on serotonergic and dopaminergic neurotransmission → mood dysregulation; reduced orbitofrontal metabolism on PET imaging reported",
+    "pharmacokinetics": {
+      "absorption": "Variable; enhanced with high-fat meal (2-5x increase)",
+      "half_life_hours": "10-20 (parent drug)",
+      "active_metabolite": "4-oxo-isotretinoin (half-life 17-50 hours)",
+      "protein_binding_pct": 99.9,
+      "clearance": "Hepatic — CYP2C8, CYP3A4",
+      "elimination_route": "Fecal (primarily) and urinary"
+    },
+    "why_restriction_not_withdrawal": "Isotretinoin has no equivalent alternative for severe nodular acne. Benefit is transformative for affected patients. REMS programs demonstrably reduce teratogenic harm. Risk is controllable at the individual patient level through REMS compliance."
+  },
+  "literature_data": {
+    "drug": "ISOTRETINOIN",
+    "key_studies": [
+      {
+        "title": "iPLEDGE program outcomes: pregnancy prevention effectiveness 2006-2017",
+        "journal": "JAMA Dermatology",
+        "year": 2017,
+        "pmid": "28678990",
+        "finding": "iPLEDGE reduced isotretinoin-exposed pregnancies by 59% compared to the pre-REMS S.M.A.R.T. program. 423 pregnancies reported over 12 years.",
+        "study_type": "Retrospective cohort",
+        "conclusion": "REMS effective; restriction appropriate"
+      },
+      {
+        "title": "Risk of depression and suicidal ideation in patients taking isotretinoin versus antibiotic treatments for acne",
+        "journal": "British Journal of Dermatology",
+        "year": 2019,
+        "pmid": "30156662",
+        "finding": "Modest 1.8x elevated depression risk (95% CI: 1.3-2.4); confounding by underlying acne severity significant. Rechallenge-positive cases (n=47) support causal relationship.",
+        "study_type": "Cohort study",
+        "conclusion": "Signal real; psychiatric monitoring required"
+      },
+      {
+        "title": "Congenital malformations associated with isotretinoin exposure: a systematic review",
+        "journal": "British Journal of Clinical Pharmacology",
+        "year": 2020,
+        "pmid": "31793010",
+        "finding": "25-35% of pregnancies exposed to isotretinoin result in malformation or spontaneous abortion. Dose and timing of exposure are critical.",
+        "study_type": "Systematic review"
+      },
+      {
+        "title": "Isotretinoin psychiatric adverse effects: a review of the literature",
+        "journal": "Drug Safety",
+        "year": 2014,
+        "pmid": "24292661",
+        "finding": "Evidence suggests isotretinoin can cause psychiatric adverse events in susceptible individuals. Depression screening before and during treatment recommended.",
+        "study_type": "Narrative review"
+      }
+    ],
+    "regulatory_precedent": "FDA iPLEDGE REMS active since 2006 (preceded by S.T.E.P.S. 1988 and S.M.A.R.T. 2002). EMA mandates similar pregnancy prevention programs. Market restriction — not withdrawal — is the consensus approach globally. Withdrawal would deny access to patients with severe, treatment-resistant acne who have no equivalent alternative.",
+    "international_actions": {
+      "EMA": "Mandatory pregnancy prevention program (PPP) since 1984; still approved with restrictions",
+      "Health_Canada": "Approved with Pregnancy Prevention Program",
+      "TGA_Australia": "Approved — Risk Minimisation Plan in place"
+    }
+  },
+  "ground_truth": {
+    "drug_name": "isotretinoin",
+    "primary_signal": "teratogenicity",
+    "secondary_signal": "depression",
+    "regulatory_action": "restrict"
+  }
+}
