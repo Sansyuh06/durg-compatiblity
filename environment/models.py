@@ -69,7 +69,7 @@ class DrugReward(BaseModel):
 
     model_config = ConfigDict(strict=False)
 
-    value: float = Field(default=0.01)
+    value: float = Field(gt=0.0, lt=1.0, default=0.01)
     breakdown: dict[str, float] = Field(default_factory=dict)
     message: str = ""
 

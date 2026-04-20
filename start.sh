@@ -4,10 +4,11 @@ set -euo pipefail
 
 cd /app
 
-echo "[start.sh] Starting Drug-Triage-Env server on port 7860..."
+echo "[start.sh] Starting Drug-Triage-Env server on port ${PORT:-7860}..."
 
 exec python -m uvicorn server.app:app \
     --host 0.0.0.0 \
-    --port 7860 \
+    --port "${PORT:-7860}" \
     --workers 1 \
-    --log-level info
+    --log-level info \
+    --timeout-keep-alive 30

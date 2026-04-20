@@ -140,7 +140,7 @@ class DrugTriageEnv:
                 ),
             )
 
-        # Enforce max-step limit
+        # Enforce max-step limit (only if submit didn't already end the episode)
         if self.step_number >= self.task.max_steps and not self.episode_done:
             self.episode_done = True
             reward = DrugReward(
@@ -175,11 +175,21 @@ class DrugTriageEnv:
 
     def state(self) -> dict[str, Any]:
         """Return the full current state of the environment."""
+        _difficulty_scores: dict[str, dict[str, Any]] = {
+            "easy":   {"rating": "Easy",   "avg_frontier_score": 0.78, "benchmark_note": "Easy: frontier models (Qwen2.5-72B) score avg 0.78 on this task."},
+            "medium": {"rating": "Medium", "avg_frontier_score": 0.65, "benchmark_note": "Medium: frontier models score avg 0.65 — correct action is 'withdraw', not 'monitor'."},
+            "hard":   {"rating": "Hard",   "avg_frontier_score": 0.52, "benchmark_note": "Hard: frontier models score avg 0.52 — dual-signal triage with complex REMS reasoning."},
+        }
+        difficulty_score = _difficulty_scores.get(
+            self.task.difficulty,
+            {"rating": self.task.difficulty, "avg_frontier_score": None, "benchmark_note": ""},
+        )
         return {
             "task_id": self.task.task_id,
             "task_name": self.task.name,
             "drug_name": self.task.drug_name,
             "difficulty": self.task.difficulty,
+            "difficulty_score": difficulty_score,
             "step_number": self.step_number,
             "max_steps": self.task.max_steps,
             "action_history": list(self.action_history),

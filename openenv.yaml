@@ -8,7 +8,8 @@ description: >
   Real-world pharmacovigilance environment where AI agents investigate
   FDA FAERS adverse event signals for 3 drugs (Metformin, Rofecoxib,
   Isotretinoin) and recommend regulatory actions across 3 difficulty levels.
-  Implements the full OpenEnv step/reset/state API.
+  Implements the full OpenEnv step/reset/state API with an interactive
+  HTML dashboard at GET /.
 tasks:
   - id: easy
     name: Metformin Signal Detection
@@ -34,7 +35,7 @@ action_space:
     - check_literature
     - submit
 observation_type: json
-reward_range: [0.01, 0.99]
+reward_range: [0.0, 1.0]
 tags:
   - pharmacovigilance
   - drug-safety
@@ -45,4 +46,3 @@ api:
   reset: "POST /reset"
   step: "POST /step"
   state: "GET /state"
-ui: "GET /ui"

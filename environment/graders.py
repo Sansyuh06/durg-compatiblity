@@ -31,18 +31,24 @@ def _normalize(s: str) -> str:
 def _match_drug_name(submitted: str, accepted: list[str]) -> bool:
     """Return True if the submitted drug name matches any accepted alias."""
     s = _normalize(submitted)
+    if not s:
+        return False
     return any(s == _normalize(a) or _normalize(a) in s or s in _normalize(a) for a in accepted)
 
 
 def _match_signal(submitted: str, accepted_terms: list[str]) -> bool:
     """Return True if the submitted signal matches any accepted term (substring or full)."""
     s = _normalize(submitted)
+    if not s:
+        return False
     return any(_normalize(term) in s or s in _normalize(term) for term in accepted_terms)
 
 
 def _match_action(submitted: str, accepted: list[str]) -> bool:
     """Return True if the submitted regulatory action matches any accepted form."""
     s = _normalize(submitted)
+    if not s:
+        return False
     return any(s == _normalize(a) or _normalize(a) in s or s in _normalize(a) for a in accepted)
 
 
@@ -107,7 +113,7 @@ class Grader:
         # ---- primary_signal (0.30) ----
         signal_aliases = [
             "lactic acidosis", "lacticacidosis", "lactic acid", "lactic acidaemia",
-            "metformin associated lactic acidosis", "mala",
+            "metformin associated lactic acidosis",
         ]
         if _match_signal(str(sub.get("primary_signal", "")), signal_aliases):
             bd["primary_signal"] = 0.30
@@ -180,9 +186,9 @@ class Grader:
 
         # ---- primary_signal (0.30) ----
         signal_aliases = [
-            "myocardial infarction", "mi", "heart attack",
-            "acute mi", "cardiovascular", "thrombotic cardiovascular",
-            "cardiac event", "coronary", "acute myocardial infarction",
+            "myocardial infarction", "heart attack",
+            "acute myocardial infarction", "cardiovascular",
+            "thrombotic cardiovascular", "cardiac event", "coronary",
         ]
         if _match_signal(str(sub.get("primary_signal", "")), signal_aliases):
             bd["primary_signal"] = 0.30
@@ -211,6 +217,7 @@ class Grader:
             )
 
         # ---- action coverage bonus (0.15) ----
+        # Full bonus: used both key investigation tools; partial for one
         required = {"search_faers", "analyze_signal"}
         history_set = set(history)
         if required.issubset(history_set):
@@ -223,12 +230,12 @@ class Grader:
             bd["coverage_bonus"] = 0.0
             msgs.append(f"No coverage bonus — missing: {required - history_set}")
 
-        # ---- redundancy penalty (-0.05 per extra repeat, cap -0.15) ----
-        redundant = max(0, len(history) - len(set(history)) - 1)
+        # ---- redundancy penalty (-0.05 per each repeated action, cap -0.15) ----
+        redundant = max(0, len(history) - len(set(history)))
         penalty = max(-0.15, -0.05 * redundant)
         bd["redundancy_penalty"] = penalty
         if penalty < 0:
-            msgs.append(f"Redundancy penalty ({redundant} extra repeats): {penalty:.2f}")
+            msgs.append(f"Redundancy penalty ({redundant} repeated actions): {penalty:.2f}")
 
     # ------------------------------------------------------------------
     # Hard: Isotretinoin — Teratogenicity + Depression / Restrict

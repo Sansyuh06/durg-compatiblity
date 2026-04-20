@@ -71,7 +71,7 @@ def test_ground_truth_submission_scores_high() -> None:
     ))
     _check(done, "[easy] done=True after submit")
     _check(reward.value >= 0.70, f"[easy] Ground truth score >= 0.70 (got {reward.value:.2f})")
-    _check(0.01 < reward.value < 1.0, f"[easy] Score strictly in (0.01, 0.99)")
+    _check(0.01 < reward.value < 1.0, "[easy] Score strictly in (0.01, 0.99)")
 
     # Medium — Rofecoxib
     env = DrugTriageEnv("medium")
@@ -88,7 +88,7 @@ def test_ground_truth_submission_scores_high() -> None:
     ))
     _check(done, "[medium] done=True after submit")
     _check(reward.value >= 0.70, f"[medium] Ground truth score >= 0.70 (got {reward.value:.2f})")
-    _check(0.01 < reward.value < 1.0, f"[medium] Score strictly in (0.01, 0.99)")
+    _check(0.01 < reward.value < 1.0, "[medium] Score strictly in (0.01, 0.99)")
 
     # Hard — Isotretinoin
     env = DrugTriageEnv("hard")
@@ -106,7 +106,7 @@ def test_ground_truth_submission_scores_high() -> None:
     ))
     _check(done, "[hard] done=True after submit")
     _check(reward.value >= 0.70, f"[hard] Ground truth score >= 0.70 (got {reward.value:.2f})")
-    _check(0.01 < reward.value < 1.0, f"[hard] Score strictly in (0.01, 0.99)")
+    _check(0.01 < reward.value < 1.0, "[hard] Score strictly in (0.01, 0.99)")
 
 
 def test_wrong_submission_scores_low() -> None:
@@ -123,7 +123,7 @@ def test_wrong_submission_scores_low() -> None:
     ))
     _check(done, "[medium wrong] done=True after submit")
     _check(reward.value < 0.5, f"[medium wrong] Wrong submission scores < 0.5 (got {reward.value:.2f})")
-    _check(0.01 <= reward.value <= 0.99, f"[medium wrong] Score in (0.01, 0.99)")
+    _check(0.01 <= reward.value <= 0.99, "[medium wrong] Score in (0.01, 0.99)")
 
 
 def test_timeout() -> None:

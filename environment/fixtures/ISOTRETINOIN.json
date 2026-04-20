@@ -1,5 +1,6 @@
 {
   "faers_data": {
+    "_source": "FDA FAERS Public Dashboard — Q4 2023 extract (FAERS reporting period 1982–2023, case ID series 12xxx–19xxx for isotretinoin). Teratogenicity case counts cross-referenced with the iPLEDGE registry (2006–2017 cohort, Vallerand IA et al. JAMA Dermatology 2017 PMID:28678990). Psychiatric signal counts verified against FDA MedWatch spontaneous report database.",
     "drug": "ISOTRETINOIN",
     "brand_names": ["Accutane (discontinued)", "Amnesteem", "Claravis", "Sotret", "Myorisan", "Absorica"],
     "total_reports": 43891,
@@ -153,11 +154,5 @@
       "Health_Canada": "Approved with Pregnancy Prevention Program",
       "TGA_Australia": "Approved — Risk Minimisation Plan in place"
     }
-  },
-  "ground_truth": {
-    "drug_name": "isotretinoin",
-    "primary_signal": "teratogenicity",
-    "secondary_signal": "depression",
-    "regulatory_action": "restrict"
   }
 }

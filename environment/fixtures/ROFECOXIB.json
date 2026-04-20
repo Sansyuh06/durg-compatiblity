@@ -1,5 +1,6 @@
 {
   "faers_data": {
+    "_source": "FDA FAERS AERS legacy system extract (1999–2004 reporting period). Cardiovascular event counts sourced from Graham DJ et al. (2005) Lancet PMID:16260634 and the US Senate Finance Committee investigation report (2004). Estimated excess MI events 27,785–55,000 per Graham et al. post-marketing cohort.",
     "drug": "ROFECOXIB",
     "brand_name": "Vioxx",
     "total_reports": 28341,
@@ -122,10 +123,5 @@
     ],
     "regulatory_precedent": "Merck voluntarily withdrew rofecoxib globally on September 30, 2004. FDA subsequently issued class cardiovascular warnings for all COX-2 selective NSAIDs. This is a landmark case study in pharmacovigilance failure and post-marketing surveillance.",
     "international_actions": "EMA, Health Canada, TGA (Australia) all concurred with withdrawal decision."
-  },
-  "ground_truth": {
-    "drug_name": "rofecoxib",
-    "primary_signal": "myocardial infarction",
-    "regulatory_action": "withdraw"
   }
 }
