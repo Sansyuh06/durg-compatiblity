@@ -194,39 +194,33 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
         sec = ss[i]
 
         # Parameters based on secondary structure
-        if sec == "H":
-            # Alpha helix: 3.6 residues per turn, rise 1.5Å per residue
-            turn_angle = 2 * math.pi / 3.6
-            rise = 1.5
-            radius = 2.3
-            theta = i * turn_angle
-            x = radius * math.cos(theta)
-            y = i * rise
-            z = radius * math.sin(theta)
-            ca_pos = np.array([x, y, z])
-        elif sec == "E":
-            # Beta sheet: extended, slight zigzag
-            x = i * 3.3
-            y = (i % 2) * 0.8 - 0.4
-            z = rng.uniform(-0.3, 0.3)
-            ca_pos = np.array([x, y, z])
+        if i == 0:
+            ca_pos = np.array([0.0, 0.0, 0.0])
         else:
-            # Coil: semi-random walk with reasonable geometry
-            if i == 0:
-                ca_pos = np.array([0.0, 0.0, 0.0])
+            prev_ca = residues[-1]["atoms"]["CA"]
+            if sec == "H":
+                # Alpha helix: 3.6 residues per turn, rise 1.5Å per residue
+                turn_angle = 2 * math.pi / 3.6
+                rise = 1.5
+                radius = 2.3
+                theta = i * turn_angle
+                prev_theta = (i - 1) * turn_angle
+                dx = radius * math.cos(theta) - radius * math.cos(prev_theta)
+                dz = radius * math.sin(theta) - radius * math.sin(prev_theta)
+                dy = rise
+                ca_pos = prev_ca + np.array([dx, dy, dz])
+            elif sec == "E":
+                # Beta sheet: extended, zigzag
+                dz = 1.6 if (i % 2 == 0) else -1.6
+                ca_pos = prev_ca + np.array([0.0, 3.3, dz])
             else:
-                prev_ca = residues[-1]["atoms"]["CA"]
-                # Random direction but keeping chain connected
+                # Coil: random walk with reasonable geometry
                 phi = rng.uniform(-math.pi, math.pi)
-                psi = rng.uniform(-math.pi / 2, math.pi / 2)
+                psi = rng.uniform(0, math.pi / 2) # keep generally "up"
                 dx = 3.8 * math.cos(phi) * math.cos(psi)
-                dy = 3.8 * math.sin(phi)
-                dz = 3.8 * math.cos(phi) * math.sin(psi)
-                ca_pos = np.array([
-                    prev_ca[0] + dx,
-                    prev_ca[1] + dy,
-                    prev_ca[2] + dz,
-                ])
+                dz = 3.8 * math.sin(phi) * math.cos(psi)
+                dy = 3.8 * math.sin(psi)
+                ca_pos = prev_ca + np.array([dx, dy, dz])
 
         # Generate N, C, O from CA position
         if i > 0:
