@@ -1,7 +1,7 @@
 """QuantaMed Clinical PDF Report Generator.
 
 Uses fpdf2 to produce a professional clinical PDF report.
-Compatible with fpdf2 >= 2.7.0 (uses ln= parameter, not new_x/new_y).
+Compatible with fpdf2 >= 2.7.0 (uses new_x/new_y parameters).
 """
 from __future__ import annotations
 
@@ -35,6 +35,14 @@ def _sanitize(text: str) -> str:
     )
 
 
+def _ln(pdf: Any, h: float = 0) -> None:
+    """Move cursor to left margin and next line (replaces deprecated ln=1)."""
+    if h:
+        pdf.ln(h)
+    else:
+        pdf.ln()
+
+
 def generate_quantamed_pdf(patient_id: str = "juvenile_myoclonic_epilepsy") -> bytes:
     """Generate a clinical PDF report and return raw PDF bytes."""
     try:
@@ -60,11 +68,14 @@ def generate_quantamed_pdf(patient_id: str = "juvenile_myoclonic_epilepsy") -> b
     # ── Header ──
     pdf.set_font("Helvetica", "B", 22)
     pdf.set_text_color(0, 120, 180)
-    pdf.cell(0, 12, "QuantaMed", ln=1)
+    pdf.cell(0, 12, "QuantaMed")
+    _ln(pdf, 12)
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 6, "Quantum-Enhanced Precision Drug Discovery Platform", ln=1)
-    pdf.cell(0, 5, "Clinical Decision-Support Report", ln=1)
+    pdf.cell(0, 6, "Quantum-Enhanced Precision Drug Discovery Platform")
+    _ln(pdf, 6)
+    pdf.cell(0, 5, "Clinical Decision-Support Report")
+    _ln(pdf, 5)
     pdf.ln(4)
     pdf.set_draw_color(0, 120, 180)
     pdf.set_line_width(0.5)
@@ -74,7 +85,8 @@ def generate_quantamed_pdf(patient_id: str = "juvenile_myoclonic_epilepsy") -> b
     # ── Patient Profile ──
     pdf.set_font("Helvetica", "B", 14)
     pdf.set_text_color(30, 30, 30)
-    pdf.cell(0, 8, "Patient Profile", ln=1)
+    pdf.cell(0, 8, "Patient Profile")
+    _ln(pdf, 8)
     pdf.ln(2)
 
     _add_field(pdf, "Name", patient.get("name", "N/A"))
@@ -103,7 +115,8 @@ def generate_quantamed_pdf(patient_id: str = "juvenile_myoclonic_epilepsy") -> b
     # ── Drug Rankings ──
     pdf.set_font("Helvetica", "B", 14)
     pdf.set_text_color(30, 30, 30)
-    pdf.cell(0, 8, "Drug Candidate Rankings", ln=1)
+    pdf.cell(0, 8, "Drug Candidate Rankings")
+    _ln(pdf, 8)
     pdf.ln(2)
 
     # Table header
@@ -145,7 +158,8 @@ def generate_quantamed_pdf(patient_id: str = "juvenile_myoclonic_epilepsy") -> b
     # ── Critical Risk Flags ──
     pdf.set_font("Helvetica", "B", 14)
     pdf.set_text_color(180, 0, 0)
-    pdf.cell(0, 8, "Critical Risk Flags", ln=1)
+    pdf.cell(0, 8, "Critical Risk Flags")
+    _ln(pdf, 8)
     pdf.ln(2)
 
     try:
@@ -160,7 +174,8 @@ def generate_quantamed_pdf(patient_id: str = "juvenile_myoclonic_epilepsy") -> b
     # CYP flag
     pdf.set_font("Helvetica", "B", 10)
     pdf.set_text_color(180, 100, 0)
-    pdf.cell(0, 6, "CYP2C9 Intermediate Metabolizer Warning", ln=1)
+    pdf.cell(0, 6, "CYP2C9 Intermediate Metabolizer Warning")
+    _ln(pdf, 6)
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(60, 60, 60)
     dose = patient.get("current_dose_mg", 1000)
@@ -176,12 +191,14 @@ def generate_quantamed_pdf(patient_id: str = "juvenile_myoclonic_epilepsy") -> b
     top_drug = ranked[0] if ranked else {}
     pdf.set_font("Helvetica", "B", 14)
     pdf.set_text_color(0, 130, 60)
-    pdf.cell(0, 8, "Recommendation", ln=1)
+    pdf.cell(0, 8, "Recommendation")
+    _ln(pdf, 8)
     pdf.ln(2)
     pdf.set_font("Helvetica", "B", 12)
     pdf.set_text_color(0, 100, 50)
     drug_name = top_drug.get("label", "N/A").upper()
-    pdf.cell(0, 8, f"SWITCH TO {drug_name}", ln=1)
+    pdf.cell(0, 8, f"SWITCH TO {drug_name}")
+    _ln(pdf, 8)
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(40, 40, 40)
     pat_name = patient.get("name", "this patient")
@@ -202,7 +219,8 @@ def generate_quantamed_pdf(patient_id: str = "juvenile_myoclonic_epilepsy") -> b
         f"Safety: {scores.get('safety', 0):.0f}  |  "
         f"BBB: {scores.get('bbb', 0)}"
     )
-    pdf.cell(0, 5, stat_line, ln=1)
+    pdf.cell(0, 5, stat_line)
+    _ln(pdf, 5)
 
     pdf.ln(10)
 
@@ -223,28 +241,34 @@ def generate_quantamed_pdf(patient_id: str = "juvenile_myoclonic_epilepsy") -> b
     ))
     pdf.ln(2)
     pdf.set_font("Helvetica", "", 7)
-    pdf.cell(0, 4, "QuantaMed v1.0  |  Hackathon Edition  |  April 2026", ln=1)
+    pdf.cell(0, 4, "QuantaMed v1.0  |  Hackathon Edition  |  April 2026")
+    _ln(pdf, 4)
 
     return bytes(pdf.output())
 
 
 def _add_field(pdf: Any, label: str, value: str) -> None:
+    """Add a label: value field row to the PDF."""
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_text_color(80, 80, 80)
     pdf.cell(45, 5, label + ":")
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(30, 30, 30)
-    pdf.cell(0, 5, value, ln=1)
+    pdf.cell(0, 5, value)
+    _ln(pdf, 5)
 
 
 def _add_risk_flag(pdf: Any, protein: str, binding: float, notes: list[str]) -> None:
+    """Add a highlighted risk flag entry to the PDF."""
     pdf.set_font("Helvetica", "B", 10)
     pdf.set_text_color(200, 0, 0)
-    pdf.cell(0, 6, f"HIGH RISK: {protein} Off-Target Binding = {binding:.2f}", ln=1)
+    pdf.cell(0, 6, f"HIGH RISK: {protein} Off-Target Binding = {binding:.2f}")
+    _ln(pdf, 6)
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(60, 60, 60)
     for note in notes:
-        pdf.cell(0, 5, f"  - {note}", ln=1)
+        pdf.cell(0, 5, f"  - {note}")
+        _ln(pdf, 5)
     pdf.ln(2)
 
 

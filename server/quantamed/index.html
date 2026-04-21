@@ -527,6 +527,101 @@ canvas.chart-canvas { width:100%!important; }
   font-family:'Space Mono',monospace; font-size:13px;
   color:var(--text2); letter-spacing:2px;
 }
+
+/* ── PROTEIN SIMULATION PANEL (SWISS-MODEL STYLE) ── */
+.protein-panel { display:grid; grid-template-columns:340px 1fr; gap:0; min-height:680px; border-radius:14px; overflow:hidden; border:1px solid var(--border); background:var(--panel); }
+.protein-sidebar { background:var(--bg2); border-right:1px solid var(--border); overflow-y:auto; max-height:680px; }
+.protein-sidebar-header { padding:16px 20px; border-bottom:1px solid var(--border); background:rgba(0,212,255,0.04); }
+.protein-sidebar-header h3 { font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700; color:var(--white); letter-spacing:1px; margin-bottom:4px; }
+.protein-sidebar-header .psh-sub { font-family:'Space Mono',monospace; font-size:10px; color:var(--text2); letter-spacing:1px; }
+.protein-sidebar-section { padding:14px 20px; border-bottom:1px solid rgba(30,51,86,0.4); }
+.protein-sidebar-section .pss-title { font-family:'Space Mono',monospace; font-size:10px; color:var(--cyan); letter-spacing:2px; margin-bottom:10px; text-transform:uppercase; }
+
+.protein-input-area { padding:16px 20px; border-bottom:1px solid var(--border); }
+.protein-input-area label { display:block; font-family:'Space Mono',monospace; font-size:10px; color:var(--text2); letter-spacing:1px; margin-bottom:8px; }
+.fasta-input { width:100%; min-height:100px; max-height:180px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'Space Mono',monospace; font-size:11px; line-height:1.5; padding:10px; resize:vertical; outline:none; transition:border-color 0.2s; }
+.fasta-input:focus { border-color:var(--cyan); box-shadow:0 0 12px rgba(0,212,255,0.15); }
+.fasta-input::placeholder { color:rgba(122,156,197,0.4); }
+.protein-examples { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+.protein-example-btn { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:5px 10px; font-family:'Space Mono',monospace; font-size:9px; color:var(--text2); cursor:pointer; transition:all 0.2s; letter-spacing:0.5px; }
+.protein-example-btn:hover { border-color:var(--cyan); color:var(--cyan); background:rgba(0,212,255,0.08); }
+.model-btn { width:100%; margin-top:12px; background:linear-gradient(135deg,#0066cc,#00aaff); border:none; border-radius:8px; color:white; font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:700; letter-spacing:2px; padding:12px; cursor:pointer; transition:all 0.25s; box-shadow:0 0 16px rgba(0,170,255,0.15); }
+.model-btn:hover { transform:translateY(-1px); box-shadow:0 4px 20px rgba(0,170,255,0.3); }
+.model-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.model-btn.running { background:linear-gradient(135deg,#cc6600,#ff8800); animation:pulse 1.5s infinite; }
+
+.protein-viewer-area { position:relative; background:#000810; display:flex; flex-direction:column; }
+.protein-toolbar { display:flex; align-items:center; gap:8px; padding:10px 16px; background:rgba(0,10,30,0.8); border-bottom:1px solid rgba(30,51,86,0.5); flex-wrap:wrap; }
+.protein-toolbar .pt-group { display:flex; gap:4px; align-items:center; }
+.protein-toolbar .pt-label { font-family:'Space Mono',monospace; font-size:9px; color:var(--text2); letter-spacing:1px; margin-right:4px; }
+.pt-btn { background:var(--bg3); border:1px solid var(--border); border-radius:5px; padding:5px 10px; font-family:'Space Mono',monospace; font-size:9px; color:var(--text2); cursor:pointer; transition:all 0.15s; }
+.pt-btn:hover { border-color:var(--cyan); color:var(--white); }
+.pt-btn.active { background:rgba(0,212,255,0.15); border-color:var(--cyan); color:var(--cyan); }
+.pt-divider { width:1px; height:20px; background:var(--border); margin:0 4px; }
+.protein-viewport { flex:1; position:relative; min-height:450px; }
+.protein-viewport canvas { width:100%!important; height:100%!important; display:block; }
+.protein-overlay-info { position:absolute; bottom:12px; left:16px; z-index:10; }
+.protein-overlay-info .poi-label { font-family:'Space Mono',monospace; font-size:9px; color:rgba(150,180,220,0.5); letter-spacing:1px; }
+
+.model-progress { padding:16px 20px; background:rgba(0,170,255,0.06); border-bottom:1px solid rgba(0,170,255,0.15); }
+.model-progress .mp-bar { width:100%; height:6px; background:var(--bg); border-radius:3px; overflow:hidden; margin:8px 0 4px; }
+.model-progress .mp-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--cyan2),var(--cyan)); transition:width 0.5s; }
+.model-progress .mp-text { font-family:'Space Mono',monospace; font-size:10px; color:var(--text2); }
+
+.quality-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.quality-item { background:var(--bg); border-radius:6px; padding:10px 12px; border:1px solid rgba(30,51,86,0.3); }
+.quality-item .qi-label { font-family:'Space Mono',monospace; font-size:9px; color:var(--text2); letter-spacing:1px; margin-bottom:4px; }
+.quality-item .qi-value { font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; color:var(--white); }
+.quality-item .qi-value.good { color:var(--green); }
+.quality-item .qi-value.ok { color:var(--cyan); }
+.quality-item .qi-value.warn { color:var(--amber); }
+.quality-item .qi-value.bad { color:var(--red); }
+.quality-item .qi-sub { font-size:10px; color:var(--text2); margin-top:2px; }
+
+.sequence-viewer { font-family:'Space Mono',monospace; font-size:10px; line-height:1.8; word-break:break-all; background:var(--bg); border-radius:6px; padding:10px; border:1px solid rgba(30,51,86,0.3); max-height:120px; overflow-y:auto; }
+.sequence-viewer .sv-h { color:#ff6b6b; font-weight:700; }
+.sequence-viewer .sv-e { color:#51cf66; font-weight:700; }
+.sequence-viewer .sv-c { color:var(--text2); }
+
+.template-card { background:var(--bg); border-radius:8px; padding:12px; border:1px solid rgba(30,51,86,0.3); }
+.template-card .tc-pdb { font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700; color:var(--cyan); }
+.template-card .tc-name { font-size:12px; color:var(--text); margin-top:2px; }
+.template-card .tc-meta { font-family:'Space Mono',monospace; font-size:9px; color:var(--text2); margin-top:6px; line-height:1.8; }
+.coverage-bar { width:100%; height:10px; background:var(--bg3); border-radius:5px; overflow:hidden; margin-top:6px; position:relative; }
+.coverage-bar .cb-fill { height:100%; border-radius:5px; transition:width 1s; }
+.coverage-bar .cb-fill.identity { background:linear-gradient(90deg,#00aaff,#00ccff); }
+.coverage-bar .cb-fill.coverage { background:linear-gradient(90deg,#00cc66,#00ff88); }
+
+.docking-card { background:var(--bg); border-radius:8px; padding:12px; border:1px solid rgba(30,51,86,0.3); margin-top:8px; }
+.docking-card .dc-name { font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:600; margin-bottom:4px; }
+.docking-card .dc-energy { font-family:'Space Mono',monospace; font-size:11px; }
+.docking-card .dc-contacts { font-size:10px; color:var(--text2); margin-top:4px; }
+
+.ss-composition { display:flex; gap:8px; margin-top:8px; }
+.ss-chip { display:flex; align-items:center; gap:4px; font-family:'Space Mono',monospace; font-size:10px; }
+.ss-chip .ss-dot { width:8px; height:8px; border-radius:50%; }
+.ss-chip .ss-dot.helix { background:#ff6b6b; }
+.ss-chip .ss-dot.sheet { background:#51cf66; }
+.ss-chip .ss-dot.coil { background:var(--text2); }
+
+.rama-mini { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:6px; }
+.rama-mini .rm-item { text-align:center; }
+.rama-mini .rm-val { font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700; }
+.rama-mini .rm-lbl { font-family:'Space Mono',monospace; font-size:8px; color:var(--text2); letter-spacing:0.5px; }
+
+@media (max-width:900px) {
+  .protein-panel { grid-template-columns:1fr; }
+  .protein-sidebar { max-height:400px; border-right:none; border-bottom:1px solid var(--border); }
+}
+
+/* ── MODE SWITCHER ── */
+.mode-tabs { display:flex; gap:2px; margin-bottom: 24px; padding: 4px; background: rgba(0,10,30,0.4); border-radius: 12px; border: 1px solid var(--border); }
+.mode-tab { flex:1; background:transparent; border:none; padding:16px 20px; font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700; letter-spacing: 2px; color:var(--text2); cursor:pointer; transition:all 0.3s; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:10px; }
+.mode-tab:hover { color:var(--white); background:rgba(255,255,255,0.03); }
+.mode-tab.active { background:linear-gradient(135deg, rgba(0,212,255,0.2), rgba(0,212,255,0.05)); color:var(--cyan); box-shadow:0 0 20px rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2); }
+.mode-view { display:none; animation: fadeIn 0.4s ease; }
+.mode-view.active { display:block; }
+
 </style>
 </head>
 <body>
@@ -553,6 +648,15 @@ canvas.chart-canvas { width:100%!important; }
 </header>
 
 <div class="app">
+
+  <!-- MODE SWITCHER -->
+  <div class="mode-tabs">
+    <button id="tab-quantamed" class="mode-tab active" onclick="switchMode('quantamed')">🧬 QUANTAMED DISCOVERY</button>
+    <button id="tab-protein"   class="mode-tab" onclick="switchMode('protein')">🔬 PROTEIN SIMULATION</button>
+    <button id="tab-triage"    class="mode-tab" onclick="switchMode('triage')">⚕️ PHARMACOVIGILANCE</button>
+  </div>
+
+  <div id="view-quantamed" class="mode-view active">
 
   <!-- HERO ROW -->
   <div style="margin-bottom:28px;">
@@ -634,8 +738,7 @@ canvas.chart-canvas { width:100%!important; }
     <button class="step-btn" onclick="showPanel(4, this)"><span class="step-num">STEP 05</span>RL TIMELINE</button>
     <button class="step-btn" onclick="showPanel(5, this)"><span class="step-num">STEP 06</span>DRUG MATRIX</button>
     <button class="step-btn" onclick="showPanel(6, this)"><span class="step-num">STEP 07</span>TRIBE v2 BRAIN</button>
-    <button class="step-btn" onclick="showPanel(6.5, this)"><span class="step-num">STEP 08</span>PROTEIN FOLDING</button>
-    <button class="step-btn" onclick="showPanel(7, this)"><span class="step-num">FINAL</span>RECOMMENDATION</button>
+        <button class="step-btn" onclick="showPanel(7, this)"><span class="step-num">FINAL</span>RECOMMENDATION</button>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
@@ -1340,27 +1443,6 @@ canvas.chart-canvas { width:100%!important; }
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
-  <!-- PANEL 6.5: PROTEIN FOLDING SIMULATION                       -->
-  <!-- ═══════════════════════════════════════════════════════════ -->
-  <div class="panel" id="panel6_5">
-    <div class="section-title">PROTEIN FOLDING SIMULATION — QUANTUM BACKED</div>
-    <div class="info-box">
-      <strong class="text-cyan">Quantum toy folding demo:</strong> a simplified protein chain is folded by a VQE-backed energy minimization and animated for the user.
-      This panel visualizes the toy folding path and shows the simulated low-energy protein shape.
-    </div>
-    <div class="tribe-card brain-3d-card card" style="margin-top:24px;">
-      <div class="tribe-header">🧬 Protein Folding Trajectory</div>
-      <div class="brain-3d-wrapper" style="width:100%;max-width:760px;height:420px;margin:16px auto 0;border-radius:28px;overflow:hidden;background:radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08), transparent 40%),#02040a;box-shadow:inset 0 0 80px rgba(0,255,190,0.08);border:1px solid rgba(255,255,255,0.08);">
-        <canvas id="foldCanvas" style="width:100%;height:100%;display:block;"></canvas>
-      </div>
-      <div class="tribe-label" style="margin-top:16px;">This animation is driven by a small quantum energy minimization using Qiskit Aer.</div>
-      <div id="foldSummary" style="margin-top:12px;color:var(--text2);font-size:14px;line-height:1.6;">
-        <strong>Loading quantum protein folding demo...</strong>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- PANEL 7: FINAL RECOMMENDATION                              -->
   <!-- ═══════════════════════════════════════════════════════════ -->
   <div class="panel" id="panel7">
@@ -1439,6 +1521,199 @@ canvas.chart-canvas { width:100%!important; }
     </div>
   </div>
 
+</div>
+
+  <div id="view-protein" class="mode-view">
+    <div style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+<!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PANEL 6.5: PROTEIN STRUCTURE SIMULATION (SWISS-MODEL STYLE) -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel6_5" class="panel active">
+    <div class="section-title">PROTEIN STRUCTURE MODELING — SWISS-MODEL INSPIRED</div>
+    <div class="info-box">
+      <strong class="text-cyan">How it works:</strong> Paste a FASTA protein sequence (or choose an example), and QuantaMed will
+      simulate homology modeling — predicting secondary structure, generating 3D coordinates, computing quality metrics
+      (GMQE, QMEAN, Ramachandran), and overlaying drug docking positions. Just like
+      <a href="https://swissmodel.expasy.org" target="_blank" style="color:var(--cyan)">SWISS-MODEL</a>.
+    </div>
+
+    <!-- FASTA Input Section (before modeling) -->
+    <div id="proteinInputSection">
+      <div class="card" style="margin-top:20px;padding:28px;">
+        <div class="circuit-label" style="margin-bottom:16px;">ENTER PROTEIN SEQUENCE</div>
+        <div class="protein-input-area" style="padding:0;border:none;">
+          <label for="fastaInput">TARGET SEQUENCE (FASTA FORMAT)</label>
+          <textarea id="fastaInput" class="fasta-input" placeholder=">sp|P01308|INS_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1
+MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED
+LQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN" rows="6"></textarea>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
+            <span class="mono" style="font-size:10px;color:var(--text2);letter-spacing:1px;">EXAMPLES:</span>
+            <div class="protein-examples" id="proteinExamples">
+              <button class="protein-example-btn" onclick="loadProteinExample('insulin')">🧬 Insulin</button>
+              <button class="protein-example-btn" onclick="loadProteinExample('nav1.2')">⚡ Nav1.2 Channel</button>
+              <button class="protein-example-btn" onclick="loadProteinExample('androgen_receptor')">🔴 Androgen Receptor</button>
+              <button class="protein-example-btn" onclick="loadProteinExample('herg_channel')">💛 hERG Channel</button>
+            </div>
+          </div>
+          <button id="modelBtn" class="model-btn" onclick="runProteinModeling()">
+            🔬 BUILD MODEL
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modeling Progress (shown during modeling) -->
+    <div id="proteinProgressSection" style="display:none;">
+      <div class="card" style="margin-top:20px;padding:0;overflow:hidden;">
+        <div class="model-progress" id="modelProgress">
+          <div class="mp-text" id="modelProgressText">INITIALIZING HOMOLOGY MODELING PIPELINE...</div>
+          <div class="mp-bar"><div class="mp-fill" id="modelProgressFill" style="width:0%"></div></div>
+          <div class="mp-text" style="font-size:9px;color:var(--text2);" id="modelProgressDetail">Parsing FASTA sequence...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Model Results (shown after modeling completes) -->
+    <div id="proteinResultSection" style="display:none;">
+      <!-- Top bar with project info -->
+      <div class="card" style="margin-top:20px;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <span class="mono" style="font-size:10px;color:var(--text2);letter-spacing:1px;">PROJECT</span>
+          <span id="proteinProjectId" style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--white);margin-left:8px;">—</span>
+          <span class="mono" style="font-size:10px;color:var(--text2);margin-left:16px;">LENGTH</span>
+          <span id="proteinLength" style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;color:var(--cyan);margin-left:4px;">—</span>
+          <span class="mono" style="font-size:10px;color:var(--text2);margin-left:4px;">aa</span>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="pt-btn" onclick="document.getElementById('proteinResultSection').style.display='none';document.getElementById('proteinInputSection').style.display='block';">
+            ← NEW SEQUENCE
+          </button>
+        </div>
+      </div>
+
+      <!-- Main 3D viewer + Sidebar layout -->
+      <div class="protein-panel" style="margin-top:16px;">
+        <!-- SIDEBAR -->
+        <div class="protein-sidebar">
+          <div class="protein-sidebar-header">
+            <h3 id="proteinName">Protein Model</h3>
+            <div class="psh-sub" id="proteinOrganism">—</div>
+          </div>
+
+          <!-- Quality Metrics -->
+          <div class="protein-sidebar-section">
+            <div class="pss-title">MODEL QUALITY</div>
+            <div class="quality-grid">
+              <div class="quality-item">
+                <div class="qi-label">GMQE</div>
+                <div class="qi-value" id="qGMQE">—</div>
+                <div class="qi-sub">Global Model Quality</div>
+              </div>
+              <div class="quality-item">
+                <div class="qi-label">QMEAN</div>
+                <div class="qi-value" id="qQMEAN">—</div>
+                <div class="qi-sub">Z-Score</div>
+              </div>
+              <div class="quality-item">
+                <div class="qi-label">MOLPROBITY</div>
+                <div class="qi-value" id="qMolprobity">—</div>
+                <div class="qi-sub">Score</div>
+              </div>
+              <div class="quality-item">
+                <div class="qi-label">CLASH</div>
+                <div class="qi-value" id="qClash">—</div>
+                <div class="qi-sub">Score</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <div class="qi-label" style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text2);letter-spacing:1px;margin-bottom:6px;">RAMACHANDRAN</div>
+              <div class="rama-mini">
+                <div class="rm-item"><div class="rm-val good" id="qRamaFav">—</div><div class="rm-lbl">FAVORED %</div></div>
+                <div class="rm-item"><div class="rm-val ok" id="qRamaAll">—</div><div class="rm-lbl">ALLOWED %</div></div>
+                <div class="rm-item"><div class="rm-val warn" id="qRamaOut">—</div><div class="rm-lbl">OUTLIER %</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template -->
+          <div class="protein-sidebar-section">
+            <div class="pss-title">TEMPLATE</div>
+            <div class="template-card">
+              <div class="tc-pdb" id="tmplPDB">—</div>
+              <div class="tc-name" id="tmplName">—</div>
+              <div class="tc-meta" id="tmplMeta">—</div>
+              <div style="margin-top:8px;">
+                <div class="qi-label" style="font-family:'Space Mono',monospace;font-size:8px;color:var(--text2);">SEQ IDENTITY</div>
+                <div class="coverage-bar"><div class="cb-fill identity" id="tmplIdentityBar" style="width:0%"></div></div>
+                <div class="qi-label" style="font-family:'Space Mono',monospace;font-size:8px;color:var(--text2);margin-top:4px;">COVERAGE</div>
+                <div class="coverage-bar"><div class="cb-fill coverage" id="tmplCoverageBar" style="width:0%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Secondary Structure -->
+          <div class="protein-sidebar-section">
+            <div class="pss-title">SECONDARY STRUCTURE</div>
+            <div class="ss-composition" id="ssComposition">—</div>
+            <div class="sequence-viewer" id="sequenceViewer" style="margin-top:8px;">—</div>
+          </div>
+
+          <!-- Drug Docking -->
+          <div class="protein-sidebar-section">
+            <div class="pss-title">DRUG DOCKING</div>
+            <div id="dockingResults">—</div>
+          </div>
+        </div>
+
+        <!-- 3D VIEWER -->
+        <div class="protein-viewer-area">
+          <div class="protein-toolbar">
+            <div class="pt-group">
+              <span class="pt-label">REPR:</span>
+              <button class="pt-btn active" id="viewCartoon"     onclick="setProteinView('cartoon')">Cartoon</button>
+              <button class="pt-btn" id="viewTube"               onclick="setProteinView('tube')">Tube</button>
+              <button class="pt-btn" id="viewTrace"              onclick="setProteinView('trace')">Trace</button>
+              <button class="pt-btn" id="viewLines"              onclick="setProteinView('lines')">Lines</button>
+              <button class="pt-btn" id="viewBallStick"          onclick="setProteinView('ball-stick')">Ball+Stick</button>
+              <button class="pt-btn" id="viewLicorice"           onclick="setProteinView('licorice')">Licorice</button>
+              <button class="pt-btn" id="viewHyperball"          onclick="setProteinView('hyperball')">Hyperball</button>
+              <button class="pt-btn" id="viewRope"               onclick="setProteinView('rope')">Rope</button>
+              <button class="pt-btn" id="viewSurface"            onclick="setProteinView('surface')">Surface</button>
+              <button class="pt-btn" id="viewSpacefill"          onclick="setProteinView('spacefill')">Space Fill</button>
+            </div>
+            <div class="pt-divider"></div>
+            <div class="pt-group">
+              <span class="pt-label">COLOR:</span>
+              <button class="pt-btn active" id="colorSS"         onclick="setProteinColor('ss')">Structure</button>
+              <button class="pt-btn" id="colorResidue"           onclick="setProteinColor('residue')">Residue</button>
+              <button class="pt-btn" id="colorBFactor"           onclick="setProteinColor('bfactor')">B-Factor</button>
+              <button class="pt-btn" id="colorChain"             onclick="setProteinColor('chain')">Chain</button>
+            </div>
+            <div class="pt-divider"></div>
+            <div class="pt-group">
+              <span class="pt-label">DRUG:</span>
+              <button class="pt-btn" id="drugNone"               onclick="setDrugOverlay('none')">None</button>
+              <button class="pt-btn active" id="drugLTG"         onclick="setDrugOverlay('ltg')">LTG</button>
+              <button class="pt-btn" id="drugVPA"                onclick="setDrugOverlay('vpa')">VPA</button>
+              <button class="pt-btn" id="drugBoth"               onclick="setDrugOverlay('both')">Both</button>
+            </div>
+            <div class="pt-divider"></div>
+            <button class="pt-btn" onclick="resetProteinView()" title="Reset camera">⟳ Reset</button>
+          </div>
+          <div class="protein-viewport" id="proteinViewport">
+            <!-- Three.js renders here -->
+            <div class="protein-overlay-info">
+              <div class="poi-label" id="proteinViewLabel">QUANTAMED · PROTEIN STRUCTURE VIEWER</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+      </div>
+  </div>
+
 </div><!-- /app -->
 
 <script>
@@ -1452,6 +1727,44 @@ const iv = setInterval(() => {
   if(mi >= msgs.length){clearInterval(iv);setTimeout(()=>lo.style.display='none',300);initAll();}
   else lt.textContent = msgs[mi];
 }, 500);
+
+// ── MODE SWITCHING ─────────────────────────────────────────────
+function switchMode(mode) {
+  // Update active tab style
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  const activeTab = document.getElementById('tab-' + mode);
+  if (activeTab) activeTab.classList.add('active');
+  
+  if (mode === 'quantamed') {
+    document.getElementById('view-quantamed').style.display = 'block';
+    const triageView = document.getElementById('view-triage');
+    if (triageView) triageView.style.display = 'none';
+    const proteinView = document.getElementById('view-protein');
+    if (proteinView) proteinView.style.display = 'none';
+    // Jump to step 01
+    const btn = document.querySelectorAll('.step-btn')[0];
+    showPanel(0, btn);
+  } else if (mode === 'protein') {
+    document.getElementById('view-quantamed').style.display = 'none';
+    const triageView = document.getElementById('view-triage');
+    if (triageView) triageView.style.display = 'none';
+    let proteinView = document.getElementById('view-protein');
+    if (proteinView) proteinView.style.display = 'block';
+  } else if (mode === 'triage') {
+    document.getElementById('view-quantamed').style.display = 'none';
+    const proteinView = document.getElementById('view-protein');
+    if (proteinView) proteinView.style.display = 'none';
+    let triageView = document.getElementById('view-triage');
+    if (!triageView) {
+      triageView = document.createElement('div');
+      triageView.id = 'view-triage';
+      triageView.className = 'mode-view active';
+      triageView.innerHTML = '<iframe src="/gradio" style="width:100%;height:850px;border:none;border-radius:12px;background:var(--panel);"></iframe>';
+      document.querySelector('.app').appendChild(triageView);
+    }
+    triageView.style.display = 'block';
+  }
+}
 
 // ── PANEL SWITCHING ───────────────────────────────────────────
 function showPanel(idx, btn){
@@ -1669,122 +1982,677 @@ function initPK(){
   refresh();
 }
 
-// ── PROTEIN FOLDING DEMO ───────────────────────────────────────
-function initProteinFolding(){
-  const canvas = document.getElementById('foldCanvas');
-  const summary = document.getElementById('foldSummary');
-  if(!canvas || !summary) return;
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
+// ══════════════════════════════════════════════════════════
+// FULL NGL-STYLE 3D PROTEIN STRUCTURE VIEWER (10 modes)
+// ══════════════════════════════════════════════════════════
 
-  function resize(){
-    const width = canvas.clientWidth || 760;
-    const height = canvas.clientHeight || 420;
-    canvas.width = Math.floor(width * dpr);
-    canvas.height = Math.floor(height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+let _proteinViewer = null;
+let _proteinData   = null;
+let _proteinExamples = null;
+let _currentProteinView  = 'cartoon';
+let _currentProteinColor = 'ss';
+let _currentDrugOverlay  = 'ltg';
+
+// ── Example sequences ────────────────────────────────────
+async function loadProteinExample(name) {
+  if (!_proteinExamples) {
+    try {
+      const r = await fetch('/api/quantamed/protein-examples');
+      _proteinExamples = await r.json();
+    } catch(e) {
+      _proteinExamples = {
+        'insulin':            '>sp|P01308|INS_HUMAN Insulin OS=Homo sapiens OX=9606 GN=INS PE=1 SV=1\nMALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAED\nLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN',
+        'nav1.2':             '>Nav1.2_binding_pocket SCN2A\nMTSQFWEEFYVLVVQFGFHWFRESLITGYLWTCIVNIIPSTFLADLNHNNEKTSIEFSNL\nSAVYGNLLILLMSSHYALISDIFHVTFEYLYIMVYTLAELSF',
+        'androgen_receptor':  '>sp|P10275|ANDR_HUMAN Androgen receptor LBD\nLLQQQQQQQQQQQQQQQQQQQQQETSPRQQQQQQGEDGSPSNAAQELAKYGVSKRYKCLQS\nSSTLKLPEQLQEMQNQLYSAL',
+        'herg_channel':       '>hERG_K_channel KCNH2 fragment\nMMGAGEEALVAYGSDEQPVVFDMRKLLGSVWQFSSALRLSQSEAMRQAHYRPVDGAMFPI\nCGHLANFRNQNQLATIFPELIAIPVFSNIHSLAYVFVIISVL'
+      };
+    }
+  }
+  const fasta = _proteinExamples[name];
+  if (fasta) document.getElementById('fastaInput').value = fasta;
+}
+
+// ── Progress animation ───────────────────────────────────
+function _animateProgress(steps) {
+  return new Promise(resolve => {
+    let i = 0;
+    const fill   = document.getElementById('modelProgressFill');
+    const text   = document.getElementById('modelProgressText');
+    const detail = document.getElementById('modelProgressDetail');
+    function tick() {
+      if (i >= steps.length) { resolve(); return; }
+      const s = steps[i++];
+      fill.style.width    = s.pct + '%';
+      text.textContent    = s.label;
+      detail.textContent  = s.detail;
+      setTimeout(tick, s.delay);
+    }
+    tick();
+  });
+}
+
+// ── Run modeling ─────────────────────────────────────────
+async function runProteinModeling() {
+  const fasta = (document.getElementById('fastaInput').value || '').trim();
+  if (!fasta) { alert('Please enter a FASTA sequence.'); return; }
+
+  const btn = document.getElementById('modelBtn');
+  btn.disabled = true; btn.classList.add('running'); btn.textContent = '⏳ MODELING...';
+
+  document.getElementById('proteinInputSection').style.display    = 'none';
+  document.getElementById('proteinProgressSection').style.display = 'block';
+  document.getElementById('proteinResultSection').style.display   = 'none';
+
+  await _animateProgress([
+    { pct:10, label:'PARSING FASTA SEQUENCE...',       detail:'Extracting amino acid chain',                delay:400 },
+    { pct:25, label:'SEARCHING TEMPLATE DATABASE...',  detail:'Querying PDB + AlphaFoldDB',                delay:600 },
+    { pct:40, label:'ALIGNING TO TEMPLATE...',         detail:'Smith-Waterman local alignment',            delay:500 },
+    { pct:55, label:'PREDICTING SECONDARY STRUCTURE...',detail:'Chou-Fasman propensity analysis',          delay:500 },
+    { pct:70, label:'BUILDING 3D BACKBONE...',         detail:'Generating Cα coords from φ/ψ angles',      delay:600 },
+    { pct:82, label:'COMPUTING QUALITY METRICS...',    detail:'GMQE, QMEAN, Ramachandran analysis',        delay:400 },
+    { pct:90, label:'DOCKING DRUG CANDIDATES...',      detail:'Lamotrigine + Valproic Acid docking',       delay:500 },
+    { pct:95, label:'FINALIZING MODEL...',             detail:'Preparing 3D viewer data',                  delay:300 },
+  ]);
+
+  try {
+    const response = await fetch('/api/quantamed/protein-model', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fasta }),
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.detail || 'Modeling failed');
+    }
+    _proteinData = await response.json();
+
+    document.getElementById('modelProgressFill').style.width  = '100%';
+    document.getElementById('modelProgressText').textContent  = 'MODEL COMPLETE ✓';
+    document.getElementById('modelProgressDetail').textContent = `${_proteinData.length} residues modeled`;
+
+    await new Promise(r => setTimeout(r, 700));
+
+    document.getElementById('proteinProgressSection').style.display = 'none';
+    document.getElementById('proteinResultSection').style.display   = 'block';
+
+    populateProteinResults(_proteinData);
+    initProtein3DViewer(_proteinData);
+
+  } catch (err) {
+    alert('Modeling error: ' + err.message);
+    document.getElementById('proteinProgressSection').style.display = 'none';
+    document.getElementById('proteinInputSection').style.display    = 'block';
   }
 
-  // 8-residue HP lattice: H P P H P P H H
-  const seq = ['H','P','P','H','P','P','H','H'];
-  const startPos = [
-    [-3.5, 0, 0], [-2.5, 0, 0], [-1.5, 0, 0], [-0.5, 0, 0],
-    [ 0.5, 0, 0], [ 1.5, 0, 0], [ 2.5, 0, 0], [ 3.5, 0, 0]
-  ];
-  // Simple compact fold with contacts
-  const endPos = [
-    [-1, -1,  1], [ 0, -1,  1], [ 0,  0,  1], [-1,  0,  1],
-    [-1,  1,  0], [ 0,  1, -1], [ 0,  0, -1], [-1,  0, -1]
-  ];
+  btn.disabled = false; btn.classList.remove('running'); btn.textContent = '🔬 BUILD MODEL';
+}
 
-  window.addEventListener('resize', resize);
-  resize();
-  
-  let clock = 0;
+// ── Populate sidebar ─────────────────────────────────────
+function populateProteinResults(data) {
+  const info = data.protein_info || {};
+  document.getElementById('proteinProjectId').textContent = data.project_id || '—';
+  document.getElementById('proteinLength').textContent    = data.length     || '—';
+  document.getElementById('proteinName').textContent      = info.name       || 'Protein Model';
+  document.getElementById('proteinOrganism').textContent  = info.organism   || (info.gene ? 'Gene: '+info.gene : '—');
+
+  const q    = data.quality || {};
+  const gmqe = q.gmqe || 0;
+  document.getElementById('qGMQE').textContent    = gmqe.toFixed(2);
+  document.getElementById('qGMQE').className      = 'qi-value ' + (gmqe>.7?'good':gmqe>.4?'ok':'warn');
+  const qm = q.qmean || {};
+  document.getElementById('qQMEAN').textContent   = (qm.z_score||0).toFixed(2);
+  document.getElementById('qQMEAN').className     = 'qi-value ' + ((qm.z_score||0)>-1?'good':(qm.z_score||0)>-2.5?'ok':'warn');
+  document.getElementById('qMolprobity').textContent = (q.molprobity||0).toFixed(2);
+  document.getElementById('qMolprobity').className   = 'qi-value ' + ((q.molprobity||0)<2?'good':(q.molprobity||0)<3?'ok':'warn');
+  document.getElementById('qClash').textContent   = (q.clash_score||0).toFixed(1);
+  document.getElementById('qClash').className     = 'qi-value ' + ((q.clash_score||0)<5?'good':(q.clash_score||0)<15?'ok':'warn');
+
+  const rama = q.ramachandran || {};
+  document.getElementById('qRamaFav').textContent = (rama.favored||0).toFixed(1)+'%';
+  document.getElementById('qRamaAll').textContent = (rama.allowed||0).toFixed(1)+'%';
+  document.getElementById('qRamaOut').textContent = (rama.outlier||0).toFixed(1)+'%';
+
+  const tmpl = data.template || {};
+  document.getElementById('tmplPDB').textContent  = tmpl.pdb_id || '—';
+  document.getElementById('tmplName').textContent = tmpl.name   || '—';
+  document.getElementById('tmplMeta').innerHTML   =
+    'Method: '+(tmpl.method||'—')+'<br>Chain: '+(tmpl.chain||'—')+'<br>'+
+    (tmpl.resolution?'Res: '+tmpl.resolution+' Å<br>':'')+
+    'Organism: '+(tmpl.organism||'—');
+  setTimeout(() => {
+    document.getElementById('tmplIdentityBar').style.width  = (tmpl.seq_identity||0)+'%';
+    document.getElementById('tmplCoverageBar').style.width  = ((tmpl.coverage||0)*100)+'%';
+  }, 300);
+
+  const ssc = data.ss_composition || {};
+  document.getElementById('ssComposition').innerHTML =
+    '<div class="ss-chip"><div class="ss-dot helix"></div>α-Helix '+(ssc.helix||0).toFixed(1)+'%</div>'+
+    '<div class="ss-chip"><div class="ss-dot sheet"></div>β-Sheet '+(ssc.sheet||0).toFixed(1)+'%</div>'+
+    '<div class="ss-chip"><div class="ss-dot coil"></div>Coil '+(ssc.coil||0).toFixed(1)+'%</div>';
+
+  const ss  = data.secondary_structure || '';
+  const seq = data.sequence || '';
+  let seqHtml = '';
+  for (let i = 0; i < seq.length; i++) {
+    const cls = ss[i]==='H' ? 'sv-h' : ss[i]==='E' ? 'sv-e' : 'sv-c';
+    seqHtml += '<span class="'+cls+'">'+seq[i]+'</span>';
+    if ((i+1)%60===0) seqHtml += '\n';
+  }
+  document.getElementById('sequenceViewer').innerHTML = seqHtml;
+
+  const docking = data.docking || [];
+  let dockHtml = '';
+  for (const d of docking) {
+    dockHtml += '<div class="docking-card">'+
+      '<div class="dc-name" style="color:'+d.color+'">'+d.label+'</div>'+
+      '<div class="dc-energy">ΔG: <strong style="color:'+d.color+'">'+d.binding_energy+' kcal/mol</strong></div>'+
+      '<div class="dc-contacts">'+(d.pocket_residues||[]).length+' pocket residue contacts</div>'+
+      '</div>';
+  }
+  document.getElementById('dockingResults').innerHTML = dockHtml || '—';
+}
+
+// ══════════════════════════════════════════════════════════
+// 3D VIEWER — all 10 NGL-style rendering modes
+// ══════════════════════════════════════════════════════════
+function initProtein3DViewer(data) {
+  if (!window.THREE) { setTimeout(() => initProtein3DViewer(data), 300); return; }
+  const mount = document.getElementById('proteinViewport');
+  if (!mount) return;
+
+  // Clean up old renderer
+  if (_proteinViewer) {
+    try { _proteinViewer.renderer.dispose(); } catch(e) {}
+    mount.querySelectorAll('canvas').forEach(c => c.remove());
+  }
+
+  const W = mount.clientWidth  || 800;
+  const H = mount.clientHeight || 500;
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H);
+  renderer.setClearColor(0x000a14, 1);
+  renderer.shadowMap.enabled = false;
+  mount.insertBefore(renderer.domElement, mount.firstChild);
+  Object.assign(renderer.domElement.style, {
+    position:'absolute', top:'0', left:'0', width:'100%', height:'100%'
+  });
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 2000);
+
+  const residues = data.residues || [];
+
+  // Compute bounding box center + radius
+  let minX=Infinity,minY=Infinity,minZ=Infinity;
+  let maxX=-Infinity,maxY=-Infinity,maxZ=-Infinity;
+  for (const r of residues) {
+    const [x,y,z] = r.atoms.CA;
+    if(x<minX) minX=x; if(x>maxX) maxX=x;
+    if(y<minY) minY=y; if(y>maxY) maxY=y;
+    if(z<minZ) minZ=z; if(z>maxZ) maxZ=z;
+  }
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2, cz=(minZ+maxZ)/2;
+  const extX=(maxX-minX), extY=(maxY-minY), extZ=(maxZ-minZ);
+  const radius = Math.sqrt(extX*extX+extY*extY+extZ*extZ)/2 + 2;
+  const camDist = radius / Math.tan(22.5 * Math.PI / 180) * 1.1;
+  camera.position.set(cx + camDist*0.7, cy + camDist*0.25, cz + camDist*0.7);
+  camera.lookAt(cx, cy, cz);
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const kL = new THREE.DirectionalLight(0xffffff, 1.0); kL.position.set(5,8,6); scene.add(kL);
+  const fL = new THREE.DirectionalLight(0xaaccff, 0.45); fL.position.set(-4,2,-3); scene.add(fL);
+  const bL = new THREE.DirectionalLight(0x334455, 0.3); bL.position.set(0,-3,-4); scene.add(bL);
+
+  // ── Color palettes ──────────────────────────────────────
+  const SS_COLORS   = { H:0xff6b6b, E:0x51cf66, C:0x868e96 };
+  const CHAIN_PAL   = [0x4dabf7,0x69db7c,0xffd43b,0xff922b,0xda77f2,0xa9e34b,0x66d9e8];
+  const ELEM_COLORS = { C:0x909090, N:0x3366ff, O:0xff3333, Cl:0x22cc22, S:0xffcc00, P:0xff8800 };
+
+  // B-factor simulation (0→blue, 0.5→white, 1→red)
+  function bFactorColor(i, n) {
+    const t = i / Math.max(1, n-1);
+    const r = t < 0.5 ? t*2 : 1;
+    const g = t < 0.5 ? t*2 : 2-t*2;
+    const b = t < 0.5 ? 1   : 2-t*2;
+    return (Math.round(r*255)<<16)|(Math.round(g*255)<<8)|Math.round(b*255);
+  }
+
+  function getColor(r, mode) {
+    if (mode === 'ss')       return SS_COLORS[r.ss] || 0x868e96;
+    if (mode === 'residue')  return parseInt((r.color||'#808080').replace('#','0x'),16);
+    if (mode === 'chain')    return CHAIN_PAL[r.index % CHAIN_PAL.length];
+    if (mode === 'bfactor')  return bFactorColor(r.index, residues.length);
+    return 0x868e96;
+  }
+
+  const proteinGroup = new THREE.Group();
+  const drugGroup    = new THREE.Group();
+  scene.add(proteinGroup, drugGroup);
+
+  // Shared material factory
+  const mat = (color, opts={}) => new THREE.MeshPhongMaterial({
+    color, shininess: opts.shine||60,
+    transparent: opts.alpha !== undefined,
+    opacity: opts.alpha||1.0,
+    wireframe: opts.wire||false,
+  });
+
+  // Catmull-Rom spline through CA positions
+  function caSpline(subdivisions) {
+    if (residues.length < 2) return [];
+    const pts = residues.map(r => new THREE.Vector3(...r.atoms.CA));
+    const curve = new THREE.CatmullRomCurve3(pts);
+    return curve.getPoints(Math.max(residues.length*subdivisions, 60));
+  }
+
+  // ── 1. CARTOON ──────────────────────────────────────────
+  // Ribbon with helix cylinders, sheet arrows, coil tubes
+  function buildCartoon(cmode) {
+    proteinGroup.clear();
+    if (residues.length < 2) return;
+
+    let i = 0;
+    while (i < residues.length) {
+      const ss = residues[i].ss;
+      let j = i;
+      while (j < residues.length && residues[j].ss === ss) j++;
+      const chunk = residues.slice(i, j);
+      const col   = getColor(chunk[Math.floor(chunk.length/2)], cmode);
+
+      if (ss === 'H' && chunk.length >= 3) {
+        // Helix: smooth cylinder with ribbon
+        const pts  = chunk.map(r => new THREE.Vector3(...r.atoms.CA));
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const tGeo  = new THREE.TubeGeometry(curve, chunk.length*4, 0.5, 10, false);
+        proteinGroup.add(new THREE.Mesh(tGeo, mat(col, {shine:90})));
+      } else if (ss === 'E' && chunk.length >= 2) {
+        // Sheet: flat box
+        for (let k=0; k<chunk.length-1; k++) {
+          const a = new THREE.Vector3(...chunk[k].atoms.CA);
+          const b = new THREE.Vector3(...chunk[k+1].atoms.CA);
+          const dir = new THREE.Vector3().subVectors(b,a);
+          const len = dir.length();
+          const mid = new THREE.Vector3().addVectors(a,b).multiplyScalar(0.5);
+          const geo = new THREE.BoxGeometry(len, 0.25, 1.0);
+          const m   = new THREE.Mesh(geo, mat(col, {shine:50}));
+          m.position.copy(mid);
+          m.lookAt(b); m.rotateY(Math.PI/2);
+          proteinGroup.add(m);
+        }
+        // Arrow head
+        if (chunk.length >= 2) {
+          const last = new THREE.Vector3(...chunk[chunk.length-1].atoms.CA);
+          const prev = new THREE.Vector3(...chunk[chunk.length-2].atoms.CA);
+          const dir  = new THREE.Vector3().subVectors(last,prev).normalize();
+          const geo  = new THREE.ConeGeometry(0.7, 1.4, 6);
+          const m    = new THREE.Mesh(geo, mat(col, {shine:70}));
+          m.position.copy(last);
+          m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+          proteinGroup.add(m);
+        }
+      } else {
+        // Coil: thin tube
+        if (chunk.length >= 2) {
+          const pts  = chunk.map(r => new THREE.Vector3(...r.atoms.CA));
+          const curve = new THREE.CatmullRomCurve3(pts);
+          const tGeo  = new THREE.TubeGeometry(curve, chunk.length*3, 0.18, 6, false);
+          proteinGroup.add(new THREE.Mesh(tGeo, mat(col, {shine:40})));
+        } else {
+          const ca = chunk[0].atoms.CA;
+          const sg = new THREE.SphereGeometry(0.3,8,8);
+          const sm = new THREE.Mesh(sg, mat(col));
+          sm.position.set(...ca); proteinGroup.add(sm);
+        }
+      }
+      i = j;
+    }
+  }
+
+  // ── 2. TUBE ─────────────────────────────────────────────
+  // Smooth constant-radius tube through all CA atoms
+  function buildTube(cmode) {
+    proteinGroup.clear();
+    if (residues.length < 2) return;
+    const pts   = residues.map(r => new THREE.Vector3(...r.atoms.CA));
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const geo   = new THREE.TubeGeometry(curve, residues.length*5, 0.35, 10, false);
+    // Vertex color by residue
+    const positions = geo.attributes.position;
+    const colors    = new Float32Array(positions.count * 3);
+    const total     = residues.length;
+    for (let vi=0; vi<positions.count; vi++) {
+      const pct  = vi / positions.count;
+      const ri   = Math.min(Math.floor(pct * total), total-1);
+      const c    = new THREE.Color(getColor(residues[ri], cmode));
+      colors[vi*3]=c.r; colors[vi*3+1]=c.g; colors[vi*3+2]=c.b;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(colors,3));
+    const m = new THREE.MeshPhongMaterial({ vertexColors:true, shininess:70 });
+    proteinGroup.add(new THREE.Mesh(geo, m));
+  }
+
+  // ── 3. TRACE ────────────────────────────────────────────
+  // CA-only polyline (thin)
+  function buildTrace(cmode) {
+    proteinGroup.clear();
+    for (let i=0; i<residues.length-1; i++) {
+      const a = new THREE.Vector3(...residues[i].atoms.CA);
+      const b = new THREE.Vector3(...residues[i+1].atoms.CA);
+      const d = new THREE.Vector3().subVectors(b,a);
+      const len = d.length();
+      const mid = new THREE.Vector3().addVectors(a,b).multiplyScalar(0.5);
+      const geo = new THREE.CylinderGeometry(0.07,0.07,len,5);
+      const m   = new THREE.Mesh(geo, mat(getColor(residues[i],cmode),{shine:30}));
+      m.position.copy(mid); m.lookAt(b); m.rotateX(Math.PI/2);
+      proteinGroup.add(m);
+    }
+    // Atoms as small spheres
+    for (const r of residues) {
+      const sg = new THREE.SphereGeometry(0.15,7,7);
+      const sm = new THREE.Mesh(sg, mat(getColor(r,cmode)));
+      sm.position.set(...r.atoms.CA); proteinGroup.add(sm);
+    }
+  }
+
+  // ── 4. LINES ────────────────────────────────────────────
+  // Backbone skeleton as GL lines (no geometry width)
+  function buildLines(cmode) {
+    proteinGroup.clear();
+    const pts = [];
+    const cols = [];
+    for (let i=0; i<residues.length; i++) {
+      const c = new THREE.Color(getColor(residues[i],cmode));
+      pts.push(new THREE.Vector3(...residues[i].atoms.CA));
+      cols.push(c.r,c.g,c.b);
+      if (i>0 && i<residues.length-1) {
+        pts.push(new THREE.Vector3(...residues[i].atoms.CA));
+        cols.push(c.r,c.g,c.b);
+      }
+    }
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    geo.setAttribute('color',new THREE.BufferAttribute(new Float32Array(cols),3));
+    const lm = new THREE.LineBasicMaterial({ vertexColors:true });
+    proteinGroup.add(new THREE.LineSegments(geo, lm));
+    // Small knot spheres at CA
+    for (const r of residues) {
+      const sg = new THREE.SphereGeometry(0.14,6,6);
+      const sm = new THREE.Mesh(sg, mat(getColor(r,cmode),{shine:20}));
+      sm.position.set(...r.atoms.CA); proteinGroup.add(sm);
+    }
+  }
+
+  // ── 5. BALL + STICK ─────────────────────────────────────
+  function buildBallStick(cmode) {
+    proteinGroup.clear();
+    const SIZES = {N:0.38,CA:0.48,C:0.37,O:0.33,CB:0.32};
+    const ACOLORS = {N:0x3366ff,CA:0xffffff,C:0xa0a0a0,O:0xff3333,CB:0x00cc66};
+
+    for (const r of residues) {
+      for (const [an, pos] of Object.entries(r.atoms)) {
+        const useCol = cmode==='ss' ? (an==='CA'?getColor(r,cmode):ACOLORS[an]||0x808080) : getColor(r,cmode);
+        const sg = new THREE.SphereGeometry(SIZES[an]||0.3, 10, 10);
+        const sm = new THREE.Mesh(sg, mat(useCol,{shine:100}));
+        sm.position.set(...pos); proteinGroup.add(sm);
+      }
+      for (const [a,b] of [['N','CA'],['CA','C'],['C','O'],['CA','CB']]) {
+        const pa=r.atoms[a], pb=r.atoms[b]; if(!pa||!pb) continue;
+        const va=new THREE.Vector3(...pa), vb=new THREE.Vector3(...pb);
+        const len=va.distanceTo(vb);
+        const mid=new THREE.Vector3().addVectors(va,vb).multiplyScalar(0.5);
+        const cg=new THREE.CylinderGeometry(0.09,0.09,len,6);
+        const cm=new THREE.Mesh(cg, mat(0x555555,{shine:30}));
+        cm.position.copy(mid); cm.lookAt(vb); cm.rotateX(Math.PI/2);
+        proteinGroup.add(cm);
+      }
+    }
+    // Peptide bonds
+    for (let i=0;i<residues.length-1;i++) {
+      const c=residues[i].atoms.C, n=residues[i+1].atoms.N;
+      if(!c||!n) continue;
+      const va=new THREE.Vector3(...c), vb=new THREE.Vector3(...n);
+      const len=va.distanceTo(vb); if(len>5) continue;
+      const mid=new THREE.Vector3().addVectors(va,vb).multiplyScalar(0.5);
+      const cg=new THREE.CylinderGeometry(0.07,0.07,len,6);
+      const cm=new THREE.Mesh(cg, mat(0x444444));
+      cm.position.copy(mid); cm.lookAt(vb); cm.rotateX(Math.PI/2);
+      proteinGroup.add(cm);
+    }
+  }
+
+  // ── 6. LICORICE ─────────────────────────────────────────
+  // All-atom sticks (uniform fat cylinders, no spheres at joints)
+  function buildLicorice(cmode) {
+    proteinGroup.clear();
+    const R = 0.2;
+    function stick(pa,pb,col) {
+      const va=new THREE.Vector3(...pa), vb=new THREE.Vector3(...pb);
+      const len=va.distanceTo(vb); if(len>5||len<0.3) return;
+      const mid=new THREE.Vector3().addVectors(va,vb).multiplyScalar(0.5);
+      const geo=new THREE.CylinderGeometry(R,R,len,8);
+      const m=new THREE.Mesh(geo, mat(col,{shine:80}));
+      m.position.copy(mid); m.lookAt(vb); m.rotateX(Math.PI/2);
+      proteinGroup.add(m);
+    }
+    for (const r of residues) {
+      const col = getColor(r,cmode);
+      for (const [a,b] of [['N','CA'],['CA','C'],['C','O'],['CA','CB']]) {
+        if(r.atoms[a]&&r.atoms[b]) stick(r.atoms[a],r.atoms[b],col);
+      }
+    }
+    for (let i=0;i<residues.length-1;i++) {
+      const c=residues[i].atoms.C, n=residues[i+1].atoms.N;
+      if(c&&n) stick(c,n, getColor(residues[i],cmode));
+    }
+  }
+
+  // ── 7. HYPERBALL ─────────────────────────────────────────
+  // Atoms as large colored spheres + thin stick bonds
+  function buildHyperball(cmode) {
+    proteinGroup.clear();
+    const ACOLORS={N:0x3366ff,CA:0xff9900,C:0xa0a0a0,O:0xff3333,CB:0x00cc66};
+    for (const r of residues) {
+      for (const [an,pos] of Object.entries(r.atoms)) {
+        const col = cmode==='ss' ? (ACOLORS[an]||getColor(r,cmode)) : getColor(r,cmode);
+        const sg = new THREE.SphereGeometry(0.7,14,14);
+        const sm = new THREE.Mesh(sg, mat(col,{shine:120,alpha:0.88}));
+        sm.position.set(...pos); proteinGroup.add(sm);
+      }
+      for (const [a,b] of [['N','CA'],['CA','C'],['C','O'],['CA','CB']]) {
+        const pa=r.atoms[a], pb=r.atoms[b]; if(!pa||!pb) continue;
+        const va=new THREE.Vector3(...pa), vb=new THREE.Vector3(...pb);
+        const len=va.distanceTo(vb); if(len<0.3||len>4) continue;
+        const mid=new THREE.Vector3().addVectors(va,vb).multiplyScalar(0.5);
+        const cg=new THREE.CylinderGeometry(0.12,0.12,len,6);
+        const cm=new THREE.Mesh(cg, mat(0x888888,{shine:40}));
+        cm.position.copy(mid); cm.lookAt(vb); cm.rotateX(Math.PI/2);
+        proteinGroup.add(cm);
+      }
+    }
+  }
+
+  // ── 8. ROPE ─────────────────────────────────────────────
+  // Thick smooth spline, coil winding visible (diameter varies with SS)
+  function buildRope(cmode) {
+    proteinGroup.clear();
+    if (residues.length < 2) return;
+    // Segment by SS type for varying radius
+    let i=0;
+    while (i < residues.length) {
+      let j=i;
+      while (j<residues.length && residues[j].ss===residues[i].ss) j++;
+      const chunk = residues.slice(i,j);
+      if (chunk.length < 2) { i=j; continue; }
+      const pts   = chunk.map(r => new THREE.Vector3(...r.atoms.CA));
+      if (pts.length < 2) { i=j; continue; }
+      const curve = new THREE.CatmullRomCurve3(pts);
+      const rad   = chunk[0].ss==='H' ? 0.65 : chunk[0].ss==='E' ? 0.55 : 0.3;
+      const col   = getColor(chunk[Math.floor(chunk.length/2)], cmode);
+      const geo   = new THREE.TubeGeometry(curve, chunk.length*6, rad, 12, false);
+      proteinGroup.add(new THREE.Mesh(geo, mat(col,{shine:80})));
+      i=j;
+    }
+  }
+
+  // ── 9. SURFACE ──────────────────────────────────────────
+  // Semi-transparent van-der-Waals spheres
+  function buildSurface(cmode) {
+    proteinGroup.clear();
+    for (const r of residues) {
+      const geo = new THREE.SphereGeometry(1.7,14,14);
+      const m   = new THREE.Mesh(geo, mat(getColor(r,cmode),{shine:25,alpha:0.60}));
+      m.position.set(...r.atoms.CA); proteinGroup.add(m);
+    }
+  }
+
+  // ── 10. SPACE FILL ──────────────────────────────────────
+  // CPK-style: all atoms as vdW spheres, no bonds
+  function buildSpaceFill(cmode) {
+    proteinGroup.clear();
+    const VDW = {N:1.55,CA:1.70,C:1.70,O:1.52,CB:1.70};
+    const ACOLORS={N:0x3366ff,CA:0xcccccc,C:0x888888,O:0xff3333,CB:0x00cc66};
+    for (const r of residues) {
+      for (const [an,pos] of Object.entries(r.atoms)) {
+        const col = cmode==='ss'?(ACOLORS[an]||getColor(r,cmode)):getColor(r,cmode);
+        const vdw = VDW[an]||1.5;
+        const geo = new THREE.SphereGeometry(vdw,14,14);
+        const m   = new THREE.Mesh(geo, mat(col,{shine:110}));
+        m.position.set(...pos); proteinGroup.add(m);
+      }
+    }
+  }
+
+  // ── Drug docking overlay ─────────────────────────────────
+  function buildDrugOverlay(drugId) {
+    drugGroup.clear();
+    if (drugId==='none' || !data.docking) return;
+    const drugs = data.docking.filter(d => drugId==='both' || d.drug_id===drugId);
+    for (const drug of drugs) {
+      const drugCol = parseInt(drug.color.replace('#','0x'),16);
+      for (const atom of (drug.atoms||[])) {
+        const elemCol = ELEM_COLORS[atom.element] || drugCol;
+        const size    = atom.element==='Cl'?0.6 : atom.element==='O'?0.45 : atom.element==='N'?0.42 : 0.38;
+        const sg = new THREE.SphereGeometry(size,12,12);
+        const sm = new THREE.Mesh(sg, new THREE.MeshPhongMaterial({
+          color: elemCol, emissive: drugCol, emissiveIntensity:0.35, shininess:130
+        }));
+        sm.position.set(atom.x, atom.y, atom.z); drugGroup.add(sm);
+      }
+      const atoms = drug.atoms || [];
+      for (let k=0;k<atoms.length-1;k++) {
+        const a=atoms[k], b=atoms[k+1];
+        const va=new THREE.Vector3(a.x,a.y,a.z), vb=new THREE.Vector3(b.x,b.y,b.z);
+        const len=va.distanceTo(vb); if(len>4) continue;
+        const mid=new THREE.Vector3().addVectors(va,vb).multiplyScalar(0.5);
+        const cg=new THREE.CylinderGeometry(0.07,0.07,len,5);
+        const cm=new THREE.Mesh(cg, new THREE.MeshPhongMaterial({
+          color:parseInt(drug.color.replace('#','0x'),16), shininess:60
+        }));
+        cm.position.copy(mid); cm.lookAt(vb); cm.rotateX(Math.PI/2); drugGroup.add(cm);
+      }
+    }
+  }
+
+  // ── Dispatch ─────────────────────────────────────────────
+  function rebuild() {
+    const v = _currentProteinView, c = _currentProteinColor;
+    switch(v) {
+      case 'cartoon':   buildCartoon(c);   break;
+      case 'tube':      buildTube(c);      break;
+      case 'trace':     buildTrace(c);     break;
+      case 'lines':     buildLines(c);     break;
+      case 'ball-stick':buildBallStick(c); break;
+      case 'licorice':  buildLicorice(c);  break;
+      case 'hyperball': buildHyperball(c); break;
+      case 'rope':      buildRope(c);      break;
+      case 'surface':   buildSurface(c);   break;
+      case 'spacefill': buildSpaceFill(c); break;
+      default:          buildCartoon(c);
+    }
+    buildDrugOverlay(_currentDrugOverlay);
+  }
+
+  rebuild();
+
+  // ── Orbit + zoom ─────────────────────────────────────────
+  let camTheta = 0.5, camPhi = 0.18, isDrag = false, lastMX = 0, lastMY = 0;
+  let camR = camDist;
+  renderer.domElement.addEventListener('mousedown', e=>{isDrag=true;lastMX=e.clientX;lastMY=e.clientY;});
+  renderer.domElement.addEventListener('mousemove', e=>{
+    if(!isDrag) return;
+    camTheta -= (e.clientX-lastMX)*0.007;
+    camPhi = Math.max(-1.3,Math.min(1.3,camPhi-(e.clientY-lastMY)*0.005));
+    lastMX=e.clientX; lastMY=e.clientY;
+  });
+  window.addEventListener('mouseup', ()=>isDrag=false);
+  renderer.domElement.addEventListener('wheel', e=>{
+    camR = Math.max(radius*0.5, Math.min(camDist*4, camR+e.deltaY*0.08));
+    e.preventDefault();
+  },{passive:false});
+
+  const onResize = () => {
+    const w=mount.clientWidth||800, h=mount.clientHeight||500;
+    camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h);
+  };
+  window.addEventListener('resize', onResize);
+
+  let _clock3 = 0;
   function animate() {
     requestAnimationFrame(animate);
-    clock += 0.016;
-    
-    const width = canvas.clientWidth || 760;
-    const height = canvas.clientHeight || 420;
-    if (canvas.width !== Math.floor(width * dpr)) resize();
-
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = 'rgba(3, 10, 24, 0.9)';
-    ctx.fillRect(0, 0, width, height);
-
-    const foldT = Math.min(1, Math.max(0, (Math.sin(clock * 0.8) + 1) / 2));
-    
-    let currentPos = [];
-    for(let i=0; i<8; i++){
-       currentPos.push([
-         startPos[i][0] * (1-foldT) + endPos[i][0] * foldT,
-         startPos[i][1] * (1-foldT) + endPos[i][1] * foldT,
-         startPos[i][2] * (1-foldT) + endPos[i][2] * foldT
-       ]);
-    }
-
-    const angle = clock * 0.4;
-    const cosA = Math.cos(angle);
-    const sinA = Math.sin(angle);
-
-    const projPos = currentPos.map(p => {
-       const x = p[0]*cosA - p[2]*sinA;
-       const z = p[0]*sinA + p[2]*cosA;
-       const y = p[1];
-       const scale = 400 / (10 + z);
-       return { x: width/2 + x * scale * 1.5, y: height/2 + y * scale * 1.5, z: z };
-    });
-
-    ctx.strokeStyle = '#43f7ff';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    for(let i=0; i<8; i++){
-      if(i===0) ctx.moveTo(projPos[i].x, projPos[i].y);
-      else ctx.lineTo(projPos[i].x, projPos[i].y);
-    }
-    ctx.stroke();
-
-    if (foldT > 0.8) {
-       ctx.strokeStyle = 'rgba(255,189,89,' + (foldT-0.8)*5 + ')';
-       ctx.setLineDash([5, 5]);
-       ctx.beginPath();
-       ctx.moveTo(projPos[0].x, projPos[0].y);
-       ctx.lineTo(projPos[3].x, projPos[3].y);
-       ctx.moveTo(projPos[3].x, projPos[3].y);
-       ctx.lineTo(projPos[7].x, projPos[7].y);
-       ctx.stroke();
-       ctx.setLineDash([]);
-    }
-
-    // Since it's simple enough, drawing sequentially is fine but we can sort by z so they don't clip awkwardly
-    const order = [0,1,2,3,4,5,6,7].sort((a,b) => projPos[b].z - projPos[a].z);
-    for(let i of order){
-      ctx.beginPath();
-      ctx.arc(projPos[i].x, projPos[i].y, 10, 0, Math.PI*2);
-      ctx.fillStyle = seq[i] === 'H' ? '#ffbd59' : '#67f0ff';
-      if (seq[i] === 'H' && foldT > 0.5) {
-         ctx.shadowBlur = 15;
-         ctx.shadowColor = '#ffbd59';
-      } else {
-         ctx.shadowBlur = 0;
-      }
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-    }
-
-    const energy = -1.2 - foldT * 1.64; 
-    ctx.fillStyle = '#c8d8f0';
-    ctx.font = '14px Space Mono';
-    ctx.fillText(`Sequence: HPPHPPHH (Nav1.2 fragment)`, 24, height - 52);
-    ctx.fillText(`Live VQE Energy: ${energy.toFixed(3)} eV`, 24, height - 28);
+    _clock3 += 0.016;
+    if (!isDrag) camTheta += 0.002;
+    camera.position.set(
+      cx + camR*Math.cos(camPhi)*Math.sin(camTheta),
+      cy + camR*Math.sin(camPhi),
+      cz + camR*Math.cos(camPhi)*Math.cos(camTheta)
+    );
+    camera.lookAt(cx, cy, cz);
+    renderer.render(scene, camera);
   }
-  
-  summary.innerHTML = `Simulating Nav1.2 peptide collapse via Quantum VQE minimization.`;
+
+  _proteinViewer = { renderer, scene, camera, rebuild };
   animate();
+}
+
+// ── Mode switchers ────────────────────────────────────────
+const _allViewBtns = [
+  ['viewCartoon','cartoon'],['viewTube','tube'],['viewTrace','trace'],
+  ['viewLines','lines'],['viewBallStick','ball-stick'],['viewLicorice','licorice'],
+  ['viewHyperball','hyperball'],['viewRope','rope'],['viewSurface','surface'],
+  ['viewSpacefill','spacefill'],
+];
+const _allColorBtns  = [['colorSS','ss'],['colorResidue','residue'],['colorBFactor','bfactor'],['colorChain','chain']];
+const _allDrugBtns   = [['drugNone','none'],['drugLTG','ltg'],['drugVPA','vpa'],['drugBoth','both']];
+
+function _setActive(pairs, active) {
+  for (const [id,val] of pairs) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', val===active);
+  }
+}
+
+function setProteinView(mode) {
+  _currentProteinView = mode;
+  _setActive(_allViewBtns, mode);
+  if (_proteinViewer) _proteinViewer.rebuild();
+}
+
+function setProteinColor(mode) {
+  _currentProteinColor = mode;
+  _setActive(_allColorBtns, mode);
+  if (_proteinViewer) _proteinViewer.rebuild();
+}
+
+function setDrugOverlay(mode) {
+  _currentDrugOverlay = mode;
+  _setActive(_allDrugBtns, mode);
+  if (_proteinViewer) _proteinViewer.rebuild();
+}
+
+function resetProteinView() {
+  if (_proteinData) initProtein3DViewer(_proteinData);
 }
 
 // ── RL RISK TIMELINE ─────────────────────────────────────────
@@ -2155,16 +3023,12 @@ function initThreeBrain() {
   if (!_tribe3D) _tribe3D={setState};
 }
 
-// Hook showPanel to lazy-init 3D brain
+// Hook showPanel to lazy-init 3D brain (protein viewer is user-triggered)
 const _origShowPanel = showPanel;
 showPanel = function(idx, btn){
   _origShowPanel(idx, btn);
   if (idx === 6 && !_tribe3D) {
     setTimeout(initThreeBrain, 80);
-  }
-  if (idx === 6.5 && !window._proteinFoldingInit) {
-    setTimeout(initProteinFolding, 80);
-    window._proteinFoldingInit = true;
   }
 };
 
@@ -2173,7 +3037,7 @@ function autoAdvance(){
   const btn = document.getElementById('btnAutoAdvance');
   if(btn) { btn.disabled = true; btn.textContent = '⏳ RUNNING ANALYSIS...'; }
 
-  const panelOrder = [0, 1, 2, 3, 4, 5, 6, 6.5, 7];
+  const panelOrder = [0, 1, 2, 3, 4, 5, 6, 7];
   const stepBtns = document.querySelectorAll('.step-btn');
   let idx = 0;
 

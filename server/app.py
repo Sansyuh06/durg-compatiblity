@@ -21,7 +21,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, Response
@@ -44,6 +44,10 @@ from .quantamed_sim import (
     vqe_demo_payload,
 )
 from .pdf_report import generate_quantamed_pdf
+from .protein_structure import (
+    model_protein_from_fasta,
+    get_example_sequences,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -279,7 +283,7 @@ async def run_demo_step(task_id: str) -> JSONResponse:
     steps_out = []
 
     for action_type, params in script:
-        action = DrugAction(action_type=action_type, parameters=params)
+        action = DrugAction(action_type=cast(Any, action_type), parameters=params)
         obs, reward, done, info = env.step(action)
         steps_out.append({
             "action_type": action_type,
@@ -402,6 +406,38 @@ async def quantamed_report(patient: str = Query(..., description="Patient profil
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+# ---------------------------------------------------------------------------
+# Protein Structure Modeling (SWISS-MODEL-inspired)
+# ---------------------------------------------------------------------------
+
+class FASTAInput(BaseModel):
+    fasta: str
+
+
+@app.post("/api/quantamed/protein-model")
+async def protein_model(body: FASTAInput) -> JSONResponse:
+    """Accept a FASTA sequence and return a full 3D protein model.
+
+    Simulates the SWISS-MODEL pipeline:
+    - Parses the FASTA sequence
+    - Predicts secondary structure (Chou-Fasman)
+    - Generates 3D backbone coordinates
+    - Computes quality metrics (GMQE, QMEAN, Ramachandran)
+    - Finds template match
+    - Generates drug docking coordinates
+    """
+    result = model_protein_from_fasta(body.fasta)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return JSONResponse(result)
+
+
+@app.get("/api/quantamed/protein-examples")
+async def protein_examples() -> JSONResponse:
+    """Return example FASTA sequences for the protein modeling UI."""
+    return JSONResponse(get_example_sequences())
+
+
 
 # ---------------------------------------------------------------------------
 # Interactive HTML Dashboard
@@ -458,12 +494,13 @@ try:
     def _gr_action(action: str, task: str) -> tuple[str, str]:
         """Run one investigation step on the Gradio-private env."""
         try:
-            env: DrugTriageEnv = getattr(app.state, "gradio_env", None)
-            if env is None:
-                env = DrugTriageEnv(task)
-                env.reset()
-                app.state.gradio_env = env
-            step_action = DrugAction(action_type=action, parameters={})
+            env_or_none = getattr(app.state, "gradio_env", None)
+            if env_or_none is None:
+                env_or_none = DrugTriageEnv(task)
+                env_or_none.reset()
+                app.state.gradio_env = env_or_none
+            env = cast(DrugTriageEnv, env_or_none)
+            step_action = DrugAction(action_type=cast(Any, action), parameters={})
             obs, reward, done, info = env.step(step_action)
             obs_dict = obs.model_dump()
             rwd_dict = reward.model_dump()
@@ -486,9 +523,10 @@ try:
         if secondary.strip():
             params["secondary_signal"] = secondary.strip().lower()
         try:
-            env: DrugTriageEnv = getattr(app.state, "gradio_env", None)
-            if env is None:
+            env_or_none = getattr(app.state, "gradio_env", None)
+            if env_or_none is None:
                 return "❌ Start an episode first (click New Episode)", ""
+            env = cast(DrugTriageEnv, env_or_none)
             step_action = DrugAction(action_type="submit", parameters=params)
             obs, reward, done, info = env.step(step_action)
             rwd_dict = reward.model_dump()
@@ -512,9 +550,9 @@ try:
             env = DrugTriageEnv(task)
             env.reset()
             script = DEMO_SCRIPTS[task]
-            steps_out = []
+            steps_out: list[dict[str, Any]] = []
             for action_type, params in script:
-                step_action = DrugAction(action_type=action_type, parameters=params)
+                step_action = DrugAction(action_type=cast(Any, action_type), parameters=params)
                 obs, reward, done, info = env.step(step_action)
                 steps_out.append({
                     "action_type": action_type,
@@ -526,15 +564,15 @@ try:
                 })
                 if done:
                     break
-            data = {"task_id": task, "steps": steps_out}
+            data: dict[str, Any] = {"task_id": task, "steps": steps_out}
             lines = []
             for i, s in enumerate(steps_out):
-                rwd = s.get("reward", {})
+                rwd: dict[str, Any] = s.get("reward", {})
                 lines.append(
-                    f"Step {i+1}: {s.get('action_type','?')} → reward={rwd.get('value',0):.4f}"
+                    f"Step {i+1}: {s.get('action_type','?')} \u2192 reward={rwd.get('value',0):.4f}"
                 )
-            final = steps_out[-1]["reward"]["value"] if steps_out else 0
-            summary = "\n".join(lines) + f"\n\n🏆 Final score: {final:.4f}"
+            final: float = steps_out[-1]["reward"]["value"] if steps_out else 0.0
+            summary = "\n".join(lines) + f"\n\n\U0001f3c6 Final score: {final:.4f}"
             return summary, f"```json\n{json.dumps(data, indent=2)}\n```"
         except Exception as e:
             return f"❌ Demo failed: {e}", ""

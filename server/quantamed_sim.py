@@ -1,3 +1,8 @@
+"""QuantaMed Simulation Backend.
+
+This module provides simulation functions.
+"""
+# pylint: disable=invalid-name,too-many-arguments,too-many-locals,line-too-long
 from __future__ import annotations
 
 import math
@@ -12,15 +17,16 @@ import numpy as np
 # folding endpoint returns cached results with a "backend: cached_fallback"
 # flag so the dashboard can display a "Cached" badge.
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 _QISKIT_AVAILABLE = False
 try:
-    from qiskit import BasicAer
-    from qiskit.algorithms import VQE
-    from qiskit.algorithms.optimizers import COBYLA
-    from qiskit.circuit.library import TwoLocal
-    from qiskit.quantum_info import Statevector, Operator, SparsePauliOp
-    from qiskit.opflow import PauliSumOp
-    from qiskit.utils import QuantumInstance
+    from qiskit import BasicAer  # type: ignore[import-untyped]
+    from qiskit.algorithms import VQE  # type: ignore[import-untyped]
+    from qiskit.algorithms.optimizers import COBYLA  # type: ignore[import-untyped]
+    from qiskit.circuit.library import TwoLocal  # type: ignore[import-untyped]
+    from qiskit.quantum_info import Statevector, Operator, SparsePauliOp  # type: ignore[import-untyped]
+    from qiskit.opflow import PauliSumOp  # type: ignore[import-untyped]
+    from qiskit.utils import QuantumInstance  # type: ignore[import-untyped]
     _QISKIT_AVAILABLE = True
 except ImportError:
     pass
@@ -412,6 +418,7 @@ def _lipinski_violation_count(drug_data: dict[str, Any]) -> int:
 
 
 def compute_manufacturability_score(drug_id: str) -> dict[str, Any]:
+    """Compute a simulated manufacturability score."""
     drug = _CANDIDATE_DRUGS.get(drug_id)
     if drug is None:
         raise ValueError(f"Unsupported drug_id '{drug_id}'")
@@ -481,6 +488,7 @@ def _off_target_penalty(drug_id: str, patient_profile: dict[str, Any]) -> tuple[
 
 
 def simulate_tribe_response(drug_id: str, patient_id: str) -> dict[str, Any]:
+    """Simulate a brain slice or holistic patient response based on the patient/drug match."""
     drug = _CANDIDATE_DRUGS.get(drug_id)
     patient = _PATIENT_PROFILES.get(patient_id)
     if drug is None or patient is None:
@@ -542,6 +550,7 @@ def _get_cyp_genotype(patient: dict[str, Any]) -> str:
 
 
 def score_quantamed_candidate(drug_id: str, patient_id: str) -> dict[str, Any]:
+    """Score a candidate drug for a specific patient ID, considering all relevant parameters."""
     drug = _CANDIDATE_DRUGS.get(drug_id)
     patient = _PATIENT_PROFILES.get(patient_id)
     if drug is None or patient is None:
@@ -593,17 +602,18 @@ def score_quantamed_candidate(drug_id: str, patient_id: str) -> dict[str, Any]:
 
 
 def recommend_quantamed_candidates(patient_id: str) -> dict[str, Any]:
+    """Iterate over candidates and rank them by composite score for a given patient."""
     patient = _PATIENT_PROFILES.get(patient_id)
     if patient is None:
         raise ValueError(f"Unsupported patient_id '{patient_id}'")
     ranked = []
-    for drug_id in _CANDIDATE_DRUGS:
+    for drug_id, drug_data in _CANDIDATE_DRUGS.items():
         score = score_quantamed_candidate(drug_id, patient_id)
         ranked.append({
             "drug_id": drug_id,
-            "label": _CANDIDATE_DRUGS[drug_id]["label"],
+            "label": drug_data["label"],
             "composite_score": score["scores"]["composite"],
-            "summary": _CANDIDATE_DRUGS[drug_id]["summary"],
+            "summary": drug_data["summary"],
             "scores": score["scores"],
         })
     ranked.sort(key=lambda x: x["composite_score"], reverse=True)
@@ -616,10 +626,12 @@ def recommend_quantamed_candidates(patient_id: str) -> dict[str, Any]:
 
 
 def get_quantamed_drug_summary(drug_id: str, patient_id: str) -> dict[str, Any]:
+    """Get the scored evaluation representation of a single drug candidate."""
     return score_quantamed_candidate(drug_id, patient_id)
 
 
 def get_quantamed_patient_summary(patient_id: str) -> dict[str, Any]:
+    """Retrieve detailed metadata about a given patient's profile."""
     patient = _PATIENT_PROFILES.get(patient_id)
     if patient is None:
         raise ValueError(f"Unsupported patient_id '{patient_id}'")
@@ -700,6 +712,8 @@ def _cached_protein_folding_result() -> dict[str, Any]:
 
 
 def quantum_protein_folding_payload(case: str = "default") -> dict[str, Any]:
+    """Run quantum folding simulation utilizing a toy Qiskit pipeline."""
+    # pylint: disable=too-many-locals
     configs = _get_protein_folding_config()
     if case != "default":
         raise ValueError("Unsupported protein folding case")
@@ -745,7 +759,7 @@ def quantum_protein_folding_payload(case: str = "default") -> dict[str, Any]:
             ],
             "backend": "qiskit_aer_statevector",
         }
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         # Any Qiskit runtime error → graceful fallback to cached result
         return _cached_protein_folding_result()
 

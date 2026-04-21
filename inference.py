@@ -117,7 +117,6 @@ def get_llm_action(observation: dict[str, Any], step: int) -> DrugAction:
     )
 
     max_retries = 3
-    last_error: Exception | None = None
 
     for attempt in range(max_retries):
         try:
@@ -143,7 +142,6 @@ def get_llm_action(observation: dict[str, Any], step: int) -> DrugAction:
             )
 
         except Exception as exc:
-            last_error = exc
             if attempt < max_retries - 1:
                 wait = 2 ** attempt  # 1s, 2s
                 print(

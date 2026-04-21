@@ -233,7 +233,7 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h1 className="font-extrabold text-xl text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 tracking-tight">Nexus Intelligence</h1>
+              <h1 className="font-extrabold text-xl text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 tracking-tight">QuantaMed Pharmacovigilance</h1>
               <div className="flex gap-2 items-center text-[10px] uppercase font-bold tracking-widest text-gray-500">
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> ONLINE</span>
                 <span>•</span>
