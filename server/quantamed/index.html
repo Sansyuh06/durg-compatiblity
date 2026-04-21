@@ -1692,27 +1692,39 @@ function initProteinFolding(){
     ctx.fillStyle = 'rgba(3, 10, 24, 0.9)';
     ctx.fillRect(0, 0, width, height);
 
+    // Calculate bounding box of the points to auto-center them
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    points.forEach(p => {
+      if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+      if (-p.y < minY) minY = -p.y; if (-p.y > maxY) maxY = -p.y;
+    });
+    const gw = Math.max(2, maxX - minX);
+    const gh = Math.max(2, maxY - minY);
+    
+    // Scale and offsets
     const padding = 48;
-    const scale = Math.min((width - padding * 2) / 5, (height - padding * 2) / 5);
-    const offsetX = (width - scale * 4) / 2;
-    const offsetY = (height - scale * 4) / 2;
+    const scale = Math.min((width - padding * 2) / gw, (height - padding * 2) / gh);
+    const offsetX = padding + (width - padding * 2 - gw * scale) / 2;
+    const offsetY = padding + (height - padding * 2 - gh * scale) / 2;
 
     ctx.strokeStyle = '#43f7ff';
     ctx.lineWidth = 3;
     ctx.beginPath();
     points.forEach((point, index) => {
-      const x = offsetX + point.x * scale;
-      const y = offsetY + point.y * scale;
+      // Invert Y because backend returns 0 or negative Y (standard Cartesian)
+      // but canvas Y goes down.
+      const x = offsetX + (point.x - minX) * scale;
+      const y = offsetY + (-point.y - minY) * scale;
       if(index === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
     ctx.stroke();
 
     points.forEach((point, index) => {
-      const x = offsetX + point.x * scale;
-      const y = offsetY + point.y * scale;
+      const x = offsetX + (point.x - minX) * scale;
+      const y = offsetY + (-point.y - minY) * scale;
       ctx.beginPath();
-      ctx.arc(x, y, 10, 0, Math.PI * 2);
+      ctx.arc(x, y, Math.max(6, 12 - points.length * 0.5), 0, Math.PI * 2);
       ctx.fillStyle = index === points.length - 1 ? '#ffbd59' : '#67f0ff';
       ctx.fill();
       ctx.strokeStyle = 'rgba(255,255,255,0.22)';
@@ -1831,491 +1843,301 @@ function setBrainState(state) {
 function initThreeBrain() {
   const mount = document.getElementById('brain3dMount');
   if (!mount) return;
-  if (!window.THREE) {
-    console.warn('Three.js not loaded yet, retrying in 500ms...');
-    setTimeout(initThreeBrain, 500);
-    return;
-  }
+  if (!window.THREE) { setTimeout(initThreeBrain, 500); return; }
   if (_tribe3D) return;
 
   const W = mount.clientWidth || window.innerWidth || 900;
   const H = mount.clientHeight || 520;
 
-  // ── Renderer
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(W, H);
-  renderer.setClearColor(0x020810, 1);
+  renderer.setClearColor(0x000000, 1);
   mount.appendChild(renderer.domElement);
-  renderer.domElement.style.position = 'absolute';
-  renderer.domElement.style.top = '0'; renderer.domElement.style.left = '0';
-  renderer.domElement.style.width = '100%'; renderer.domElement.style.height = '100%';
+  Object.assign(renderer.domElement.style, { position:'absolute', top:'0', left:'0', width:'100%', height:'100%' });
 
-  // ── Scene
   const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 100);
+  camera.position.set(3.4, 0.2, 0); // Position to look at the sagittal (side) profile
+  camera.lookAt(0, 0, 0);
 
-  // ── Camera
-  const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 1000);
-  camera.position.set(0, 0.5, 3.2);
+  // Neutral white lighting — like a clinical MRI renderer
+  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+  const keyL = new THREE.DirectionalLight(0xffffff, 1.1);
+  keyL.position.set(2, 3, 4); scene.add(keyL);
+  const fillL = new THREE.DirectionalLight(0xd0e8ff, 0.4);
+  fillL.position.set(-3, 1, 2); scene.add(fillL);
+  const backL = new THREE.DirectionalLight(0x8899bb, 0.25);
+  backL.position.set(0, -2, -3); scene.add(backL);
 
-  // ── Lighting
-  const ambLight = new THREE.AmbientLight(0x101828, 1.5);
-  scene.add(ambLight);
-  const pointL1 = new THREE.PointLight(0x00d4ff, 2.5, 12);
-  pointL1.position.set(3, 3, 3);
-  scene.add(pointL1);
-  const pointL2 = new THREE.PointLight(0xff5252, 2, 10);
-  pointL2.position.set(-3, -2, 2);
-  scene.add(pointL2);
-  const pointL3 = new THREE.PointLight(0x00e676, 1.5, 10);
-  pointL3.position.set(0, -3, -2);
-  scene.add(pointL3);
+  // ── High-res anatomical brain mesh (True fsaverage cortical surface map)
+  async function loadBrainGeometry() {
+    const res = await fetch('/quantamed/brain.obj');
+    if (!res.ok) throw new Error('Cannot load brain OBJ');
+    const text = await res.text();
+    const vertices = [];
+    const indices = [];
 
-  // ── Build brain mesh (icosphere subdivided + brain-like deformation)
-  function buildBrainGeometry() {
-    const geo = new THREE.IcosahedronGeometry(1.0, 5);
-    const pos = geo.attributes.position;
-    const n = pos.count;
+    // fsaverage5 bounds approx: x(0..70), y(AP:-104..69), z(IS:-48..79)
+    // Three.js coords: x=Right, y=Up(IS), z=Front(AP)
+    const cx=35, cy=-17, cz=15, scale=0.015;
 
-    // anatomical deformation — make it look like a brain
-    for (let i = 0; i < n; i++) {
-      let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-      const len = Math.sqrt(x*x + y*y + z*z);
-      const nx = x/len, ny = y/len, nz = z/len;
-      const phi = Math.atan2(nz, nx);
-      const theta = Math.acos(ny);
+    text.split('\\n').forEach(line => {
+      const parts = line.trim().split(/\\s+/);
+      if (parts[0] === 'v') {
+        const vx = parseFloat(parts[1]);
+        const vy = parseFloat(parts[2]);
+        const vz = parseFloat(parts[3]);
+        // Map to Three: X=vx, Y=vz, Z=vy
+        vertices.push((vx - cx)*scale, (vz - cz)*scale, (vy - cy)*scale);
+      } else if (parts[0] === 'f') {
+        indices.push(parseInt(parts[1])-1, parseInt(parts[2])-1, parseInt(parts[3])-1);
+      }
+    });
 
-      // Gyri & sulci — high-freq noise for wrinkled surface
-      let noise = 0;
-      noise += 0.04 * Math.sin(8 * phi) * Math.sin(6 * theta);
-      noise += 0.025 * Math.sin(14 * phi + 1.2) * Math.cos(10 * theta);
-      noise += 0.015 * Math.cos(20 * phi - 0.5) * Math.sin(16 * theta + 0.8);
-      noise += 0.01 * Math.sin(28 * phi) * Math.cos(22 * theta);
-
-      // Longitudinal fissure (mid-sagittal groove)
-      const midFissure = Math.abs(nx) < 0.08 && ny > 0.1 ? -0.06 : 0;
-
-      // Cerebellum bulge (bottom-back)
-      const cerebellum = (ny < -0.3 && nz < -0.2) ? 0.1 * (1 - Math.abs(nx) * 2) : 0;
-
-      // Frontal lobe flatten
-      const frontalFlatten = (nz > 0.5 && ny > -0.2) ? -0.04 * nz : 0;
-
-      const r = 1.0 + noise + midFissure + cerebellum + frontalFlatten;
-      pos.setXYZ(i, nx * r, ny * r, nz * r);
-    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+    geo.setIndex(indices);
     geo.computeVertexNormals();
     return geo;
   }
 
-  // ── Activation color map
-  function activationToColor(v) {
-    // blue → cyan → green → yellow → orange → red
+  // ── fMRI colormap: dark-red → orange → yellow-white (matches TRIBE v2 scale)
+  function fmriColor(v) {
+    const t = Math.max(0, Math.min(1, v));
     const stops = [
-      [0.00, [0.12, 0.31, 0.86]],
-      [0.20, [0.00, 0.71, 0.86]],
-      [0.40, [0.00, 0.78, 0.39]],
-      [0.60, [0.71, 0.78, 0.00]],
-      [0.80, [1.00, 0.55, 0.00]],
-      [1.00, [1.00, 0.16, 0.12]],
+      [0.00, [0.35,0.00,0.00]],
+      [0.28, [0.82,0.05,0.00]],
+      [0.55, [1.00,0.32,0.00]],
+      [0.78, [1.00,0.76,0.14]],
+      [1.00, [1.00,1.00,0.82]],
     ];
-    let lo = stops[0], hi = stops[stops.length - 1];
-    for (let i = 0; i < stops.length - 1; i++) {
-      if (v >= stops[i][0] && v <= stops[i+1][0]) { lo = stops[i]; hi = stops[i+1]; break; }
+    let lo=stops[0],hi=stops[stops.length-1];
+    for (let i=0;i<stops.length-1;i++) {
+      if (t>=stops[i][0]&&t<=stops[i+1][0]){lo=stops[i];hi=stops[i+1];break;}
     }
-    const t2 = lo[0] === hi[0] ? 0 : (v - lo[0]) / (hi[0] - lo[0]);
-    return [
-      lo[1][0] + (hi[1][0] - lo[1][0]) * t2,
-      lo[1][1] + (hi[1][1] - lo[1][1]) * t2,
-      lo[1][2] + (hi[1][2] - lo[1][2]) * t2,
-    ];
+    const u=(t-lo[0])/(hi[0]-lo[0]+1e-9);
+    return [lo[1][0]+(hi[1][0]-lo[1][0])*u, lo[1][1]+(hi[1][1]-lo[1][1])*u, lo[1][2]+(hi[1][2]-lo[1][2])*u];
   }
 
-  // Brain regions in spherical coords (theta 0=top, phi 0=front)
-  // Format: [name, nx, ny, nz (unit vector direction), role, base_vpa, base_ltg]
+  // ── Anatomical regions: [name, nx, ny, nz, vpa_peak, ltg_peak, spread]
+  // Only high-peak regions glow — rest stays gray cortex
   const REGIONS = [
-    ['Prefrontal Cortex',   0.0,  0.3,  0.95, 'executive',   0.62, 0.38],
-    ['Motor Cortex',        0.05, 0.85,  0.5, 'motor',       0.55, 0.25],
-    ['Somatosensory',      -0.15, 0.90,  0.2, 'sensory',     0.52, 0.28],
-    ['Parietal Lobe',      -0.5,  0.70, -0.1, 'integration', 0.58, 0.30],
-    ['Occipital Lobe',     -0.7,  0.0,  -0.7, 'visual',      0.48, 0.24],
-    ['Temporal Lobe L',     0.9, -0.3,   0.3, 'auditory',    0.60, 0.26],
-    ['Temporal Lobe R',    -0.9, -0.3,   0.3, 'auditory',    0.58, 0.24],
-    ['Hippocampus',         0.6, -0.55,  0.0, 'memory',      0.72, 0.35],
-    ['Amygdala',            0.65,-0.65,  0.4, 'emotion',     0.88, 0.20],
-    ['Nucleus Accumbens',   0.1, -0.55,  0.8, 'reward',      0.75, 0.18],
-    ['Thalamus',            0.1,  0.0,   0.15,'relay',       0.78, 0.32],
-    ['Hypothalamus',        0.0, -0.35,  0.6, 'hormonal',    0.95, 0.12],
-    ['Cingulate Cortex',    0.0,  0.6,   0.6, 'attention',   0.65, 0.30],
-    ['Cerebellum',         -0.1, -0.85, -0.4, 'coordination',0.50, 0.22],
-    ['Broca Area',          0.9,  0.2,   0.6, 'speech',      0.55, 0.25],
-    ['Insula',              0.85,-0.1,   0.5, 'intero',      0.68, 0.28],
+    ['Hypothalamus',       0.00,-0.38, 0.55, 0.95, 0.07, 0.28],
+    ['Amygdala L',         0.55,-0.60, 0.38, 0.92, 0.09, 0.22],
+    ['Amygdala R',        -0.55,-0.60, 0.38, 0.88, 0.08, 0.22],
+    ['Nucleus Accumbens',  0.10,-0.52, 0.72, 0.80, 0.06, 0.24],
+    ['Hippocampus L',      0.62,-0.50, 0.05, 0.70, 0.17, 0.20],
+    ['Hippocampus R',     -0.62,-0.50, 0.05, 0.65, 0.15, 0.20],
+    ['Thalamus',           0.08, 0.02, 0.12, 0.72, 0.21, 0.26],
+    ['Insula L',           0.88,-0.05, 0.42, 0.65, 0.11, 0.18],
+    ['Insula R',          -0.88,-0.05, 0.42, 0.62, 0.10, 0.18],
+    ['Motor Cortex',       0.05, 0.88, 0.42, 0.18, 0.28, 0.22],
+    ['Prefrontal',         0.00, 0.28, 0.92, 0.35, 0.22, 0.24],
+    ['Cingulate',          0.00, 0.68, 0.58, 0.45, 0.19, 0.20],
+    ['Parietal L',        -0.55, 0.72,-0.08, 0.32, 0.16, 0.20],
+    ['Temporal L',         0.92,-0.28, 0.22, 0.50, 0.14, 0.18],
+    ['Temporal R',        -0.92,-0.28, 0.22, 0.46, 0.12, 0.18],
+    ['Cerebellum',        -0.08,-0.88,-0.35, 0.30, 0.13, 0.28],
   ];
 
-  // Build vertex activation array
-  const geo = buildBrainGeometry();
-  const pos = geo.attributes.position;
-  const nVerts = pos.count;
+  loadBrainGeometry().then(geo => {
+    const posAttr = geo.attributes.position;
+    const nVerts = posAttr.count;
 
-  const colorsA = new Float32Array(nVerts * 3); // current state target
-  const colorsB = new Float32Array(nVerts * 3); // other state for compare
+    const colorsVPA = new Float32Array(nVerts*3);
+    const colorsLTG = new Float32Array(nVerts*3);
+    const GRAY = [0.35, 0.35, 0.35]; // Deep matte clinical gray mapping
 
-  geo.setAttribute('colorA', new THREE.BufferAttribute(colorsA, 3));
-  geo.setAttribute('colorB', new THREE.BufferAttribute(colorsB, 3));
+    // Pre-normalize region directions
+    const regDirs = REGIONS.map(r => {
+      const v = new THREE.Vector3(r[1],r[2],r[3]).normalize();
+      return [v.x,v.y,v.z];
+    });
 
-  // Custom shader material for fMRI heatmap
-  const brainMat = new THREE.ShaderMaterial({
-    uniforms: {
-      uBlend:    { value: 0.0 },  // 0=colorA, 1=colorB
-      uTime:     { value: 0.0 },
-      uAlpha:    { value: 0.92 },
-      uSplit:    { value: 0.0 },  // for 'compare': splits left/right
-    },
-    vertexShader: `
-      attribute vec3 colorA;
-      attribute vec3 colorB;
-      varying vec3 vColor;
-      varying vec3 vNormal;
-      varying vec3 vPos;
-      uniform float uBlend;
-      uniform float uTime;
-      uniform float uSplit;
-      void main() {
-        vNormal = normalize(normalMatrix * normal);
-        vPos = position;
-        // In compare mode: left half shows VPA, right half shows LTG
-        float useB = uBlend;
-        if (uSplit > 0.5) {
-          useB = step(0.0, position.x); // right half = LTG
+    function bakeColors(t) {
+      for (let vi=0; vi<nVerts; vi++) {
+        const vx=posAttr.getX(vi),vy=posAttr.getY(vi),vz=posAttr.getZ(vi);
+        const vl=Math.sqrt(vx*vx+vy*vy+vz*vz)+1e-9;
+        const vnx=vx/vl,vny=vy/vl,vnz=vz/vl;
+        let maxVPA=0, maxLTG=0;
+        for (let ri=0; ri<REGIONS.length; ri++) {
+          const reg=REGIONS[ri], rd=regDirs[ri];
+          // use absolute X so right hemisphere lights up for left-side regions too
+          const dot=Math.abs(vnx)*Math.abs(rd[0])+vny*rd[1]+vnz*rd[2];
+          const s=reg[6]*0.15; // Tighter localized patches
+          const g=Math.exp(-Math.pow(1-dot,2)/(2*s*s));
+          // VPA: strong chaotic flicker
+          const flicV=Math.sin(t*4.3+ri*2.1)*0.07+Math.sin(t*9.2+ri*0.9)*0.04;
+          const actV=Math.max(0,Math.min(1,reg[4]+flicV))*g;
+          // LTG: minimal baseline
+          const flicL=Math.sin(t*1.1+ri)*0.012;
+          const actL=Math.max(0,Math.min(1,reg[5]+flicL))*g;
+          if (actV>maxVPA) maxVPA=actV;
+          if (actL>maxLTG) maxLTG=actL;
         }
-        vColor = mix(colorA, colorB, useB);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        // Write colors: hard cutoff so rest is clinical grey
+        const THRESH=0.10;
+        [maxVPA, maxLTG].forEach((act, si) => {
+          const arr = si===0 ? colorsVPA : colorsLTG;
+          if (act < THRESH) {
+            arr[vi*3]=GRAY[0]; arr[vi*3+1]=GRAY[1]; arr[vi*3+2]=GRAY[2];
+          } else {
+            const blen=Math.pow((act-THRESH)/(1-THRESH),0.65);
+            const hm=fmriColor(act);
+            arr[vi*3  ]=GRAY[0]*(1-blen)+hm[0]*blen;
+            arr[vi*3+1]=GRAY[1]*(1-blen)+hm[1]*blen;
+            arr[vi*3+2]=GRAY[2]*(1-blen)+hm[2]*blen;
+          }
+        });
       }
-    `,
-    fragmentShader: `
-      varying vec3 vColor;
-      varying vec3 vNormal;
-      varying vec3 vPos;
-      uniform float uTime;
-      uniform float uAlpha;
-      void main() {
-        // Phong-ish lighting
-        vec3 lightDir = normalize(vec3(1.0, 1.5, 2.0));
-        float diff = max(dot(vNormal, lightDir), 0.0) * 0.7 + 0.35;
-        // Rim light
-        vec3 viewDir = normalize(vec3(0.0, 0.0, 1.0));
-        float rim = 1.0 - max(dot(vNormal, viewDir), 0.0);
-        rim = pow(rim, 2.5) * 0.4;
-        // Subsurface scatter approximation
-        float sss = pow(max(dot(vNormal, -lightDir), 0.0), 4.0) * 0.15;
-        vec3 col = vColor * diff + vec3(rim) * vColor + sss * vec3(0.3, 0.1, 0.05);
-        // Pulse on high activation
-        float pulse = sin(uTime * 6.0 + vPos.y * 8.0) * 0.04 * vColor.r;
-        col += vec3(pulse);
-        gl_FragColor = vec4(col, uAlpha);
-      }
-    `,
-    transparent: true,
-    side: THREE.FrontSide,
-  });
+      geo.attributes.colorA.needsUpdate=true;
+      geo.attributes.colorB.needsUpdate=true;
+    }
 
-  const brainMesh = new THREE.Mesh(geo, brainMat);
-  scene.add(brainMesh);
+    geo.setAttribute('colorA', new THREE.BufferAttribute(colorsVPA, 3));
+    geo.setAttribute('colorB', new THREE.BufferAttribute(colorsLTG, 3));
 
-  // ── Wireframe overlay (subtle sulci)
-  const wireGeo = geo.clone();
-  const wireMat = new THREE.MeshBasicMaterial({
-    color: 0x1a3060,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.06,
-  });
-  const wireMesh = new THREE.Mesh(wireGeo, wireMat);
-  scene.add(wireMesh);
+    const brainMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uBlend: {value:0.0}, uTime: {value:0.0}, uSplit: {value:0.0}
+      },
+      vertexShader: `
+        attribute vec3 colorA; attribute vec3 colorB;
+        varying vec3 vColor; varying vec3 vNormal; varying vec3 vWorldPos;
+        uniform float uBlend; uniform float uSplit;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vWorldPos = (modelMatrix * vec4(position,1.0)).xyz;
+          float useB = uSplit > 0.5 ? step(0.0, position.x) : uBlend;
+          vColor = mix(colorA, colorB, useB);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor; varying vec3 vNormal; varying vec3 vWorldPos;
+        uniform float uTime;
+        void main() {
+          vec3 N = normalize(vNormal);
+          vec3 L1=normalize(vec3(2,3,4));
+          vec3 L2=normalize(vec3(-3,1,2));
+          vec3 L3=normalize(vec3(0,-2,-3));
+          float d1=max(dot(N,L1),0.0);
+          float d2=max(dot(N,L2),0.0)*0.35;
+          float d3=max(dot(N,L3),0.0)*0.18;
+          float diff=d1+d2+d3+0.20;
+          vec3 viewDir=normalize(vec3(3.4,0.2,0.0)-vWorldPos);
+          vec3 halfV=normalize(L1+viewDir);
+          float spec=pow(max(dot(N,halfV),0.0),32.0)*0.14;
+          // Detect activation hotspot by color departure from gray (0.35)
+          float actStrength=smoothstep(0.35,0.70,vColor.r);
+          float rim=pow(1.0-max(dot(N,viewDir),0.0),3.0)*actStrength*0.45;
+          float pulse=sin(uTime*3.5)*0.028*actStrength;
+          vec3 col=vColor*diff+vec3(spec)+vec3(rim*0.9,rim*0.18,0.0)+vec3(pulse,pulse*0.25,0.0);
+          gl_FragColor=vec4(col,1.0);
+        }
+      `,
+    });
 
-  // ── Neural pathway sparks (floating particles on axon paths)
-  const PATHWAYS = [
-    [11, 7],  // Hypothalamus → Amygdala (hormonal stress)
-    [11, 9],  // Hypothalamus → Nucleus Accumbens (reward disruption)
-    [7, 8],   // Amygdala → Hippocampus
-    [10, 0],  // Thalamus → PFC
-    [10, 5],  // Thalamus → Temporal L
-    [0, 12],  // PFC → Cingulate
-    [12, 3],  // Cingulate → Parietal
-    [1, 2],   // Motor → Somatosensory
+    const brainMesh = new THREE.Mesh(geo, brainMat);
+    brainMesh.rotation.set(0.0, 0.0, 0.0); // Reset rotation for pure sagittal alignment
+    scene.add(brainMesh);
+
+    _tribe3D = {
+      setState: setState,
+      mesh: brainMesh,
+      mat: brainMat,
+      bake: bakeColors
+    };
+  }).catch(console.error);
+
+  // ── State
+  let _stateTarget='vpa', _blendCurrent=0.0, _blendTarget=0.0;
+  function setState(s) {
+    _stateTarget=s;
+    _blendTarget=s==='vpa'?0.0:s==='ltg'?1.0:0.5;
+    if(_tribe3D) _tribe3D.mat.uniforms.uSplit.value=s==='compare'?1.0:0.0;
+  }
+
+  // ── EEG
+  const eegCanvas=document.getElementById('eegStrip');
+  let eegCtx=eegCanvas?eegCanvas.getContext('2d'):null;
+  const EEG_CH=[
+    {label:'HYP',ri:0,cV:'#ff3a2a',cL:'#48d890'},
+    {label:'AMG',ri:1,cV:'#ff8c00',cL:'#69e8a0'},
+    {label:'HPC',ri:4,cV:'#ffbe34',cL:'#40c8ff'},
+    {label:'PFC',ri:10,cV:'#ff5252',cL:'#00bcd4'},
   ];
-
-  function regionPos(idx) {
-    const r = REGIONS[idx];
-    const nv = new THREE.Vector3(r[1], r[2], r[3]).normalize().multiplyScalar(1.02);
-    return nv;
-  }
-
-  // Create spark geometry
-  const SPARK_COUNT = 80;
-  const sparkGeo = new THREE.BufferGeometry();
-  const sparkPos = new Float32Array(SPARK_COUNT * 3);
-  const sparkAlpha = new Float32Array(SPARK_COUNT);
-  sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3));
-  sparkGeo.setAttribute('alpha', new THREE.BufferAttribute(sparkAlpha, 1));
-
-  const sparkMat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0.0 }, uColor: { value: new THREE.Color(0xff5252) } },
-    vertexShader: `
-      attribute float alpha;
-      varying float vAlpha;
-      void main() {
-        vAlpha = alpha;
-        vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = (12.0 / -mv.z) * alpha * 60.0;
-        gl_Position = projectionMatrix * mv;
+  const EBUF=300;
+  const eBufs=EEG_CH.map(()=>({v:new Float32Array(EBUF),l:new Float32Array(EBUF),h:0}));
+  function drawEEG(t) {
+    if (!eegCtx||!eegCanvas) return;
+    const dpr=window.devicePixelRatio||1;
+    const cw=eegCanvas.clientWidth,ch=eegCanvas.clientHeight;
+    if (cw<2) return;
+    eegCanvas.width=Math.floor(cw*dpr); eegCanvas.height=Math.floor(ch*dpr);
+    eegCtx.setTransform(dpr,0,0,dpr,0,0);
+    eegCtx.clearRect(0,0,cw,ch);
+    const isV=_stateTarget!=='ltg', chH=ch/EEG_CH.length;
+    EEG_CH.forEach((c,ci)=>{
+      const b=eBufs[ci], reg=REGIONS[c.ri];
+      const base=isV?reg[4]:reg[5];
+      const n=Math.sin(t*4.2+ci*1.3)*0.07*(isV?1:0.2)+(isV?Math.sin(t*12.7+ci*2.9)*0.09:0);
+      const val=Math.max(0,Math.min(1,base+n));
+      b.v[b.h%EBUF]=val; b.l[b.h%EBUF]=Math.max(0,Math.min(1,reg[5]+Math.sin(t*1.8+ci)*0.02)); b.h++;
+      const by=ci*chH+chH/2, col=isV?c.cV:c.cL;
+      eegCtx.font='8px Space Mono'; eegCtx.fillStyle=col; eegCtx.textAlign='left'; eegCtx.fillText(c.label,4,by+3);
+      eegCtx.beginPath(); eegCtx.strokeStyle=col; eegCtx.lineWidth=1.4; eegCtx.globalAlpha=0.85;
+      const tb=isV?b.v:b.l;
+      for (let fi=0;fi<EBUF;fi++){
+        const idx=(b.h-EBUF+fi+EBUF*2)%EBUF;
+        const x=32+(fi/EBUF)*(cw-38), y=by-tb[idx]*chH*0.42;
+        fi===0?eegCtx.moveTo(x,y):eegCtx.lineTo(x,y);
       }
-    `,
-    fragmentShader: `
-      varying float vAlpha;
-      uniform vec3 uColor;
-      void main() {
-        float d = length(gl_PointCoord - vec2(0.5));
-        if (d > 0.5) discard;
-        float a = smoothstep(0.5, 0.0, d) * vAlpha;
-        gl_FragColor = vec4(uColor, a);
-      }
-    `,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-  });
-  const sparkSystem = new THREE.Points(sparkGeo, sparkMat);
-  scene.add(sparkSystem);
-
-  // Spark animation state
-  const sparks = Array.from({ length: SPARK_COUNT }, (_, i) => ({
-    pathway: i % PATHWAYS.length,
-    t: Math.random(),
-    speed: 0.005 + Math.random() * 0.01,
-    life: Math.random(),
-  }));
-
-  // ── Stars background nebula
-  const starGeo = new THREE.BufferGeometry();
-  const starPos2 = new Float32Array(800 * 3);
-  for (let i = 0; i < 800; i++) {
-    starPos2[i*3]   = (Math.random() - 0.5) * 20;
-    starPos2[i*3+1] = (Math.random() - 0.5) * 20;
-    starPos2[i*3+2] = (Math.random() - 0.5) * 20 - 8;
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos2, 3));
-  const starMat = new THREE.PointsMaterial({ color: 0x334466, size: 0.04, transparent: true, opacity: 0.6 });
-  scene.add(new THREE.Points(starGeo, starMat));
-
-  // ── Compute vertex activations for a given state
-  function computeActivations(stateKey, t2) {
-    // For each vertex, find nearest brain region and blend activations
-    const isVPA = stateKey === 'vpa';
-    const out = new Float32Array(nVerts);
-    for (let vi = 0; vi < nVerts; vi++) {
-      const vx = pos.getX(vi), vy = pos.getY(vi), vz = pos.getZ(vi);
-      let totalW = 0, totalAct = 0;
-      for (let ri = 0; ri < REGIONS.length; ri++) {
-        const r = REGIONS[ri];
-        const rx = r[1], ry = r[2], rz = r[3];
-        const dot = vx*rx + vy*ry + vz*rz;
-        if (dot < 0) continue;
-        const w = Math.pow(Math.max(0, dot), 8);
-        const baseAct = isVPA ? r[5] : r[6];
-        const noise = Math.sin(t2 * 3 + ri * 1.7) * 0.06 * (isVPA ? 1 : 0.3);
-        const chaos = isVPA ? Math.sin(t2 * 11 + ri * 3.1) * 0.08 : 0;
-        totalAct += w * Math.max(0, Math.min(1, baseAct + noise + chaos));
-        totalW += w;
-      }
-      out[vi] = totalW > 0 ? totalAct / totalW : 0.1;
-    }
-    return out;
-  }
-
-  // ── EEG strip (2D canvas below)
-  const eegCanvas = document.getElementById('eegStrip');
-  let eegCtx = null;
-  if (eegCanvas) { eegCtx = eegCanvas.getContext('2d'); }
-  const EEG_CHANNELS = [
-    { label: 'HYP', riIdx: 11, colorVPA: '#ff5252', colorLTG: '#00e676' },
-    { label: 'AMG', riIdx: 8,  colorVPA: '#ffab40', colorLTG: '#69f0ae' },
-    { label: 'HPC', riIdx: 7,  colorVPA: '#b388ff', colorLTG: '#40c4ff' },
-    { label: 'PFC', riIdx: 0,  colorVPA: '#ff7043', colorLTG: '#00bcd4' },
-  ];
-  const EEG_BUF_LEN = 300;
-  const eegBufs = EEG_CHANNELS.map(() => ({ vpa: new Float32Array(EEG_BUF_LEN), ltg: new Float32Array(EEG_BUF_LEN), head: 0 }));
-
-  // ── State management for smooth interpolation
-  let _stateTarget = 'vpa'; // 'vpa' | 'ltg' | 'compare'
-  let _blendCurrent = 0.0;
-  let _blendTarget = 0.0;
-
-  // ── Main animation loop
-  let clock = 0;
-  let prevActivations = null;
-
-  function updateVertexColors(stateK, t2) {
-    const actA = computeActivations('vpa', t2);
-    const actB = computeActivations('ltg', t2);
-    for (let i = 0; i < nVerts; i++) {
-      const cA = activationToColor(actA[i]);
-      const cB = activationToColor(actB[i]);
-      colorsA[i*3]=cA[0]; colorsA[i*3+1]=cA[1]; colorsA[i*3+2]=cA[2];
-      colorsB[i*3]=cB[0]; colorsB[i*3+1]=cB[1]; colorsB[i*3+2]=cB[2];
-    }
-    geo.attributes.colorA.needsUpdate = true;
-    geo.attributes.colorB.needsUpdate = true;
-  }
-
-  function animateSparks(t2, stateK) {
-    const isVPA = stateK !== 'ltg';
-    sparkMat.uniforms.uColor.value.set(isVPA ? 0xff5252 : 0x00e676);
-    for (let i = 0; i < SPARK_COUNT; i++) {
-      const sp = sparks[i];
-      sp.t += sp.speed * (isVPA ? 1.6 : 0.7);
-      if (sp.t > 1) { sp.t = 0; sp.pathway = Math.floor(Math.random() * PATHWAYS.length); }
-      const pw = PATHWAYS[sp.pathway];
-      const pA = regionPos(pw[0]), pB = regionPos(pw[1]);
-      const p = new THREE.Vector3().lerpVectors(pA, pB, sp.t);
-      // Add slight arc
-      const midT = 1 - 4 * (sp.t - 0.5) * (sp.t - 0.5);
-      p.multiplyScalar(1 + midT * 0.08);
-      sparkPos[i*3]=p.x; sparkPos[i*3+1]=p.y; sparkPos[i*3+2]=p.z;
-      sparkAlpha[i] = Math.sin(sp.t * Math.PI) * (0.6 + 0.4 * Math.sin(t2 * 8 + i));
-    }
-    sparkGeo.attributes.position.needsUpdate = true;
-    sparkGeo.attributes.alpha.needsUpdate = true;
-  }
-
-  function drawEEG(t2) {
-    if (!eegCtx || !eegCanvas) return;
-    const dpr = window.devicePixelRatio || 1;
-    const cw = eegCanvas.clientWidth, ch = eegCanvas.clientHeight;
-    if (cw < 2) return;
-    eegCanvas.width = Math.floor(cw * dpr);
-    eegCanvas.height = Math.floor(ch * dpr);
-    eegCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    eegCtx.fillStyle = 'rgba(2,8,16,0.0)';
-    eegCtx.clearRect(0, 0, cw, ch);
-
-    const isVPA = _stateTarget !== 'ltg';
-    const channelH = ch / EEG_CHANNELS.length;
-
-    EEG_CHANNELS.forEach((ch2, ci) => {
-      const buf = eegBufs[ci];
-      const r = REGIONS[ch2.riIdx];
-      const baseV = isVPA ? r[5] : r[6];
-      const noise = Math.sin(t2 * 4 + ci * 1.3) * 0.08 * (isVPA ? 1 : 0.3);
-      const chaos = isVPA ? (Math.sin(t2 * 13 + ci * 2.7) * 0.12 + Math.sin(t2 * 31 + ci) * 0.05) : 0;
-      const val = Math.max(0, Math.min(1, baseV + noise + chaos));
-      buf.vpa[buf.head % EEG_BUF_LEN] = val;
-      buf.ltg[buf.head % EEG_BUF_LEN] = Math.max(0, Math.min(1, r[6] + Math.sin(t2 * 2 + ci) * 0.03));
-      buf.head++;
-
-      const baseY = ci * channelH + channelH / 2;
-      const color = isVPA ? ch2.colorVPA : ch2.colorLTG;
-
-      // Label
-      eegCtx.font = '8px Space Mono';
-      eegCtx.fillStyle = color;
-      eegCtx.textAlign = 'left';
-      eegCtx.fillText(ch2.label, 4, baseY + 3);
-
-      // Trace
-      eegCtx.beginPath();
-      eegCtx.strokeStyle = color;
-      eegCtx.lineWidth = 1.2;
-      eegCtx.globalAlpha = 0.85;
-      for (let fi = 0; fi < EEG_BUF_LEN; fi++) {
-        const idx2 = (buf.head - EEG_BUF_LEN + fi + EEG_BUF_LEN * 2) % EEG_BUF_LEN;
-        const x = 30 + (fi / EEG_BUF_LEN) * (cw - 36);
-        const traceBuf = isVPA ? buf.vpa : buf.ltg;
-        const y = baseY - traceBuf[idx2] * channelH * 0.38;
-        fi === 0 ? eegCtx.moveTo(x, y) : eegCtx.lineTo(x, y);
-      }
-      eegCtx.stroke();
-      eegCtx.globalAlpha = 1;
+      eegCtx.stroke(); eegCtx.globalAlpha=1;
     });
   }
 
-  // Camera orbit
-  let camTheta = 0, camPhi = Math.PI / 6;
-  let isDragging = false, lastMouse = { x: 0, y: 0 };
-  renderer.domElement.addEventListener('mousedown', e => { isDragging = true; lastMouse = { x: e.clientX, y: e.clientY }; });
-  renderer.domElement.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    camTheta -= (e.clientX - lastMouse.x) * 0.008;
-    camPhi = Math.max(-1.0, Math.min(1.2, camPhi - (e.clientY - lastMouse.y) * 0.006));
-    lastMouse = { x: e.clientX, y: e.clientY };
+  // ── Orbit
+  let camTheta=0.3, camPhi=0.15, isDrag=false, lastMX=0, lastMY=0;
+  renderer.domElement.addEventListener('mousedown',e=>{isDrag=true;lastMX=e.clientX;lastMY=e.clientY;});
+  renderer.domElement.addEventListener('mousemove',e=>{
+    if(!isDrag) return;
+    camTheta-=(e.clientX-lastMX)*0.007;
+    camPhi=Math.max(-0.9,Math.min(1.1,camPhi-(e.clientY-lastMY)*0.005));
+    lastMX=e.clientX; lastMY=e.clientY;
   });
-  window.addEventListener('mouseup', () => isDragging = false);
+  window.addEventListener('mouseup',()=>isDrag=false);
+  window.addEventListener('resize',()=>{
+    const w=mount.clientWidth||900,h=mount.clientHeight||520;
+    camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h);
+  });
 
-  // Resize handler
-  function onResize() {
-    const w = mount.clientWidth, h = mount.clientHeight || 520;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
-  }
-  window.addEventListener('resize', onResize);
+  let clock=0, fc=0, lastBake=-999;
+  bakeColors(0);
+  setBrainState('vpa');
 
-  // Public setState
-  function setState(s) {
-    _stateTarget = s;
-    _blendTarget = s === 'vpa' ? 0.0 : s === 'ltg' ? 1.0 : 0.5;
-    brainMat.uniforms.uSplit.value = s === 'compare' ? 1.0 : 0.0;
-  }
-
-  let frameCount = 0;
   function animate3D() {
     requestAnimationFrame(animate3D);
-    clock += 0.016;
-    frameCount++;
-
-    // Smooth blend interpolation
-    _blendCurrent += (_blendTarget - _blendCurrent) * 0.04;
-    brainMat.uniforms.uBlend.value = _blendCurrent;
-    brainMat.uniforms.uTime.value = clock;
-    sparkMat.uniforms.uTime.value = clock;
-
-    // Update vertex colors every 3 frames
-    if (frameCount % 3 === 0) {
-      updateVertexColors(_stateTarget, clock);
+    clock+=0.016; fc++;
+    if (clock-lastBake>1.8) { 
+      if (_tribe3D && _tribe3D.bake) _tribe3D.bake(clock); 
+      lastBake=clock; 
     }
-
-    // Animate spark particles
-    animateSparks(clock, _stateTarget);
-
-    // Auto-rotate + user orbit
-    if (!isDragging) camTheta += 0.004;
-    const camR = 3.2;
-    camera.position.x = camR * Math.cos(camPhi) * Math.sin(camTheta);
-    camera.position.y = camR * Math.sin(camPhi);
-    camera.position.z = camR * Math.cos(camPhi) * Math.cos(camTheta);
-    camera.lookAt(0, 0.1, 0);
-
-    // Sync wireframe with brain mesh rotation
-    wireMesh.rotation.copy(brainMesh.rotation);
-
-    // EEG strip every 2 frames
-    if (frameCount % 2 === 0) drawEEG(clock);
-
-    // Pulsing lights based on activation level
-    const pulseFactor = _stateTarget === 'vpa' ? 0.5 + 0.5 * Math.sin(clock * 6) : 0.85;
-    pointL2.intensity = _stateTarget === 'ltg' ? 0.3 : 2.0 * pulseFactor;
-    pointL3.intensity = _stateTarget === 'vpa' ? 0.5 : 1.8;
-
-    renderer.render(scene, camera);
+    if (_tribe3D && _tribe3D.mat) {
+      _blendCurrent += (_blendTarget - _blendCurrent) * 0.08;
+      _tribe3D.mat.uniforms.uBlend.value = _blendCurrent;
+      _tribe3D.mat.uniforms.uTime.value = clock;
+    }
+    if (!isDrag) camTheta+=0.0022;
+    const camR=3.6;
+    camera.position.set(camR*Math.cos(camPhi)*Math.sin(camTheta), camR*Math.sin(camPhi)+0.15, camR*Math.cos(camPhi)*Math.cos(camTheta));
+    camera.lookAt(0,0.05,0);
+    if (fc%2===0) drawEEG(clock);
+    renderer.render(scene,camera);
   }
-
-  // Initial state
-  updateVertexColors('vpa', 0);
-  setBrainState('vpa');
   animate3D();
-
-  _tribe3D = { setState };
+  _tribe3D={setState};
 }
 
 // Hook showPanel to lazy-init 3D brain

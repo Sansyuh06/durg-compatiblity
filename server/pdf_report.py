@@ -225,7 +225,7 @@ def generate_quantamed_pdf(patient_id: str = "juvenile_myoclonic_epilepsy") -> b
     pdf.set_font("Helvetica", "", 7)
     pdf.cell(0, 4, "QuantaMed v1.0  |  Hackathon Edition  |  April 2026", ln=1)
 
-    return pdf.output()
+    return bytes(pdf.output())
 
 
 def _add_field(pdf: Any, label: str, value: str) -> None:

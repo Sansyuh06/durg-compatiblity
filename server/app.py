@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -43,6 +43,7 @@ from .quantamed_sim import (
     quantum_protein_folding_payload,
     vqe_demo_payload,
 )
+from .pdf_report import generate_quantamed_pdf
 
 
 # ---------------------------------------------------------------------------
@@ -388,6 +389,16 @@ async def quantamed_protein_folding(case: str = Query("default", description="Pr
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return JSONResponse(payload)
+
+
+@app.get("/api/quantamed/report")
+async def quantamed_report(patient: str = Query(..., description="Patient profile id")) -> Response:
+    """Generate and return a clinical PDF report for the patient."""
+    try:
+        pdf_bytes = generate_quantamed_pdf(patient_id=patient)
+        return Response(content=bytes(pdf_bytes), media_type="application/pdf")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 

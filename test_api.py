@@ -1,5 +1,4 @@
 import httpx
-import json
 
 BASE = "http://127.0.0.1:7860"
 
