@@ -305,9 +305,10 @@ async def quantamed_dashboard() -> FileResponse:
     return FileResponse("server/quantamed/index.html", media_type="text/html")
 
 
-# Serve static assets inside the quantamed folder (three.min.js, etc.)
+# Serve static assets inside the quantamed folder (three.min.js, brain.obj, etc.)
+# Mounted at /quantamed/static to avoid shadowing the explicit /quantamed HTML route
 _quantamed_dir = os.path.join(os.path.dirname(__file__), "quantamed")
-app.mount("/quantamed", StaticFiles(directory=_quantamed_dir), name="quantamed_static")
+app.mount("/quantamed/static", StaticFiles(directory=_quantamed_dir), name="quantamed_static")
 
 
 

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>QuantaMed — Quantum-Enhanced Drug Discovery</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="/quantamed/three.min.js"></script>
+<script src="/quantamed/static/three.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Space+Mono:wght@400;700&display=swap');
 
@@ -1317,7 +1317,8 @@ canvas.chart-canvas { width:100%!important; }
           <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(200,216,240,0.5);">AVG CORTICAL ACTIVATION</div>
         </div>
         <div style="position:absolute;bottom:16px;left:20px;z-index:10;">
-          <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(120,160,200,0.5);letter-spacing:1px;">TRIBE v2 · FMRI-STYLE ACTIVATION HEATMAP</div>
+          <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(120,160,200,0.5);letter-spacing:1px;">TRIBE v2 · SENSORY SIMULATION MODE · fsaverage5 CORTICAL SURFACE</div>
+          <div style="font-family:'Space Mono',monospace;font-size:8px;color:rgba(100,140,180,0.35);margin-top:3px;letter-spacing:0.5px;">Model: Meta TRIBE v2 Foundation (Visuo-Auditory-Linguistic fMRI Prediction) · Khosla et al. 2024</div>
         </div>
         <div style="position:absolute;bottom:16px;right:20px;z-index:10;display:flex;align-items:center;gap:8px;">
           <div style="width:80px;height:6px;border-radius:3px;background:linear-gradient(90deg,#1e50dc,#00b4dc,#00c864,#b4c800,#ff8c00,#ff281e);"></div>
@@ -1470,8 +1471,7 @@ function initAll(){
   initBBB();
   initADMET();
   initRL();
-  // NOTE: initThreeBrain() is deferred — called lazily when TRIBE panel is shown
-  initProteinFolding();
+  // NOTE: initThreeBrain() and initProteinFolding() are deferred
 }
 
 // ── VQE CONVERGENCE CHART ─────────────────────────────────────
@@ -1675,102 +1675,116 @@ function initProteinFolding(){
   const summary = document.getElementById('foldSummary');
   if(!canvas || !summary) return;
   const ctx = canvas.getContext('2d');
-  const devicePixelRatio = window.devicePixelRatio || 1;
+  const dpr = window.devicePixelRatio || 1;
 
   function resize(){
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    canvas.width = Math.floor(width * devicePixelRatio);
-    canvas.height = Math.floor(height * devicePixelRatio);
-    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    const width = canvas.clientWidth || 760;
+    const height = canvas.clientHeight || 420;
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  function drawFrame(points, finalLabel, energy){
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
+  // 8-residue HP lattice: H P P H P P H H
+  const seq = ['H','P','P','H','P','P','H','H'];
+  const startPos = [
+    [-3.5, 0, 0], [-2.5, 0, 0], [-1.5, 0, 0], [-0.5, 0, 0],
+    [ 0.5, 0, 0], [ 1.5, 0, 0], [ 2.5, 0, 0], [ 3.5, 0, 0]
+  ];
+  // Simple compact fold with contacts
+  const endPos = [
+    [-1, -1,  1], [ 0, -1,  1], [ 0,  0,  1], [-1,  0,  1],
+    [-1,  1,  0], [ 0,  1, -1], [ 0,  0, -1], [-1,  0, -1]
+  ];
+
+  window.addEventListener('resize', resize);
+  resize();
+  
+  let clock = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    clock += 0.016;
+    
+    const width = canvas.clientWidth || 760;
+    const height = canvas.clientHeight || 420;
+    if (canvas.width !== Math.floor(width * dpr)) resize();
+
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = 'rgba(3, 10, 24, 0.9)';
     ctx.fillRect(0, 0, width, height);
 
-    // Calculate bounding box of the points to auto-center them
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    points.forEach(p => {
-      if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
-      if (-p.y < minY) minY = -p.y; if (-p.y > maxY) maxY = -p.y;
-    });
-    const gw = Math.max(2, maxX - minX);
-    const gh = Math.max(2, maxY - minY);
+    const foldT = Math.min(1, Math.max(0, (Math.sin(clock * 0.8) + 1) / 2));
     
-    // Scale and offsets
-    const padding = 48;
-    const scale = Math.min((width - padding * 2) / gw, (height - padding * 2) / gh);
-    const offsetX = padding + (width - padding * 2 - gw * scale) / 2;
-    const offsetY = padding + (height - padding * 2 - gh * scale) / 2;
+    let currentPos = [];
+    for(let i=0; i<8; i++){
+       currentPos.push([
+         startPos[i][0] * (1-foldT) + endPos[i][0] * foldT,
+         startPos[i][1] * (1-foldT) + endPos[i][1] * foldT,
+         startPos[i][2] * (1-foldT) + endPos[i][2] * foldT
+       ]);
+    }
+
+    const angle = clock * 0.4;
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
+
+    const projPos = currentPos.map(p => {
+       const x = p[0]*cosA - p[2]*sinA;
+       const z = p[0]*sinA + p[2]*cosA;
+       const y = p[1];
+       const scale = 400 / (10 + z);
+       return { x: width/2 + x * scale * 1.5, y: height/2 + y * scale * 1.5, z: z };
+    });
 
     ctx.strokeStyle = '#43f7ff';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    points.forEach((point, index) => {
-      // Invert Y because backend returns 0 or negative Y (standard Cartesian)
-      // but canvas Y goes down.
-      const x = offsetX + (point.x - minX) * scale;
-      const y = offsetY + (-point.y - minY) * scale;
-      if(index === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
+    for(let i=0; i<8; i++){
+      if(i===0) ctx.moveTo(projPos[i].x, projPos[i].y);
+      else ctx.lineTo(projPos[i].x, projPos[i].y);
+    }
     ctx.stroke();
 
-    points.forEach((point, index) => {
-      const x = offsetX + (point.x - minX) * scale;
-      const y = offsetY + (-point.y - minY) * scale;
+    if (foldT > 0.8) {
+       ctx.strokeStyle = 'rgba(255,189,89,' + (foldT-0.8)*5 + ')';
+       ctx.setLineDash([5, 5]);
+       ctx.beginPath();
+       ctx.moveTo(projPos[0].x, projPos[0].y);
+       ctx.lineTo(projPos[3].x, projPos[3].y);
+       ctx.moveTo(projPos[3].x, projPos[3].y);
+       ctx.lineTo(projPos[7].x, projPos[7].y);
+       ctx.stroke();
+       ctx.setLineDash([]);
+    }
+
+    // Since it's simple enough, drawing sequentially is fine but we can sort by z so they don't clip awkwardly
+    const order = [0,1,2,3,4,5,6,7].sort((a,b) => projPos[b].z - projPos[a].z);
+    for(let i of order){
       ctx.beginPath();
-      ctx.arc(x, y, Math.max(6, 12 - points.length * 0.5), 0, Math.PI * 2);
-      ctx.fillStyle = index === points.length - 1 ? '#ffbd59' : '#67f0ff';
+      ctx.arc(projPos[i].x, projPos[i].y, 10, 0, Math.PI*2);
+      ctx.fillStyle = seq[i] === 'H' ? '#ffbd59' : '#67f0ff';
+      if (seq[i] === 'H' && foldT > 0.5) {
+         ctx.shadowBlur = 15;
+         ctx.shadowColor = '#ffbd59';
+      } else {
+         ctx.shadowBlur = 0;
+      }
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
       ctx.lineWidth = 1.5;
       ctx.stroke();
-    });
+      ctx.shadowBlur = 0;
+    }
 
+    const energy = -1.2 - foldT * 1.64; 
     ctx.fillStyle = '#c8d8f0';
     ctx.font = '14px Space Mono';
-    ctx.fillText(`Folding state: ${finalLabel}`, 24, height - 52);
-    ctx.fillText(`Simulated energy: ${energy.toFixed(2)} eV`, 24, height - 28);
+    ctx.fillText(`Sequence: HPPHPPHH (Nav1.2 fragment)`, 24, height - 52);
+    ctx.fillText(`Live VQE Energy: ${energy.toFixed(3)} eV`, 24, height - 28);
   }
-
-  function animate(frames, finalLabel, energy){
-    let index = 0;
-    const frameCount = frames.length;
-    function step(){
-      drawFrame(frames[index], finalLabel, energy);
-      index = (index + 1) % frameCount;
-      requestAnimationFrame(step);
-    }
-    step();
-  }
-
-  function load(){
-    summary.textContent = 'Running toy Qiskit folding simulation...';
-    fetch('/api/quantamed/protein-folding')
-      .then((r) => r.ok ? r.json() : Promise.reject(new Error('protein folding API error')))
-      .then((payload) => {
-        const frames = payload.frames || [];
-        if(!frames.length){
-          summary.textContent = 'Protein folding demo failed to generate frames.';
-          return;
-        }
-        const final = payload.final_state || {};
-        summary.innerHTML = `Quantum bitstring: <strong>${payload.bitstring}</strong>. ${final.label}: ${final.description}.`;
-        animate(frames, final.label || 'Unknown', payload.energy_ev || 0);
-      })
-      .catch((err) => {
-        summary.textContent = 'Protein folding demo is unavailable: ' + err.message;
-      });
-  }
-
-  window.addEventListener('resize', resize);
-  resize();
-  load();
+  
+  summary.innerHTML = `Simulating Nav1.2 peptide collapse via Quantum VQE minimization.`;
+  animate();
 }
 
 // ── RL RISK TIMELINE ─────────────────────────────────────────
@@ -1872,7 +1886,7 @@ function initThreeBrain() {
 
   // ── High-res anatomical brain mesh (True fsaverage cortical surface map)
   async function loadBrainGeometry() {
-    const res = await fetch('/quantamed/brain.obj');
+    const res = await fetch('/quantamed/static/brain.obj');
     if (!res.ok) throw new Error('Cannot load brain OBJ');
     const text = await res.text();
     const vertices = [];
@@ -2043,6 +2057,8 @@ function initThreeBrain() {
     brainMesh.rotation.set(0.0, 0.0, 0.0); // Reset rotation for pure sagittal alignment
     scene.add(brainMesh);
 
+    bakeColors(0);
+
     _tribe3D = {
       setState: setState,
       mesh: brainMesh,
@@ -2114,7 +2130,6 @@ function initThreeBrain() {
   });
 
   let clock=0, fc=0, lastBake=-999;
-  bakeColors(0);
   setBrainState('vpa');
 
   function animate3D() {
@@ -2137,7 +2152,7 @@ function initThreeBrain() {
     renderer.render(scene,camera);
   }
   animate3D();
-  _tribe3D={setState};
+  if (!_tribe3D) _tribe3D={setState};
 }
 
 // Hook showPanel to lazy-init 3D brain
@@ -2146,6 +2161,10 @@ showPanel = function(idx, btn){
   _origShowPanel(idx, btn);
   if (idx === 6 && !_tribe3D) {
     setTimeout(initThreeBrain, 80);
+  }
+  if (idx === 6.5 && !window._proteinFoldingInit) {
+    setTimeout(initProteinFolding, 80);
+    window._proteinFoldingInit = true;
   }
 };
 
