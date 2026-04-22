@@ -446,10 +446,7 @@ async def protein_examples() -> JSONResponse:
 frontend_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "out")
 
 
-@app.get("/")
-async def root_redirect() -> RedirectResponse:
-    """Redirect the root URL to the QuantaMed demo app."""
-    return RedirectResponse(url="/quantamed")
+# Root is now handled by the frontend mount below
 
 if os.path.exists(frontend_dir):
     app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")

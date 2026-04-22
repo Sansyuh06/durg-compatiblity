@@ -15,12 +15,17 @@ protein structures for the Three.js viewer. Not for scientific use.
 from __future__ import annotations
 
 import hashlib
+import logging
 import math
 import re
+import urllib.request
+import urllib.error
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
+
+_log = logging.getLogger(__name__)
 
 
 # ── Amino acid properties ──────────────────────────────────────────────
@@ -193,34 +198,59 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
         aa = sequence[i]
         sec = ss[i]
 
-        # Parameters based on secondary structure
+        # We need a state variable to track the local growth axis
+        if not hasattr(_generate_backbone, 'main_axis'):
+            _generate_backbone.main_axis = np.array([0.0, 1.0, 0.0])
+            _generate_backbone.p1 = np.array([1.0, 0.0, 0.0])
+            _generate_backbone.p2 = np.array([0.0, 0.0, 1.0])
+
         if i == 0:
             ca_pos = np.array([0.0, 0.0, 0.0])
+            _generate_backbone.main_axis = np.array([0.0, 1.0, 0.0])
+            _generate_backbone.p1 = np.array([1.0, 0.0, 0.0])
+            _generate_backbone.p2 = np.array([0.0, 0.0, 1.0])
         else:
+            prev_sec = ss[i-1]
             prev_ca = residues[-1]["atoms"]["CA"]
+            
+            # Bend the growth axis when transitioning between secondary structures
+            if sec != prev_sec and sec != "C":
+                angle = rng.uniform(math.pi/3, 2*math.pi/3)
+                v2 = rng.randn(3)
+                v2 -= v2.dot(_generate_backbone.main_axis) * _generate_backbone.main_axis
+                rot_axis = v2 / (np.linalg.norm(v2) + 1e-9)
+                
+                K = np.array([
+                    [0, -rot_axis[2], rot_axis[1]],
+                    [rot_axis[2], 0, -rot_axis[0]],
+                    [-rot_axis[1], rot_axis[0], 0]
+                ])
+                R = np.eye(3) + math.sin(angle)*K + (1-math.cos(angle))*K.dot(K)
+                _generate_backbone.main_axis = R.dot(_generate_backbone.main_axis)
+                _generate_backbone.p1 = R.dot(_generate_backbone.p1)
+                _generate_backbone.p2 = R.dot(_generate_backbone.p2)
+
             if sec == "H":
-                # Alpha helix: 3.6 residues per turn, rise 1.5Å per residue
                 turn_angle = 2 * math.pi / 3.6
-                rise = 1.5
-                radius = 2.3
                 theta = i * turn_angle
                 prev_theta = (i - 1) * turn_angle
-                dx = radius * math.cos(theta) - radius * math.cos(prev_theta)
-                dz = radius * math.sin(theta) - radius * math.sin(prev_theta)
-                dy = rise
-                ca_pos = prev_ca + np.array([dx, dy, dz])
+                dx = 2.3 * math.cos(theta) - 2.3 * math.cos(prev_theta)
+                dz = 2.3 * math.sin(theta) - 2.3 * math.sin(prev_theta)
+                dy = 1.5
+                delta = dx*_generate_backbone.p1 + dy*_generate_backbone.main_axis + dz*_generate_backbone.p2
+                ca_pos = prev_ca + delta
             elif sec == "E":
-                # Beta sheet: extended, zigzag
                 dz = 1.6 if (i % 2 == 0) else -1.6
-                ca_pos = prev_ca + np.array([0.0, 3.3, dz])
+                delta = 3.3*_generate_backbone.main_axis + dz*_generate_backbone.p2
+                ca_pos = prev_ca + delta
             else:
-                # Coil: random walk with reasonable geometry
                 phi = rng.uniform(-math.pi, math.pi)
-                psi = rng.uniform(0, math.pi / 2) # keep generally "up"
+                psi = rng.uniform(0, math.pi / 2)
                 dx = 3.8 * math.cos(phi) * math.cos(psi)
                 dz = 3.8 * math.sin(phi) * math.cos(psi)
                 dy = 3.8 * math.sin(psi)
-                ca_pos = prev_ca + np.array([dx, dy, dz])
+                delta = dx*_generate_backbone.p1 + dy*_generate_backbone.main_axis + dz*_generate_backbone.p2
+                ca_pos = prev_ca + delta
 
         # Generate N, C, O from CA position
         if i > 0:
@@ -558,17 +588,211 @@ class ProteinModelResult:
         }
 
 
+# ── AlphaFold DB Integration ───────────────────────────────────────────
+
+_alphafold_cache: dict[str, Optional[str]] = {}
+
+
+def _extract_uniprot_id(header: str) -> Optional[str]:
+    """Extract UniProt accession from a FASTA header."""
+    m = re.match(r"(?:sp|tr)\|([A-Z0-9]+)\|", header)
+    if m:
+        return m.group(1)
+    return None
+
+
+def _fetch_alphafold_pdb(uniprot_id: str) -> Optional[str]:
+    """Fetch PDB data from AlphaFold EBI Database."""
+    if uniprot_id in _alphafold_cache:
+        return _alphafold_cache[uniprot_id]
+
+    # Try to discover the latest version via the API
+    latest_version = 4  # default fallback
+    try:
+        api_url = f"https://alphafold.ebi.ac.uk/api/prediction/{uniprot_id}"
+        req = urllib.request.Request(api_url, headers={"User-Agent": "QuantaMed/1.0"})
+        resp = urllib.request.urlopen(req, timeout=10)
+        import json
+        data = json.loads(resp.read())
+        if isinstance(data, list) and data:
+            latest_version = data[0].get("latestVersion", 4)
+    except Exception:
+        pass
+
+    # Try versions from latest downward
+    for ver in [latest_version, latest_version - 1, 4, 3, 2]:
+        url = f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v{ver}.pdb"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "QuantaMed/1.0"})
+            resp = urllib.request.urlopen(req, timeout=15)
+            pdb_text = resp.read().decode("utf-8")
+            _alphafold_cache[uniprot_id] = pdb_text
+            _log.info("Fetched AlphaFold structure for %s (v%d)", uniprot_id, ver)
+            return pdb_text
+        except urllib.error.HTTPError:
+            continue
+        except Exception as exc:
+            _log.warning("AlphaFold fetch failed for %s: %s", uniprot_id, exc)
+            break
+
+    _alphafold_cache[uniprot_id] = None
+    return None
+
+
+def _parse_pdb_to_residues(
+    pdb_text: str, sequence: str
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """
+    Parse a PDB file and extract backbone atom coordinates per residue.
+
+    Returns (residues_list, secondary_structure_list) in the same format
+    as ``_generate_backbone``.
+    """
+    # Collect backbone atoms grouped by residue sequence number
+    residue_atoms: dict[int, dict[str, list[float]]] = {}
+    residue_names: dict[int, str] = {}
+
+    for line in pdb_text.split("\n"):
+        if not line.startswith("ATOM"):
+            continue
+        atom_name = line[12:16].strip()
+        if atom_name not in ("N", "CA", "C", "O", "CB"):
+            continue
+        chain = line[21]
+        if chain != "A":  # Use chain A only
+            continue
+        try:
+            resi = int(line[22:26])
+            x = float(line[30:38])
+            y = float(line[38:46])
+            z = float(line[46:54])
+        except (ValueError, IndexError):
+            continue
+
+        if resi not in residue_atoms:
+            residue_atoms[resi] = {}
+            res_name_3 = line[17:20].strip()
+            residue_names[resi] = res_name_3
+        residue_atoms[resi][atom_name] = [x, y, z]
+
+    if not residue_atoms:
+        return [], []
+
+    # Build sorted residue list
+    sorted_resi = sorted(residue_atoms.keys())
+
+    # 3-letter to 1-letter lookup
+    _3to1 = {v: k for k, v in _AA_1TO3.items()}
+
+    residues: list[dict[str, Any]] = []
+    for idx, resi in enumerate(sorted_resi):
+        atoms_dict = residue_atoms[resi]
+        if "CA" not in atoms_dict:
+            continue
+
+        # Synthesize missing atoms from CA if needed
+        ca = np.array(atoms_dict["CA"])
+        if "N" not in atoms_dict:
+            atoms_dict["N"] = (ca - np.array([1.47, 0, 0])).tolist()
+        if "C" not in atoms_dict:
+            atoms_dict["C"] = (ca + np.array([1.52, 0, 0])).tolist()
+        if "O" not in atoms_dict:
+            c_pos = np.array(atoms_dict["C"])
+            atoms_dict["O"] = (c_pos + np.array([0, 1.24, 0])).tolist()
+
+        res3 = residue_names.get(resi, "UNK")
+        aa1 = _3to1.get(res3, "X")
+
+        # Use the actual sequence letter if available
+        if idx < len(sequence):
+            aa1 = sequence[idx]
+
+        residues.append({
+            "index": idx,
+            "aa1": aa1,
+            "aa3": _AA_1TO3.get(aa1, res3),
+            "color": _AA_COLORS.get(aa1, "#808080"),
+            "ss": "C",  # Will be assigned below
+            "atoms": {
+                k: v for k, v in atoms_dict.items()
+                if k in ("N", "CA", "C", "O", "CB")
+            },
+        })
+
+    # ── Derive secondary structure from CA geometry (DSSP-like) ─────
+    n = len(residues)
+    ss: list[str] = ["C"] * n
+
+    if n >= 4:
+        # Compute CA-CA-CA-CA dihedral angles and CA-CA distances
+        cas = [np.array(r["atoms"]["CA"]) for r in residues]
+
+        for i in range(1, n - 2):
+            # Use the virtual bond angle at CA[i]
+            v1 = cas[i] - cas[i - 1]
+            v2 = cas[i + 1] - cas[i]
+            v3 = cas[i + 2] - cas[i + 1] if i + 2 < n else v2
+
+            # CA-CA distance (helix ~5.5Å, sheet ~6.7Å for i to i+2)
+            d_ca = np.linalg.norm(cas[i + 1] - cas[i - 1])
+
+            # Virtual bond angle
+            cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-9)
+            angle = math.degrees(math.acos(np.clip(cos_angle, -1, 1)))
+
+            # Helix: tight turns, short i→i+2 distance (~5.0-6.1Å), angle 75-100°
+            if 4.5 < d_ca < 6.2 and 75 < angle < 100:
+                ss[i] = "H"
+            # Sheet: extended chain, large i→i+2 distance (>5.8Å), small angle (<80°)
+            elif d_ca > 5.8 and angle < 80:
+                ss[i] = "E"
+
+        # Extend assignments to neighbors and remove short runs
+        for _ in range(2):
+            ss_new = list(ss)
+            for i in range(1, n - 1):
+                if ss[i] == "C":
+                    if ss[i - 1] == ss[i + 1] and ss[i - 1] != "C":
+                        ss_new[i] = ss[i - 1]
+            ss = ss_new
+
+        # Remove runs shorter than 3
+        i = 0
+        while i < n:
+            j = i
+            while j < n and ss[j] == ss[i]:
+                j += 1
+            if j - i < 3 and ss[i] != "C":
+                for k in range(i, j):
+                    ss[k] = "C"
+            i = j
+
+    for idx, s in enumerate(ss):
+        residues[idx]["ss"] = s
+
+    # Center at origin
+    all_ca = np.array([r["atoms"]["CA"] for r in residues])
+    center = all_ca.mean(axis=0)
+    for r in residues:
+        for atom_name in r["atoms"]:
+            r["atoms"][atom_name] = [
+                round(r["atoms"][atom_name][0] - center[0], 3),
+                round(r["atoms"][atom_name][1] - center[1], 3),
+                round(r["atoms"][atom_name][2] - center[2], 3),
+            ]
+
+    return residues, ss
+
+
 def model_protein_from_fasta(fasta_text: str) -> dict[str, Any]:
     """
     Main entry point: takes FASTA text and returns a full protein model.
 
-    Simulates the SWISS-MODEL pipeline:
+    Pipeline:
     1. Parse FASTA sequence
-    2. Predict secondary structure
-    3. Generate 3D coordinates
-    4. Compute quality metrics
-    5. Find template match
-    6. Generate drug docking data
+    2. Try fetching real structure from AlphaFold Database
+    3. Fall back to local Chou-Fasman prediction + procedural generation
+    4. Compute quality metrics, template info, drug docking
     """
     header, sequence = parse_fasta(fasta_text)
     if not sequence:
@@ -583,12 +807,38 @@ def model_protein_from_fasta(fasta_text: str) -> dict[str, Any]:
     project_id = f"QM{seq_hash.upper()}"
     seed = int(seq_hash, 16) % (2**31)
 
-    # Pipeline
     protein_info = _extract_protein_info(header)
-    ss = predict_secondary_structure(sequence)
-    residues = _generate_backbone(sequence, ss)
+
+    # ── Try AlphaFold DB first ─────────────────────────────────────
+    residues = None
+    ss = None
+    source = "generated"
+
+    uniprot_id = _extract_uniprot_id(header)
+    if uniprot_id:
+        pdb_text = _fetch_alphafold_pdb(uniprot_id)
+        if pdb_text:
+            residues, ss = _parse_pdb_to_residues(pdb_text, sequence)
+            if residues:
+                source = "alphafold"
+                _log.info(
+                    "Using AlphaFold structure for %s (%d residues)",
+                    uniprot_id, len(residues),
+                )
+
+    # ── Fallback to local generation ───────────────────────────────
+    if residues is None or len(residues) == 0:
+        ss = predict_secondary_structure(sequence)
+        residues = _generate_backbone(sequence, ss)
+        source = "generated"
+
     quality = _compute_quality_metrics(sequence, ss, seed)
     template = _find_template(header, sequence, seed)
+    if source == "alphafold":
+        template["method"] = "AlphaFold v2 Prediction"
+        template["source"] = "AlphaFold DB (EBI)"
+        template["pdb_id"] = f"AF-{uniprot_id}"
+        template["name"] = protein_info.get("name", "AlphaFold Prediction")
     docking = _generate_docking_data(residues, sequence, seed)
 
     result = ProteinModelResult(
