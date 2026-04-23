@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -743,7 +743,8 @@ canvas.chart-canvas { width:100%!important; }
     <button class="step-btn" onclick="showPanel(4, this)"><span class="step-num">STEP 05</span>RL TIMELINE</button>
     <button class="step-btn" onclick="showPanel(5, this)"><span class="step-num">STEP 06</span>DRUG MATRIX</button>
     <button class="step-btn" onclick="showPanel(6, this)"><span class="step-num">STEP 07</span>TRIBE v2 BRAIN</button>
-        <button class="step-btn" onclick="showPanel(7, this)"><span class="step-num">FINAL</span>RECOMMENDATION</button>
+    <button class="step-btn" onclick="showPanel(6.5, this)"><span class="step-num">STEP 08</span>MOL. BINDING</button>
+    <button class="step-btn" onclick="showPanel(7, this)"><span class="step-num">FINAL</span>RECOMMENDATION</button>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════ -->
@@ -1444,6 +1445,52 @@ canvas.chart-canvas { width:100%!important; }
       QuantaMed maps <em>NeuroState vectors</em> from the quantum/RL pipeline onto TRIBE stimuli parameters (audio frequency, visual rhythm, light intensity, semantic valence)
       to produce whole-brain activation maps. The 3D brain shows predicted neural topology — <strong style="color:#ff5252;">VPA = chaotic hyperactivation</strong> in hormonal &amp; reward circuits,
       <strong style="color:#00e676;">LTG = calm integrated activation</strong> restoring normal hippocampal-PFC connectivity.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PANEL 6.5: MOLECULAR BINDING COLLISION SIMULATOR            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel6_5">
+    <div class="section-title">MOLECULAR BINDING SIMULATION — DRUG COLLISION VISUALIZER</div>
+    <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center;flex-wrap:wrap;">
+      <label style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);">CURRENT DRUG</label>
+      <select id="mol-drug-left" class="form-select" style="width:180px;padding:8px 12px;font-size:12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:var(--white);">
+        <option value="vpa" selected>Valproic Acid</option>
+        <option value="ltg">Lamotrigine</option>
+        <option value="lev">Levetiracetam</option>
+        <option value="tpm">Topiramate</option>
+        <option value="zns">Zonisamide</option>
+      </select>
+      <label style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);margin-left:16px;">COMPARE AGAINST</label>
+      <select id="mol-drug-right" class="form-select" style="width:180px;padding:8px 12px;font-size:12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:var(--white);">
+        <option value="vpa">Valproic Acid</option>
+        <option value="ltg" selected>Lamotrigine</option>
+        <option value="lev">Levetiracetam</option>
+        <option value="tpm">Topiramate</option>
+        <option value="zns">Zonisamide</option>
+      </select>
+    </div>
+    <div id="mol-bind-wrap" style="display:grid;grid-template-columns:1fr 40px 1fr;gap:0;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:#060d1a;">
+      <!-- Left Canvas -->
+      <div style="position:relative;">
+        <div id="mol-canvas-left" style="width:100%;height:450px;"></div>
+        <div id="mol-overlay-left" style="position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.85));pointer-events:none;"></div>
+      </div>
+      <!-- VS Divider -->
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(0,0,0,0.5);border-left:1px solid var(--border);border-right:1px solid var(--border);">
+        <span style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:rgba(255,255,255,0.3);writing-mode:vertical-rl;">VS</span>
+        <div style="background:rgba(255,107,107,0.2);border:1px solid rgba(255,107,107,0.3);border-radius:4px;padding:4px 6px;font-size:8px;font-family:'JetBrains Mono',monospace;color:#ff6b6b;writing-mode:vertical-rl;">PCOS RISK</div>
+        <div style="background:rgba(32,201,151,0.2);border:1px solid rgba(32,201,151,0.3);border-radius:4px;padding:4px 6px;font-size:8px;font-family:'JetBrains Mono',monospace;color:#20c997;writing-mode:vertical-rl;">SAFE</div>
+      </div>
+      <!-- Right Canvas -->
+      <div style="position:relative;">
+        <div id="mol-canvas-right" style="width:100%;height:450px;"></div>
+        <div id="mol-overlay-right" style="position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.85));pointer-events:none;"></div>
+      </div>
+    </div>
+    <div class="info-box" style="margin-top:16px;font-size:12px;">
+      <strong class="text-cyan">Science Note:</strong> Binding energies derived from Qiskit VQE simulation of the Nav1.2 voltage-gated sodium channel peptide fragment (8 residues, HP lattice model). Off-target contacts predicted from ChEMBL bioactivity data (pChEMBL threshold > 6). All values are for research and educational purposes only.
     </div>
   </div>
 
@@ -3028,12 +3075,15 @@ function initThreeBrain() {
   if (!_tribe3D) _tribe3D={setState};
 }
 
-// Hook showPanel to lazy-init 3D brain (protein viewer is user-triggered)
+// Hook showPanel to lazy-init 3D brain and molecular binding
 const _origShowPanel = showPanel;
 showPanel = function(idx, btn){
   _origShowPanel(idx, btn);
   if (idx === 6 && !_tribe3D) {
     setTimeout(initThreeBrain, 80);
+  }
+  if (idx === 6.5) {
+    setTimeout(initMolecularBinding, 80);
   }
 };
 
@@ -3061,6 +3111,7 @@ function autoAdvance(){
   advance();
 }
 </script>
+<script src="/quantamed/static/molecular_binding.js"></script>
 </body>
 </html>
 
