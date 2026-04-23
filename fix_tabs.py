@@ -1,9 +1,14 @@
 import re
+import os
 
 def main():
-    filepath = r"server\quantamed\index.html"
+    filepath = os.path.join("server", "quantamed", "index.html")
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
+        
+    if "view-protein" in content:
+        print("Already refactored")
+        return
     
     # 1. Remove STEP 08 button
     content = re.sub(

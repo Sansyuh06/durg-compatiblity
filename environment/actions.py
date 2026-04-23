@@ -9,10 +9,13 @@ all data is deterministic and reproducible.
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
 from environment.models import DrugAction
+
+_log = logging.getLogger(__name__)
 
 _FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -27,12 +30,14 @@ class ActionHandler:
         for drug in _KNOWN_DRUGS:
             fixture_path = _FIXTURES_DIR / f"{drug}.json"
             if not fixture_path.exists():
-                raise FileNotFoundError(
-                    f"Missing fixture file: {fixture_path}. "
-                    f"Expected fixture for {drug}."
-                )
-            with open(fixture_path, encoding="utf-8") as fh:
-                self.fixtures[drug] = json.load(fh)
+                _log.warning(f"Missing fixture file: {fixture_path}. Expected fixture for {drug}.")
+                continue
+            try:
+                with open(fixture_path, encoding="utf-8") as fh:
+                    self.fixtures[drug] = json.load(fh)
+            except FileNotFoundError as exc:
+                _log.warning(f"Failed to read {fixture_path}: {exc}")
+                continue
 
         # Dispatch table — no if/elif chains
         self._dispatch_map: dict[str, Any] = {

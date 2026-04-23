@@ -48,6 +48,26 @@ from .protein_structure import (
     model_protein_from_fasta,
     get_example_sequences,
 )
+from .patient_schema import (
+    PatientProfile,
+    build_patient_from_dict,
+    GABI_PRESET,
+)
+from .scoring_engine import (
+    run_full_analysis,
+    pipeline_pk,
+    pipeline_off_target,
+    pipeline_admet,
+    pipeline_faers,
+    pipeline_composite,
+)
+from .kaggle_data import (
+    get_drug_properties,
+    get_all_drug_ids,
+    get_tox21_profile,
+    get_faers_signals,
+    lookup_protein_target,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -407,6 +427,94 @@ async def quantamed_report(patient: str = Query(..., description="Patient profil
 
 
 # ---------------------------------------------------------------------------
+# Foldables — Real-Data Precision Drug Discovery API
+# ---------------------------------------------------------------------------
+
+class PatientInput(BaseModel):
+    patient: dict[str, Any]
+
+
+@app.post("/api/foldables/analyze")
+async def foldables_full_analysis(body: PatientInput) -> JSONResponse:
+    """Run the complete 8-pipeline analysis for a patient profile.
+
+    Every score traces to a real data source (ChEMBL, DrugBank, CPIC, FAERS, Tox21).
+    """
+    try:
+        profile = build_patient_from_dict(body.patient)
+        result = run_full_analysis(profile)
+        return JSONResponse(result)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/foldables/demo-patient")
+async def foldables_demo_patient() -> JSONResponse:
+    """Return the Gabi preset patient profile for demo purposes."""
+    profile = build_patient_from_dict(GABI_PRESET)
+    return JSONResponse({
+        "patient": GABI_PRESET,
+        "completeness": profile.completeness(),
+        "alerts": profile.clinical_alerts(),
+    })
+
+
+@app.get("/api/foldables/drug-properties")
+async def foldables_drug_properties(
+    drug: str = Query(..., description="Drug ID: vpa|ltg|lev|tpm|zns"),
+) -> JSONResponse:
+    """Return real molecular properties for a drug (ChEMBL, DrugBank, BBBP, Tox21, FAERS)."""
+    try:
+        return JSONResponse(get_drug_properties(drug))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/foldables/drugs")
+async def foldables_drug_list() -> JSONResponse:
+    """Return all available drug IDs."""
+    return JSONResponse(get_all_drug_ids())
+
+
+@app.post("/api/foldables/pk")
+async def foldables_pk(body: PatientInput, drug: str = Query(...), dose_mg: float = Query(500)) -> JSONResponse:
+    """Real PK curve from DrugBank parameters + CYP modifier from patient genetics."""
+    try:
+        profile = build_patient_from_dict(body.patient)
+        result = pipeline_pk(profile, drug, dose_mg)
+        return JSONResponse(result)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/foldables/toxicity")
+async def foldables_toxicity(drug: str = Query(...)) -> JSONResponse:
+    """Return Tox21 assay results for a drug."""
+    try:
+        return JSONResponse(get_tox21_profile(drug))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/foldables/faers")
+async def foldables_faers(drug: str = Query(...)) -> JSONResponse:
+    """Return FAERS adverse event signal data."""
+    try:
+        return JSONResponse(get_faers_signals(drug))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/foldables/protein-target")
+async def foldables_protein_target(gene: str = Query(...)) -> JSONResponse:
+    """Look up a protein target by gene name."""
+    result = lookup_protein_target(gene)
+    if not result:
+        raise HTTPException(status_code=404, detail=f"No target found for: {gene}")
+    return JSONResponse(result)
+
+
+# ---------------------------------------------------------------------------
 # Protein Structure Modeling (SWISS-MODEL-inspired)
 # ---------------------------------------------------------------------------
 
@@ -426,10 +534,13 @@ async def protein_model(body: FASTAInput) -> JSONResponse:
     - Finds template match
     - Generates drug docking coordinates
     """
-    result = model_protein_from_fasta(body.fasta)
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result["error"])
-    return JSONResponse(result)
+    try:
+        result = model_protein_from_fasta(body.fasta)
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        return JSONResponse(result)
+    except Exception as exc:
+        return JSONResponse({"error": str(exc)}, status_code=500)
 
 
 @app.get("/api/quantamed/protein-examples")
@@ -448,9 +559,7 @@ frontend_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fronten
 
 # Root is now handled by the frontend mount below
 
-if os.path.exists(frontend_dir):
-    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
-else:
+if not os.path.exists(frontend_dir):
     @app.get("/ui", response_class=FileResponse)
     async def dashboard_ui():
         """Alias for backward compatibility."""
@@ -652,6 +761,9 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Entry-point
 # ---------------------------------------------------------------------------
+
+if os.path.exists(frontend_dir):
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 
 def main() -> None:
     uvicorn.run(

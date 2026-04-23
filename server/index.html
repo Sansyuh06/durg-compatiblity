@@ -48,22 +48,22 @@
     .submit-form.visible { max-height: 400px; opacity: 1; padding-top: 12px; margin-top: 12px; border-top: 1px solid #1f2937; }
   </style>
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col selection:bg-purple-500/30">
+<body class="bg-[#050505] text-gray-200 min-h-screen flex flex-col selection:bg-white/10">
   
-  <header class="border-b border-gray-800 bg-gray-950/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+  <header class="border-b border-white/5 bg-[#050505]/60 backdrop-blur-xl sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <div class="p-2 bg-purple-500/10 rounded-xl border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.15)] flex items-center justify-center">
+      <div class="p-2 bg-purple-500/10 rounded-xl border border-purple-500/20 shadow-2xl shadow-black/50 flex items-center justify-center">
         <i data-lucide="shield-alert" class="w-6 h-6 text-purple-400"></i>
       </div>
       <div>
-        <h1 class="text-xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">
+        <h1 class="text-xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">
           Nexus Pharmacovigilance
         </h1>
         <p class="text-xs text-gray-400 font-medium tracking-wide">FDA FAERS SIGNAL TRIAGE &middot; OPENENV PLATFORM</p>
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <span class="px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full text-xs font-semibold flex items-center gap-2 shadow-[0_0_10px_rgba(34,197,94,0.1)]">
+      <span class="px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full text-xs font-semibold flex items-center gap-2 shadow-2xl shadow-black/50">
         <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
         System Online
       </span>
@@ -75,14 +75,14 @@
     
     <!-- LEFT SIDEBAR -->
     <aside class="flex flex-col gap-6">
-      <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-xl flex flex-col">
-        <div class="px-4 py-3 border-b border-gray-800 flex items-center gap-2 bg-gray-950/50">
+      <div class="bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden shadow-2xl shadow-black/40 flex flex-col">
+        <div class="px-4 py-3 border-b border-white/5 flex items-center gap-2 bg-white/[0.01]/50">
           <i data-lucide="flask-conical" class="w-4 h-4 text-purple-400"></i>
           <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Case Selection</h2>
         </div>
         <div class="p-4 flex flex-col gap-3">
           
-          <div class="task-card active bg-gray-900 border rounded-lg p-3 cursor-pointer" id="task-easy" onclick="selectTask('easy')">
+          <div class="task-card active bg-white/[0.02] border rounded-lg p-3 cursor-pointer" id="task-easy" onclick="selectTask('easy')">
             <div class="flex justify-between items-start mb-2">
               <div>
                 <div class="text-[10px] font-bold text-green-400 mb-0.5 flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-green-400"></div>METFORMIN</div>
@@ -97,7 +97,7 @@
             <p class="text-[11px] text-gray-500 leading-relaxed">Biguanide antidiabetic &middot; Max 5 steps</p>
           </div>
 
-          <div class="task-card bg-gray-900 border rounded-lg p-3 cursor-pointer" id="task-medium" onclick="selectTask('medium')">
+          <div class="task-card bg-white/[0.02] border rounded-lg p-3 cursor-pointer" id="task-medium" onclick="selectTask('medium')">
             <div class="flex justify-between items-start mb-2">
               <div>
                 <div class="text-[10px] font-bold text-yellow-400 mb-0.5 flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-yellow-400"></div>ROFECOXIB</div>
@@ -112,7 +112,7 @@
             <p class="text-[11px] text-gray-500 leading-relaxed">COX-2 NSAID &middot; Withdrawn 2004 &middot; Max 8 steps</p>
           </div>
 
-          <div class="task-card bg-gray-900 border rounded-lg p-3 cursor-pointer" id="task-hard" onclick="selectTask('hard')">
+          <div class="task-card bg-white/[0.02] border rounded-lg p-3 cursor-pointer" id="task-hard" onclick="selectTask('hard')">
             <div class="flex justify-between items-start mb-2">
               <div>
                 <div class="text-[10px] font-bold text-red-400 mb-0.5 flex items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-red-400"></div>ISOTRETINOIN</div>
@@ -129,8 +129,8 @@
         </div>
       </div>
 
-      <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-xl" id="faers-preview-card">
-        <div class="px-4 py-3 border-b border-gray-800 flex items-center gap-2 bg-gray-950/50">
+      <div class="bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden shadow-2xl shadow-black/40" id="faers-preview-card">
+        <div class="px-4 py-3 border-b border-white/5 flex items-center gap-2 bg-white/[0.01]/50">
           <i data-lucide="bar-chart-2" class="w-4 h-4 text-cyan-400"></i>
           <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Data Preview</h2>
         </div>
@@ -143,8 +143,8 @@
     <!-- CENTER TERMINAL -->
     <section class="flex flex-col gap-6">
       
-      <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex flex-col">
-        <div class="px-5 py-4 border-b border-gray-800 bg-gray-950/70 flex items-center justify-between">
+      <div class="bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden shadow-2xl flex flex-col">
+        <div class="px-5 py-4 border-b border-white/5 bg-white/[0.01]/70 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <i data-lucide="terminal" class="w-5 h-5 text-purple-500"></i>
             <h2 class="text-sm font-bold text-gray-200">Investigation Console</h2>
@@ -154,12 +154,12 @@
 
         <div class="p-5 flex flex-col gap-5">
           <!-- Stats Bar -->
-          <div class="grid grid-cols-5 gap-2 bg-gray-950 border border-gray-800 rounded-lg p-3 text-center">
+          <div class="grid grid-cols-5 gap-2 bg-white/[0.01] border border-white/5 rounded-lg p-3 text-center">
             <div><div class="font-mono text-lg font-bold text-cyan-400" id="ep-step">0</div><div class="text-[9px] uppercase font-bold text-gray-500 tracking-wider mt-0.5">Steps</div></div>
-            <div class="border-l border-gray-800"><div class="font-mono text-lg font-bold text-purple-400" id="ep-remaining">&mdash;</div><div class="text-[9px] uppercase font-bold text-gray-500 tracking-wider mt-0.5">Remaining</div></div>
-            <div class="border-l border-gray-800"><div class="font-mono text-lg font-bold text-gray-300" id="ep-max">&mdash;</div><div class="text-[9px] uppercase font-bold text-gray-500 tracking-wider mt-0.5">Max</div></div>
-            <div class="border-l border-gray-800"><div class="font-mono text-xs font-bold text-gray-500 mt-1" id="ep-status">IDLE</div><div class="text-[9px] uppercase font-bold text-gray-500 tracking-wider mt-1.5">Status</div></div>
-            <div class="border-l border-gray-800"><div class="font-mono text-xs font-bold text-purple-400 mt-1 uppercase" id="ep-task">EASY</div><div class="text-[9px] uppercase font-bold text-gray-500 tracking-wider mt-1.5">Task</div></div>
+            <div class="border-l border-white/5"><div class="font-mono text-lg font-bold text-purple-400" id="ep-remaining">&mdash;</div><div class="text-[9px] uppercase font-bold text-gray-500 tracking-wider mt-0.5">Remaining</div></div>
+            <div class="border-l border-white/5"><div class="font-mono text-lg font-bold text-gray-300" id="ep-max">&mdash;</div><div class="text-[9px] uppercase font-bold text-gray-500 tracking-wider mt-0.5">Max</div></div>
+            <div class="border-l border-white/5"><div class="font-mono text-xs font-bold text-gray-500 mt-1" id="ep-status">IDLE</div><div class="text-[9px] uppercase font-bold text-gray-500 tracking-wider mt-1.5">Status</div></div>
+            <div class="border-l border-white/5"><div class="font-mono text-xs font-bold text-purple-400 mt-1 uppercase" id="ep-task">EASY</div><div class="text-[9px] uppercase font-bold text-gray-500 tracking-wider mt-1.5">Task</div></div>
           </div>
 
           <!-- Controls -->
@@ -170,7 +170,7 @@
             <button class="flex-1 py-3 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-200 border border-gray-700 font-semibold rounded-lg transition text-sm flex items-center justify-center gap-2" id="btn-run-demo" onclick="handleRunDemo()">
               <i data-lucide="play" class="w-4 h-4 text-cyan-400"></i> Auto Demo
             </button>
-            <button class="px-4 py-3 bg-gray-950 hover:bg-red-950/30 text-gray-400 hover:text-red-400 border border-gray-800 font-medium rounded-lg transition" id="btn-clear" onclick="clearTerminal()">
+            <button class="px-4 py-3 bg-white/[0.01] hover:bg-red-950/30 text-gray-400 hover:text-red-400 border border-white/5 font-medium rounded-lg transition" id="btn-clear" onclick="clearTerminal()">
               <i data-lucide="trash-2" class="w-4 h-4"></i>
             </button>
           </div>
@@ -179,27 +179,27 @@
           <div>
             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Agent Actions</div>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="action-grid">
-              <button class="action-btn flex items-center gap-3 p-3 bg-gray-950 border border-gray-800 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-search_faers" onclick="executeAction('search_faers')" disabled>
+              <button class="action-btn flex items-center gap-3 p-3 bg-white/[0.01] border border-white/5 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-search_faers" onclick="executeAction('search_faers')" disabled>
                 <i data-lucide="search" class="w-4 h-4 text-gray-400 group-hover:text-purple-400"></i>
                 <div><div class="text-xs font-semibold text-gray-200">Search FAERS</div><div class="text-[9px] text-gray-500">Adverse events</div></div>
               </button>
-              <button class="action-btn flex items-center gap-3 p-3 bg-gray-950 border border-gray-800 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-fetch_label" onclick="executeAction('fetch_label')" disabled>
+              <button class="action-btn flex items-center gap-3 p-3 bg-white/[0.01] border border-white/5 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-fetch_label" onclick="executeAction('fetch_label')" disabled>
                 <i data-lucide="file-text" class="w-4 h-4 text-gray-400 group-hover:text-purple-400"></i>
                 <div><div class="text-xs font-semibold text-gray-200">Fetch Label</div><div class="text-[9px] text-gray-500">FDA labeling</div></div>
               </button>
-              <button class="action-btn flex items-center gap-3 p-3 bg-gray-950 border border-gray-800 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-analyze_signal" onclick="executeAction('analyze_signal')" disabled>
+              <button class="action-btn flex items-center gap-3 p-3 bg-white/[0.01] border border-white/5 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-analyze_signal" onclick="executeAction('analyze_signal')" disabled>
                 <i data-lucide="activity" class="w-4 h-4 text-gray-400 group-hover:text-purple-400"></i>
                 <div><div class="text-xs font-semibold text-gray-200">Analyze Signal</div><div class="text-[9px] text-gray-500">PRR / ROR stats</div></div>
               </button>
-              <button class="action-btn flex items-center gap-3 p-3 bg-gray-950 border border-gray-800 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-lookup_mechanism" onclick="executeAction('lookup_mechanism')" disabled>
+              <button class="action-btn flex items-center gap-3 p-3 bg-white/[0.01] border border-white/5 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-lookup_mechanism" onclick="executeAction('lookup_mechanism')" disabled>
                 <i data-lucide="microscope" class="w-4 h-4 text-gray-400 group-hover:text-purple-400"></i>
                 <div><div class="text-xs font-semibold text-gray-200">Mechanism</div><div class="text-[9px] text-gray-500">Pharmacology</div></div>
               </button>
-              <button class="action-btn flex items-center gap-3 p-3 bg-gray-950 border border-gray-800 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-check_literature" onclick="executeAction('check_literature')" disabled>
+              <button class="action-btn flex items-center gap-3 p-3 bg-white/[0.01] border border-white/5 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-check_literature" onclick="executeAction('check_literature')" disabled>
                 <i data-lucide="book-open" class="w-4 h-4 text-gray-400 group-hover:text-purple-400"></i>
                 <div><div class="text-xs font-semibold text-gray-200">Literature</div><div class="text-[9px] text-gray-500">Safety studies</div></div>
               </button>
-              <button class="action-btn flex items-center gap-3 p-3 bg-gray-950 border border-cyan-800 rounded-lg hover:border-cyan-400 hover:bg-cyan-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-submit" onclick="toggleSubmitForm()" disabled>
+              <button class="action-btn flex items-center gap-3 p-3 bg-white/[0.01] border border-cyan-800 rounded-lg hover:border-cyan-400 hover:bg-cyan-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition text-left group" id="ab-submit" onclick="toggleSubmitForm()" disabled>
                 <i data-lucide="send" class="w-4 h-4 text-cyan-500"></i>
                 <div><div class="text-xs font-bold text-cyan-400">Submit</div><div class="text-[9px] text-gray-500">Final assessment</div></div>
               </button>
@@ -212,11 +212,11 @@
             <div class="grid grid-cols-2 gap-4 mb-3">
               <div>
                 <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Drug Name</label>
-                <input class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50" id="f-drug" type="text" placeholder="e.g. metformin" autocomplete="off">
+                <input class="w-full bg-white/[0.01] border border-white/5 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50" id="f-drug" type="text" placeholder="e.g. metformin" autocomplete="off">
               </div>
               <div>
                 <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Regulatory Action</label>
-                <select class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500" id="f-action">
+                <select class="w-full bg-white/[0.01] border border-white/5 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500" id="f-action">
                   <option value="monitor">monitor</option>
                   <option value="withdraw">withdraw</option>
                   <option value="restrict">restrict</option>
@@ -225,11 +225,11 @@
             </div>
             <div class="mb-3">
               <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Primary Signal</label>
-              <input class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500" id="f-primary" type="text" placeholder="e.g. lactic acidosis" autocomplete="off">
+              <input class="w-full bg-white/[0.01] border border-white/5 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500" id="f-primary" type="text" placeholder="e.g. lactic acidosis" autocomplete="off">
             </div>
             <div class="mb-4" id="f-secondary-wrap" style="display:none">
               <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Secondary Signal <span class="text-yellow-500 lowercase normal-case">(Hard task)</span></label>
-              <input class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500" id="f-secondary" type="text" placeholder="e.g. depression" autocomplete="off">
+              <input class="w-full bg-white/[0.01] border border-white/5 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-500" id="f-secondary" type="text" placeholder="e.g. depression" autocomplete="off">
             </div>
             <div class="flex gap-3">
               <button class="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg transition text-sm flex items-center justify-center gap-2" onclick="submitAssessment()"><i data-lucide="check-circle" class="w-4 h-4"></i> Submit Final Decision</button>
@@ -240,8 +240,8 @@
       </div>
 
       <!-- Activity Feed -->
-      <div class="flex-1 bg-[#0a0a0f] border border-[#1f2937] rounded-xl overflow-hidden flex flex-col shadow-2xl min-h-[400px]">
-        <div class="bg-[#111827] px-4 py-3 border-b border-[#1f2937] flex items-center justify-between">
+      <div class="flex-1 bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden flex flex-col shadow-2xl min-h-[400px]">
+        <div class="bg-white/[0.04] px-4 py-3 border-b border-white/5 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
             <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Investigation Feed</h2>
@@ -250,7 +250,7 @@
         </div>
         <div class="flex-1 p-5 overflow-y-auto space-y-4" id="activity-feed">
           <div class="flex flex-col items-center justify-center h-full text-center fade-in">
-            <div class="w-12 h-12 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center mb-3">
+            <div class="w-12 h-12 rounded-full bg-white/[0.02] border border-white/5 flex items-center justify-center mb-3">
               <i data-lucide="shield-alert" class="w-5 h-5 text-purple-500/70"></i>
             </div>
             <div class="text-sm font-semibold text-gray-300">System Ready</div>
@@ -264,34 +264,34 @@
     <aside class="flex flex-col gap-6">
       
       <!-- Score -->
-      <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-xl">
-        <div class="px-4 py-3 border-b border-gray-800 flex items-center gap-2 bg-gray-950/50">
+      <div class="bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden shadow-2xl shadow-black/40">
+        <div class="px-4 py-3 border-b border-white/5 flex items-center gap-2 bg-white/[0.01]/50">
           <i data-lucide="target" class="w-4 h-4 text-green-400"></i>
           <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Evaluation Score</h2>
         </div>
         <div class="p-6 flex flex-col items-center">
-          <div class="relative w-32 h-32 flex items-center justify-center bg-gray-950 rounded-full border border-gray-800 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] mb-4">
+          <div class="relative w-32 h-32 flex items-center justify-center bg-white/[0.01] rounded-full border border-white/5 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] mb-4">
             <span class="text-4xl font-mono font-bold text-gray-600 transition-colors duration-500" id="score-value">&mdash;</span>
           </div>
           <div class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4" id="score-grade">Awaiting</div>
-          <div class="w-full h-2 bg-gray-950 rounded-full overflow-hidden border border-gray-800">
+          <div class="w-full h-2 bg-white/[0.01] rounded-full overflow-hidden border border-white/5">
             <div class="h-full bg-gray-600 transition-all duration-1000 w-0" id="score-bar"></div>
           </div>
         </div>
       </div>
 
       <!-- Stats -->
-      <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-xl">
-        <div class="px-4 py-3 border-b border-gray-800 flex items-center gap-2 bg-gray-950/50">
+      <div class="bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden shadow-2xl shadow-black/40">
+        <div class="px-4 py-3 border-b border-white/5 flex items-center gap-2 bg-white/[0.01]/50">
           <i data-lucide="pie-chart" class="w-4 h-4 text-purple-400"></i>
           <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Session Metrics</h2>
         </div>
         <div class="p-4 grid grid-cols-2 gap-3">
-          <div class="bg-gray-950 border border-gray-800 rounded-lg p-3 text-center">
+          <div class="bg-white/[0.01] border border-white/5 rounded-lg p-3 text-center">
             <div class="text-xl font-mono font-bold text-purple-400" id="stat-episodes">0</div>
             <div class="text-[9px] uppercase font-bold text-gray-500 mt-1">Episodes</div>
           </div>
-          <div class="bg-gray-950 border border-gray-800 rounded-lg p-3 text-center">
+          <div class="bg-white/[0.01] border border-white/5 rounded-lg p-3 text-center">
             <div class="text-xl font-mono font-bold text-green-400" id="stat-best">&mdash;</div>
             <div class="text-[9px] uppercase font-bold text-gray-500 mt-1">Best Score</div>
           </div>
@@ -299,8 +299,8 @@
       </div>
 
       <!-- Breakdown -->
-      <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-xl flex-1 flex flex-col min-h-[200px]" id="breakdown-card">
-        <div class="px-4 py-3 border-b border-gray-800 flex items-center gap-2 bg-gray-950/50">
+      <div class="bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden shadow-2xl shadow-black/40 flex-1 flex flex-col min-h-[200px]" id="breakdown-card">
+        <div class="px-4 py-3 border-b border-white/5 flex items-center gap-2 bg-white/[0.01]/50">
           <i data-lucide="list-checks" class="w-4 h-4 text-yellow-400"></i>
           <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Score Breakdown</h2>
         </div>
@@ -336,7 +336,7 @@
         'error': 'bg-red-500/10 text-red-400 border-red-500/20',
         'info': 'bg-purple-500/10 text-purple-400 border-purple-500/20'
       };
-      el.className = `toast px-4 py-3 rounded-lg border backdrop-blur-xl shadow-xl text-sm font-semibold flex items-center gap-3 ${colors[type]}`;
+      el.className = `toast px-4 py-3 rounded-lg border backdrop-blur-xl shadow-2xl shadow-black/40 text-sm font-semibold flex items-center gap-3 ${colors[type]}`;
       el.innerHTML = type === 'success' ? `<i data-lucide="check-circle" class="w-4 h-4"></i> ${msg}` : 
                      type === 'error' ? `<i data-lucide="alert-circle" class="w-4 h-4"></i> ${msg}` : 
                      `<i data-lucide="info" class="w-4 h-4"></i> ${msg}`;
@@ -385,7 +385,7 @@
     
     function appendCard(html, classes='slide-up') {
       const div = document.createElement('div');
-      div.className = `bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-xl ${classes}`;
+      div.className = `bg-white/[0.02] border border-white/5 rounded-xl p-4 shadow-2xl shadow-black/40 ${classes}`;
       div.innerHTML = html;
       feed().appendChild(div);
       feed().scrollTop = feed().scrollHeight;
@@ -415,7 +415,7 @@
               </div>
             </div>
           </div>
-          <div class="bg-gray-950 rounded-lg border border-gray-800 p-4 mb-4 text-xs grid grid-cols-2 gap-4">
+          <div class="bg-white/[0.01] rounded-lg border border-white/5 p-4 mb-4 text-xs grid grid-cols-2 gap-4">
             <div>
               <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Drug</div>
               <div class="text-gray-200 font-semibold">${escHtml(param.drug_name || '')}</div>
@@ -433,12 +433,12 @@
               <div class="text-gray-200 font-semibold">${escHtml(param.secondary_signal)}</div>
             </div>` : ''}
           </div>
-          <div class="flex flex-col sm:flex-row justify-between items-center sm:items-end border-t border-gray-800 pt-3 gap-2">
+          <div class="flex flex-col sm:flex-row justify-between items-center sm:items-end border-t border-white/5 pt-3 gap-2">
             <div class="flex flex-col">
               <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Final Score</span>
-              <span class="font-bold text-xl ${scoreColor} drop-shadow-[0_0_8px_currentColor]">${sc.toFixed(2)}</span>
+              <span class="font-bold text-xl ${scoreColor} drop-shadow-2xl shadow-black/50">${sc.toFixed(2)}</span>
             </div>
-            <div class="text-[10px] text-gray-400 bg-gray-950 px-3 py-1.5 rounded border border-gray-800/60 flex-1 sm:ml-4 flex items-center">
+            <div class="text-[10px] text-gray-400 bg-white/[0.01] px-3 py-1.5 rounded border border-white/5/60 flex-1 sm:ml-4 flex items-center">
               ${escHtml(rewardMsg || '')}
             </div>
           </div>
@@ -448,7 +448,7 @@
     function renderActionDataHtml(out) {
       if (!out) return '<span class="text-gray-500 italic flex items-center justify-center p-2">No output</span>';
       let html = '';
-      if (out.source) html += `<div class="flex items-center gap-2 pb-2 mb-2 border-b border-gray-800/50"><span class="text-[9px] font-bold uppercase tracking-widest text-purple-400 w-20 shrink-0">Source</span><span class="text-gray-200 font-medium">${escHtml(out.source)}</span></div>`;
+      if (out.source) html += `<div class="flex items-center gap-2 pb-2 mb-2 border-b border-white/5/50"><span class="text-[9px] font-bold uppercase tracking-widest text-purple-400 w-20 shrink-0">Source</span><span class="text-gray-200 font-medium">${escHtml(out.source)}</span></div>`;
       if (out.error)  html += `<div class="text-red-400 mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-md flex gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i> <span>${escHtml(out.error)}</span></div>`;
       const d = out.data;
       if (d && typeof d === 'object') {
@@ -459,7 +459,7 @@
             else v = v.slice(0, 4).join(', ') + (v.length > 4 ? ', ...' : '');
           } else if (typeof v === 'object') v = JSON.stringify(v).slice(0, 100);
           const valCls = /^[0-9.]+$/.test(String(v).trim()) ? 'text-cyan-300 font-bold' : 'text-gray-300 leading-snug';
-          html += `<div class="flex flex-col sm:flex-row sm:gap-3 py-1.5 border-t border-gray-800/30 first:border-0 hover:bg-gray-800/20 rounded px-1 -mx-1 transition-colors">
+          html += `<div class="flex flex-col sm:flex-row sm:gap-3 py-1.5 border-t border-white/5/30 first:border-0 hover:bg-gray-800/20 rounded px-1 -mx-1 transition-colors">
                      <span class="text-[10px] uppercase text-gray-500 font-bold tracking-wider w-28 shrink-0 py-0.5">${escHtml(k.replace(/_/g,' '))}</span>
                      <span class="${valCls} break-words overflow-hidden">${escHtml(String(v).slice(0, 180))}</span>
                    </div>`;
@@ -497,7 +497,7 @@
 
         appendCard(`
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.1)]">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20 shadow-2xl shadow-black/50">
               <i data-lucide="folder-open" class="w-5 h-5 text-purple-400"></i>
             </div>
             <div>
@@ -505,7 +505,7 @@
               <div class="text-base font-bold text-gray-100">${escHtml(obs.drug_name || '')}</div>
             </div>
           </div>
-          ${obs.current_output?.message ? `<div class="mt-4 p-3 bg-gray-950 border border-gray-800 rounded-lg text-xs text-gray-400 leading-relaxed">${escHtml(obs.current_output.message)}</div>` : ''}
+          ${obs.current_output?.message ? `<div class="mt-4 p-3 bg-white/[0.01] border border-white/5 rounded-lg text-xs text-gray-400 leading-relaxed">${escHtml(obs.current_output.message)}</div>` : ''}
         `);
 
         toast('Episode started!', 'success');
@@ -550,12 +550,12 @@
               </div>
               <div class="text-sm font-bold text-gray-200 capitalize">${escHtml(actionType.replace(/_/g, ' '))}</div>
             </div>
-            <div class="text-[10px] font-mono font-bold text-gray-500 bg-gray-950 px-2 py-1 rounded">STEP ${obs.step_number}</div>
+            <div class="text-[10px] font-mono font-bold text-gray-500 bg-white/[0.01] px-2 py-1 rounded">STEP ${obs.step_number}</div>
           </div>
-          <div class="bg-gray-950 rounded-lg border border-gray-800 p-3 mb-4 text-xs space-y-1 relative shadow-inner">
+          <div class="bg-white/[0.01] rounded-lg border border-white/5 p-3 mb-4 text-xs space-y-1 relative shadow-inner">
             ${renderActionDataHtml(obs.current_output)}
           </div>
-          <div class="flex justify-between items-center border-t border-gray-800/60 pt-3">
+          <div class="flex justify-between items-center border-t border-white/5/60 pt-3">
             <div class="flex items-center gap-2">
               <div class="text-[10px] font-bold uppercase text-green-400 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/20 shadow-sm flex items-center gap-1.5"><i data-lucide="plus-circle" class="w-3 h-3"></i> ${reward.value.toFixed(2)} Reward</div>
             </div>
@@ -650,12 +650,12 @@
                   <div class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-300 border border-gray-700 shadow-sm"><i data-lucide="${iconMap[action_type]||'zap'}" class="w-4 h-4"></i></div>
                   <div class="text-sm font-bold text-gray-200 capitalize">${escHtml(action_type.replace(/_/g,' '))}</div>
                 </div>
-                <div class="text-[10px] font-mono font-bold text-gray-500 bg-gray-950 px-2 py-1 rounded">STEP ${obs.step_number}</div>
+                <div class="text-[10px] font-mono font-bold text-gray-500 bg-white/[0.01] px-2 py-1 rounded">STEP ${obs.step_number}</div>
               </div>
-              <div class="bg-gray-950 rounded-lg border border-gray-800 p-3 mb-4 text-xs space-y-1 relative shadow-inner">
+              <div class="bg-white/[0.01] rounded-lg border border-white/5 p-3 mb-4 text-xs space-y-1 relative shadow-inner">
                 ${renderActionDataHtml(obs.current_output)}
               </div>
-              <div class="flex justify-between items-center border-t border-gray-800/60 pt-3">
+              <div class="flex justify-between items-center border-t border-white/5/60 pt-3">
                 <div class="text-[10px] font-bold uppercase text-green-400 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/20 shadow-sm flex items-center gap-1.5"><i data-lucide="plus-circle" class="w-3 h-3"></i> ${reward.value.toFixed(2)} Reward</div>
                 <div class="text-[10px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1.5"><i data-lucide="hourglass" class="w-3 h-3"></i> ${info.steps_remaining} Left</div>
               </div>
@@ -733,7 +733,7 @@
         html += `<div class="flex items-center gap-2 text-[10px]"><div class="w-24 truncate text-gray-300" title="${escHtml(e.event)}">${escHtml(e.event)}</div><div class="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden"><div class="h-full rounded-full ${serious}" style="width:${pct}%"></div></div><div class="w-8 text-right font-mono text-gray-500">${e.count}</div></div>`;
       });
       html += '</div>';
-      if (data.note) html += `<div class="mt-4 pt-3 border-t border-gray-800 text-[9px] text-gray-500 leading-relaxed">${escHtml(data.note.slice(0,160))}...</div>`;
+      if (data.note) html += `<div class="mt-4 pt-3 border-t border-white/5 text-[9px] text-gray-500 leading-relaxed">${escHtml(data.note.slice(0,160))}...</div>`;
       document.getElementById('faers-preview-body').innerHTML = html;
     }
 

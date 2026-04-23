@@ -9,7 +9,7 @@ import math
 from dataclasses import dataclass
 from typing import Any
 
-import numpy as np
+import numpy as np  # noqa: F401
 
 # ---------------------------------------------------------------------------
 # Qiskit imports — wrapped in try/except so the server can start without
@@ -671,7 +671,7 @@ def _get_protein_folding_config() -> dict[str, Any]:
     }
 
 
-def _interpolate_frames(start_points: list[tuple[float, float]], end_points: list[tuple[float, float]], steps: int = 20) -> list[list[tuple[float, float]]]:
+def _interpolate_frames(start_points: list[tuple[float | int, float | int]], end_points: list[tuple[float | int, float | int]], steps: int = 20) -> list[list[tuple[float, float]]]:
     frames: list[list[tuple[float, float]]] = []
     for step in range(steps + 1):
         t = step / steps

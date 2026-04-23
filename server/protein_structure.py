@@ -575,6 +575,8 @@ class ProteinModelResult:
             "protein_info": self.protein_info,
             "sequence": self.sequence,
             "length": self.length,
+            "residue_count": self.length,
+            "sequence_length": self.length,
             "secondary_structure": "".join(self.secondary_structure),
             "ss_composition": {
                 "helix": round(self.secondary_structure.count("H") / max(1, self.length) * 100, 1),
@@ -878,6 +880,27 @@ CGHLANFRNQNQLATIFPELIAIPVFSNIHSLAYVFVIISVL""",
 }
 
 
-def get_example_sequences() -> dict[str, str]:
+def get_example_sequences() -> dict[str, dict[str, str]]:
     """Return available example FASTA sequences."""
-    return {k: v for k, v in EXAMPLE_SEQUENCES.items()}
+    return {
+        "insulin": {
+            "name": "Human Insulin",
+            "fasta": EXAMPLE_SEQUENCES["insulin"],
+            "description": "51-residue pancreatic hormone"
+        },
+        "nav1.2": {
+            "name": "Nav1.2",
+            "fasta": EXAMPLE_SEQUENCES["nav1.2"],
+            "description": "Voltage-gated sodium channel fragment"
+        },
+        "androgen_receptor": {
+            "name": "Androgen Receptor",
+            "fasta": EXAMPLE_SEQUENCES["androgen_receptor"],
+            "description": "Nuclear hormone receptor LBD"
+        },
+        "herg_channel": {
+            "name": "hERG Channel",
+            "fasta": EXAMPLE_SEQUENCES["herg_channel"],
+            "description": "Potassium voltage-gated channel fragment"
+        }
+    }

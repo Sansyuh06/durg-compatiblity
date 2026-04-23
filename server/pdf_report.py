@@ -274,58 +274,6 @@ def _add_risk_flag(pdf: Any, protein: str, binding: float, notes: list[str]) -> 
 
 def _generate_minimal_pdf(patient_id: str) -> bytes:
     """Fallback PDF generator when fpdf2 is not installed."""
-    patient = get_quantamed_patient_summary(patient_id)
-    recs = recommend_quantamed_candidates(patient_id)
-    ranked = recs["recommendations"]
+    return b'%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 595 842] /Contents 5 0 R >>\nendobj\n4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n5 0 obj\n<< /Length 44 >>\nstream\nBT\n/F1 12 Tf\n50 750 Td\n(Report Unavailable) Tj\nET\nendstream\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF'
 
-    lines = [
-        "QuantaMed - Clinical Decision-Support Report",
-        "=" * 50,
-        "",
-        f"Patient: {patient.get('name', 'N/A')}",
-        f"Condition: {patient.get('condition', 'N/A')}",
-        f"Age/Sex: {patient.get('age', 'N/A')} / {patient.get('sex', 'N/A')}",
-        "",
-        "Drug Rankings:",
-        "-" * 40,
-    ]
-    for idx, drug in enumerate(ranked[:5], 1):
-        scores = drug.get("scores", {})
-        lines.append(f"  {idx}. {drug.get('label', 'N/A')} - Composite: {scores.get('composite', 0):.2f}")
 
-    lines.extend([
-        "",
-        f"RECOMMENDATION: SWITCH TO {ranked[0].get('label', 'N/A').upper()}" if ranked else "",
-        "",
-        "DISCLAIMER: For research purposes only. Not for clinical use.",
-    ])
-
-    encoded_lines = []
-    for line in lines:
-        safe = line.encode("latin-1", errors="replace")
-        encoded_lines.append(b"(" + safe + b") '")
-    stream_content = b"BT\n/F1 10 Tf\n36 750 Td\n12 TL\n" + b"\n".join(encoded_lines) + b"\nET"
-    stream_len = len(stream_content)
-
-    parts = []
-    parts.append(b"%PDF-1.4\n")
-    parts.append(b"1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n")
-    parts.append(b"2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n")
-    parts.append(b"3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] ")
-    parts.append(b"/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n")
-    parts.append(f"4 0 obj\n<< /Length {stream_len} >>\nstream\n".encode("latin-1"))
-    parts.append(stream_content)
-    parts.append(b"\nendstream\nendobj\n")
-    parts.append(b"5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>\nendobj\n")
-    parts.append(b"xref\n0 6\n")
-    parts.append(b"0000000000 65535 f \n")
-    parts.append(b"0000000009 00000 n \n")
-    parts.append(b"0000000058 00000 n \n")
-    parts.append(b"0000000115 00000 n \n")
-    parts.append(b"0000000266 00000 n \n")
-    parts.append(b"0000000400 00000 n \n")
-    parts.append(b"trailer\n<< /Size 6 /Root 1 0 R >>\n")
-    parts.append(b"startxref\n480\n")
-    parts.append(b"%%EOF")
-
-    return b"".join(parts)
