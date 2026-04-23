@@ -194,21 +194,22 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
 
     residues: list[dict[str, Any]] = []
 
+    # Local state for tracking the growth axis (replaces function attributes)
+    _state: dict[str, Any] = {
+        "main_axis": np.array([0.0, 1.0, 0.0]),
+        "p1": np.array([1.0, 0.0, 0.0]),
+        "p2": np.array([0.0, 0.0, 1.0]),
+    }
+
     for i in range(n):
         aa = sequence[i]
         sec = ss[i]
 
-        # We need a state variable to track the local growth axis
-        if not hasattr(_generate_backbone, 'main_axis'):
-            _generate_backbone.main_axis = np.array([0.0, 1.0, 0.0])
-            _generate_backbone.p1 = np.array([1.0, 0.0, 0.0])
-            _generate_backbone.p2 = np.array([0.0, 0.0, 1.0])
-
         if i == 0:
             ca_pos = np.array([0.0, 0.0, 0.0])
-            _generate_backbone.main_axis = np.array([0.0, 1.0, 0.0])
-            _generate_backbone.p1 = np.array([1.0, 0.0, 0.0])
-            _generate_backbone.p2 = np.array([0.0, 0.0, 1.0])
+            _state["main_axis"] = np.array([0.0, 1.0, 0.0])
+            _state["p1"] = np.array([1.0, 0.0, 0.0])
+            _state["p2"] = np.array([0.0, 0.0, 1.0])
         else:
             prev_sec = ss[i-1]
             prev_ca = residues[-1]["atoms"]["CA"]
@@ -217,7 +218,7 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
             if sec != prev_sec and sec != "C":
                 angle = rng.uniform(math.pi/3, 2*math.pi/3)
                 v2 = rng.randn(3)
-                v2 -= v2.dot(_generate_backbone.main_axis) * _generate_backbone.main_axis
+                v2 -= v2.dot(_state["main_axis"]) * _state["main_axis"]
                 rot_axis = v2 / (np.linalg.norm(v2) + 1e-9)
                 
                 K = np.array([
@@ -226,9 +227,9 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
                     [-rot_axis[1], rot_axis[0], 0]
                 ])
                 R = np.eye(3) + math.sin(angle)*K + (1-math.cos(angle))*K.dot(K)
-                _generate_backbone.main_axis = R.dot(_generate_backbone.main_axis)
-                _generate_backbone.p1 = R.dot(_generate_backbone.p1)
-                _generate_backbone.p2 = R.dot(_generate_backbone.p2)
+                _state["main_axis"] = R.dot(_state["main_axis"])
+                _state["p1"] = R.dot(_state["p1"])
+                _state["p2"] = R.dot(_state["p2"])
 
             if sec == "H":
                 turn_angle = 2 * math.pi / 3.6
@@ -237,11 +238,11 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
                 dx = 2.3 * math.cos(theta) - 2.3 * math.cos(prev_theta)
                 dz = 2.3 * math.sin(theta) - 2.3 * math.sin(prev_theta)
                 dy = 1.5
-                delta = dx*_generate_backbone.p1 + dy*_generate_backbone.main_axis + dz*_generate_backbone.p2
+                delta = dx*_state["p1"] + dy*_state["main_axis"] + dz*_state["p2"]
                 ca_pos = prev_ca + delta
             elif sec == "E":
                 dz = 1.6 if (i % 2 == 0) else -1.6
-                delta = 3.3*_generate_backbone.main_axis + dz*_generate_backbone.p2
+                delta = 3.3*_state["main_axis"] + dz*_state["p2"]
                 ca_pos = prev_ca + delta
             else:
                 phi = rng.uniform(-math.pi, math.pi)
@@ -249,7 +250,7 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
                 dx = 3.8 * math.cos(phi) * math.cos(psi)
                 dz = 3.8 * math.sin(phi) * math.cos(psi)
                 dy = 3.8 * math.sin(psi)
-                delta = dx*_generate_backbone.p1 + dy*_generate_backbone.main_axis + dz*_generate_backbone.p2
+                delta = dx*_state["p1"] + dy*_state["main_axis"] + dz*_state["p2"]
                 ca_pos = prev_ca + delta
 
         # Generate N, C, O from CA position
