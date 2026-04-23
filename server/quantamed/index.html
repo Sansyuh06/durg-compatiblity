@@ -744,6 +744,10 @@ canvas.chart-canvas { width:100%!important; }
     <button class="step-btn" onclick="showPanel(5, this)"><span class="step-num">STEP 06</span>DRUG MATRIX</button>
     <button class="step-btn" onclick="showPanel(6, this)"><span class="step-num">STEP 07</span>TRIBE v2 BRAIN</button>
     <button class="step-btn" onclick="showPanel(6.5, this)"><span class="step-num">STEP 08</span>MOL. BINDING</button>
+    <button class="step-btn" onclick="showPanel(8, this)"><span class="step-num">STEP 09</span>BIOMARKER</button>
+    <button class="step-btn" onclick="showPanel(9, this)"><span class="step-num">STEP 10</span>REPURPOSE</button>
+    <button class="step-btn" onclick="showPanel(10, this)"><span class="step-num">STEP 11</span>ANCESTRY PGx</button>
+    <button class="step-btn" onclick="showPanel(11, this)"><span class="step-num">STEP 12</span>DOSE OPT</button>
     <button class="step-btn" onclick="showPanel(7, this)"><span class="step-num">FINAL</span>RECOMMENDATION</button>
   </div>
 
@@ -1491,6 +1495,73 @@ canvas.chart-canvas { width:100%!important; }
     </div>
     <div class="info-box" style="margin-top:16px;font-size:12px;">
       <strong class="text-cyan">Science Note:</strong> Binding energies derived from Qiskit VQE simulation of the Nav1.2 voltage-gated sodium channel peptide fragment (8 residues, HP lattice model). Off-target contacts predicted from ChEMBL bioactivity data (pChEMBL threshold > 6). All values are for research and educational purposes only.
+    </div>
+  </div>
+
+  <!-- PANEL 8: LIVE BIOMARKER TIMELINE -->
+  <div class="panel" id="panel8">
+    <div class="section-title">LIVE PATIENT BIOMARKER TIMELINE <span id="bio-live-indicator" style="display:inline-block;width:8px;height:8px;background:#20c997;border-radius:50%;margin-left:8px;vertical-align:middle;"></span></div>
+    <div id="biomarker-timeline-wrap">
+      <div class="card" style="padding:24px;margin-bottom:20px;">
+        <div class="circuit-label mb-20">DRUG RESPONSE TRAJECTORY — 90 DAY PROJECTION</div>
+        <canvas id="biomarker-chart-main" height="120"></canvas>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;">
+        <div class="card" style="padding:16px;"><div class="circuit-label" style="margin-bottom:8px;">SEIZURE FREQUENCY</div><canvas id="bio-seizures" height="60"></canvas></div>
+        <div class="card" style="padding:16px;"><div class="circuit-label" style="margin-bottom:8px;">MOOD SCORE</div><canvas id="bio-mood" height="60"></canvas></div>
+        <div class="card" style="padding:16px;"><div class="circuit-label" style="margin-bottom:8px;">SLEEP HOURS</div><canvas id="bio-sleep" height="60"></canvas></div>
+        <div class="card" style="padding:16px;"><div class="circuit-label" style="margin-bottom:8px;">FATIGUE LEVEL</div><canvas id="bio-fatigue" height="60"></canvas></div>
+      </div>
+      <div class="info-box" style="margin-top:16px;"><strong class="text-cyan">Live Tracking:</strong> Connect wearable data or manually log daily readings. The system plots biomarkers against the predicted drug response curve from the RL model, showing whether the patient tracks the "good response" or "risk accumulation" trajectory in real time.</div>
+    </div>
+  </div>
+
+  <!-- PANEL 9: DRUG REPURPOSING SCANNER -->
+  <div class="panel" id="panel9">
+    <div class="section-title">DRUG REPURPOSING SCANNER — DUAL-USE CANDIDATE DETECTION</div>
+    <div class="info-box" style="margin-bottom:20px;"><strong class="text-green">How it works:</strong> After ranking candidates for the primary diagnosis, the scanner analyzes each drug's off-target binding panel for therapeutic opportunities against the patient's comorbidities. If a candidate has secondary pharmacological activity that could treat a co-existing condition, it is flagged as a potential dual-use candidate.</div>
+    <div id="repurposing-results"></div>
+  </div>
+
+  <!-- PANEL 10: GENETIC ANCESTRY PHARMACOGENOMICS -->
+  <div class="panel" id="panel10">
+    <div class="section-title">GENETIC ANCESTRY PHARMACOGENOMICS CORRECTION</div>
+    <div id="ancestry-pgx-content">
+      <div class="grid-2">
+        <div class="card" style="padding:24px;">
+          <div class="circuit-label mb-20">CYP ALLELE FREQUENCY BY POPULATION</div>
+          <canvas id="ancestry-chart" height="180"></canvas>
+        </div>
+        <div class="card" style="padding:24px;">
+          <div class="circuit-label mb-20">PATIENT-SPECIFIC RISK ADJUSTMENT</div>
+          <div id="ancestry-risk-table"></div>
+        </div>
+      </div>
+      <div class="info-box" style="margin-top:16px;"><strong class="text-cyan">Probabilistic Genomic Estimation:</strong> CYP2D6 poor metabolizer frequency is 7-10% in Europeans, 1-2% in East Asians, and 29% in certain Ethiopian populations. When formal genetic testing is unavailable, the system adjusts prior probability of the patient's true CYP phenotype based on ethnicity, providing clinicians a probabilistic genomic risk estimate.</div>
+    </div>
+  </div>
+
+  <!-- PANEL 11: DOSE OPTIMIZATION ENGINE -->
+  <div class="panel" id="panel11">
+    <div class="section-title">PERSONALIZED DOSE OPTIMIZATION ENGINE</div>
+    <div id="dose-opt-content">
+      <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center;">
+        <label style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);">SELECT DRUG</label>
+        <select id="dose-drug-select" style="padding:8px 12px;font-size:12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'Inter',sans-serif;">
+          <option value="ltg" selected>Lamotrigine</option>
+          <option value="vpa">Valproic Acid</option>
+          <option value="lev">Levetiracetam</option>
+          <option value="tpm">Topiramate</option>
+          <option value="zns">Zonisamide</option>
+        </select>
+      </div>
+      <div id="dose-cards" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;"></div>
+      <div class="card" style="padding:24px;margin-bottom:20px;">
+        <div class="circuit-label mb-20">PLASMA CONCENTRATION vs TIME — DOSE-RESPONSE CURVE</div>
+        <canvas id="dose-curve-chart" height="120"></canvas>
+      </div>
+      <div id="dose-pk-params"></div>
+      <div class="info-box" style="margin-top:16px;"><strong class="text-green">Dose Optimization:</strong> Instead of recommending a drug and leaving dose to the clinician, the engine computes the personalized optimal starting dose that hits the center of the therapeutic window given the patient's CYP phenotype, organ function, weight, and age.</div>
     </div>
   </div>
 
@@ -3085,6 +3156,18 @@ showPanel = function(idx, btn){
   if (idx === 6.5) {
     setTimeout(initMolecularBinding, 80);
   }
+  if (idx === 8) {
+    setTimeout(initBiomarkerTimeline, 80);
+  }
+  if (idx === 9) {
+    setTimeout(initRepurposing, 80);
+  }
+  if (idx === 10) {
+    setTimeout(initAncestryPGx, 80);
+  }
+  if (idx === 11) {
+    setTimeout(initDoseOptimization, 80);
+  }
 };
 
 // ── AUTO-ADVANCE DEMO ─────────────────────────────────────────
@@ -3092,7 +3175,7 @@ function autoAdvance(){
   const btn = document.getElementById('btnAutoAdvance');
   if(btn) { btn.disabled = true; btn.textContent = '⏳ RUNNING ANALYSIS...'; }
 
-  const panelOrder = [0, 1, 2, 3, 4, 5, 6, 7];
+  const panelOrder = [0, 1, 2, 3, 4, 5, 6, 6.5, 8, 9, 10, 11, 7];
   const stepBtns = document.querySelectorAll('.step-btn');
   let idx = 0;
 
@@ -3112,6 +3195,7 @@ function autoAdvance(){
 }
 </script>
 <script src="/quantamed/static/molecular_binding.js"></script>
+<script src="/quantamed/static/advanced_features.js"></script>
 </body>
 </html>
 
