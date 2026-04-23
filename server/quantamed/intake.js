@@ -1,4 +1,4 @@
-﻿const INTAKE_STEPS = [
+const INTAKE_STEPS = [
   { id: 'demographics', title: 'Demographics & Vitals' },
   { id: 'clinical', title: 'Clinical History' },
   { id: 'genomics', title: 'Genomics & Biomarkers' },
@@ -40,20 +40,20 @@ function renderWizard() {
   const container = document.getElementById('intake-wizard');
   if (!container) return;
 
-  let progressHtml = INTAKE_STEPS.map((s, i) => 
-    <div class="progress-step  + (i === 0 ? 'active' : '') + " id="prog- + i + ">
+  let progressHtml = INTAKE_STEPS.map((s, i) => `
+    <div class="progress-step ${i === 0 ? 'active' : ''}" id="prog-${i}">
       <div class="progress-step-fill"></div>
     </div>
-  ).join('');
+  `).join('');
 
-  container.innerHTML = 
+  container.innerHTML = `
     <div class="wizard-container">
       <button class="wiz-quickfill" onclick="fillDemoData()">✦ Quick Fill Preset</button>
       <div class="wizard-header">
         <div class="wizard-title">Interactive Patient Intake</div>
         <div class="wizard-subtitle">Initialize decision support parameters</div>
       </div>
-      <div class="wizard-progress"> + progressHtml + </div>
+      <div class="wizard-progress">${progressHtml}</div>
       
       <form id="wizard-form">
         <!-- Step 1 -->
@@ -179,7 +179,7 @@ function renderWizard() {
       </div>
 
     </div>
-  ;
+  `;
 }
 
 function updateData(el) {
@@ -192,12 +192,6 @@ function updateData(el) {
     patientData[parts[0]][parts[1]] = val;
   }
   checkAlerts();
-}
-
-function setNestedValue(obj, path, value) {
-  const parts = path.split('.');
-  if (parts.length === 1) obj[parts[0]] = value;
-  else obj[parts[0]][parts[1]] = value;
 }
 
 function fillDemoData() {
@@ -296,18 +290,13 @@ function finishIntake() {
   const container = document.getElementById('intake-wizard');
   container.classList.add('hidden');
   
-  // Inject the patientData into the main UI dashboard placeholders
-  // We locate the patient panel and update it
   const nameEl = document.querySelector('.patient-name');
   if(nameEl) nameEl.innerText = "Custom Patient";
   
   const dxEl = document.querySelector('.patient-dx');
   if(dxEl) dxEl.innerHTML = patientData.condition.subtype + '<br/>' + patientData.basic_info.gender + ' • ' + patientData.basic_info.age + 'y';
-  
-  // Optional: Update the VPA panel or other stats if needed
 }
 
-// Initialize
 window.addEventListener('DOMContentLoaded', () => {
   renderWizard();
 });
