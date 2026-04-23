@@ -125,8 +125,9 @@ def predict_secondary_structure(sequence: str) -> list[str]:
 
     # Pass 1: Find helix nucleation sites
     for i in range(n - window + 1):
-        segment = sequence[i : i + window]
-        helix_score = sum(_HELIX_PROPENSITY.get(c, 1.0) for c in segment) / window
+        segment = sequence[i: i + window]
+        helix_score = sum(_HELIX_PROPENSITY.get(c, 1.0)
+                          for c in segment) / window
         if helix_score > 1.03:
             for j in range(i, min(i + window, n)):
                 if ss[j] == "C":
@@ -134,13 +135,14 @@ def predict_secondary_structure(sequence: str) -> list[str]:
 
     # Pass 2: Extend helices
     for i in range(1, n - 1):
-        if ss[i] == "C" and ss[i - 1] == "H" and i + 1 < n and ss[i + 1] == "H":
+        if ss[i] == "C" and ss[i - 1] == "H" and i + \
+                1 < n and ss[i + 1] == "H":
             if _HELIX_PROPENSITY.get(sequence[i], 1.0) > 0.9:
                 ss[i] = "H"
 
     # Pass 3: Find sheet nucleation sites (only in coil regions)
     for i in range(n - 4):
-        segment = sequence[i : i + 5]
+        segment = sequence[i: i + 5]
         sheet_score = sum(_SHEET_PROPENSITY.get(c, 1.0) for c in segment) / 5
         if sheet_score > 1.05:
             for j in range(i, min(i + 5, n)):
@@ -211,22 +213,24 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
             _state["p1"] = np.array([1.0, 0.0, 0.0])
             _state["p2"] = np.array([0.0, 0.0, 1.0])
         else:
-            prev_sec = ss[i-1]
+            prev_sec = ss[i - 1]
             prev_ca = residues[-1]["atoms"]["CA"]
-            
-            # Bend the growth axis when transitioning between secondary structures
+
+            # Bend the growth axis when transitioning between secondary
+            # structures
             if sec != prev_sec and sec != "C":
-                angle = rng.uniform(math.pi/3, 2*math.pi/3)
+                angle = rng.uniform(math.pi / 3, 2 * math.pi / 3)
                 v2 = rng.randn(3)
                 v2 -= v2.dot(_state["main_axis"]) * _state["main_axis"]
                 rot_axis = v2 / (np.linalg.norm(v2) + 1e-9)
-                
+
                 K = np.array([
                     [0, -rot_axis[2], rot_axis[1]],
                     [rot_axis[2], 0, -rot_axis[0]],
                     [-rot_axis[1], rot_axis[0], 0]
                 ])
-                R = np.eye(3) + math.sin(angle)*K + (1-math.cos(angle))*K.dot(K)
+                R = np.eye(3) + math.sin(angle) * K + \
+                    (1 - math.cos(angle)) * K.dot(K)
                 _state["main_axis"] = R.dot(_state["main_axis"])
                 _state["p1"] = R.dot(_state["p1"])
                 _state["p2"] = R.dot(_state["p2"])
@@ -238,11 +242,12 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
                 dx = 2.3 * math.cos(theta) - 2.3 * math.cos(prev_theta)
                 dz = 2.3 * math.sin(theta) - 2.3 * math.sin(prev_theta)
                 dy = 1.5
-                delta = dx*_state["p1"] + dy*_state["main_axis"] + dz*_state["p2"]
+                delta = dx * _state["p1"] + dy * \
+                    _state["main_axis"] + dz * _state["p2"]
                 ca_pos = prev_ca + delta
             elif sec == "E":
                 dz = 1.6 if (i % 2 == 0) else -1.6
-                delta = 3.3*_state["main_axis"] + dz*_state["p2"]
+                delta = 3.3 * _state["main_axis"] + dz * _state["p2"]
                 ca_pos = prev_ca + delta
             else:
                 phi = rng.uniform(-math.pi, math.pi)
@@ -250,7 +255,8 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
                 dx = 3.8 * math.cos(phi) * math.cos(psi)
                 dz = 3.8 * math.sin(phi) * math.cos(psi)
                 dy = 3.8 * math.sin(psi)
-                delta = dx*_state["p1"] + dy*_state["main_axis"] + dz*_state["p2"]
+                delta = dx * _state["p1"] + dy * \
+                    _state["main_axis"] + dz * _state["p2"]
                 ca_pos = prev_ca + delta
 
         # Generate N, C, O from CA position
@@ -266,7 +272,8 @@ def _generate_backbone(sequence: str, ss: list[str]) -> list[dict[str, Any]]:
         if i < n - 1:
             c_offset = rng.randn(3) * 0.3
             c_offset[0] += CA_C
-            c_pos = ca_pos + c_offset / (np.linalg.norm(c_offset) + 1e-9) * CA_C
+            c_pos = ca_pos + c_offset / \
+                (np.linalg.norm(c_offset) + 1e-9) * CA_C
         else:
             c_pos = ca_pos + np.array([CA_C, 0, 0])
 
@@ -429,7 +436,11 @@ def _find_template(header: str, sequence: str, seed: int) -> dict[str, Any]:
             }
 
     # Generate a plausible template
-    fake_pdb = f"{rng.randint(1, 9)}{chr(rng.randint(65, 90))}{chr(rng.randint(65, 90))}{rng.randint(0, 9)}"
+    fake_pdb = f"{rng.randint(1,
+                              9)}{chr(rng.randint(65,
+                                                  90))}{chr(rng.randint(65,
+                                                                        90))}{rng.randint(0,
+                                                                                          9)}"
     return {
         "pdb_id": fake_pdb,
         "name": "AlphaFold DB model",
@@ -460,7 +471,7 @@ def _generate_docking_data(
     best_score = 0
 
     for i in range(2, n - 2):
-        window = sequence[max(0, i - 2) : min(n, i + 3)]
+        window = sequence[max(0, i - 2): min(n, i + 3)]
         score = sum(1 for c in window if c in hydrophobic)
         if score > best_score:
             best_score = score
@@ -471,22 +482,28 @@ def _generate_docking_data(
 
     pocket_ca = np.array(residues[pocket_center]["atoms"]["CA"])
 
-    drugs: list[dict[str, Any]] = [
-        {
-            "drug_id": "ltg",
-            "label": "Lamotrigine",
-            "color": "#00e676",
-            "binding_energy": -8.4 + rng.uniform(-1, 1),
-            "atoms": _generate_drug_atoms(pocket_ca, rng, "ltg"),
-        },
-        {
-            "drug_id": "vpa",
-            "label": "Valproic Acid",
-            "color": "#ffab40",
-            "binding_energy": -6.2 + rng.uniform(-1, 1),
-            "atoms": _generate_drug_atoms(pocket_ca + np.array([3, 0, 0]), rng, "vpa"),
-        },
-    ]
+    drugs: list[dict[str,
+                     Any]] = [{"drug_id": "ltg",
+                               "label": "Lamotrigine",
+                               "color": "#00e676",
+                               "binding_energy": -8.4 + rng.uniform(-1,
+                                                                    1),
+                               "atoms": _generate_drug_atoms(pocket_ca,
+                                                             rng,
+                                                             "ltg"),
+                               },
+                              {"drug_id": "vpa",
+                               "label": "Valproic Acid",
+                               "color": "#ffab40",
+                               "binding_energy": -6.2 + rng.uniform(-1,
+                                                                    1),
+                               "atoms": _generate_drug_atoms(pocket_ca + np.array([3,
+                                                                                   0,
+                                                                                   0]),
+                                                             rng,
+                                                             "vpa"),
+                               },
+                              ]
 
     for d in drugs:
         d["binding_energy"] = round(float(d["binding_energy"]), 2)
@@ -529,8 +546,10 @@ def _generate_drug_atoms(
                 "z": round(center[2] + rng.uniform(-0.2, 0.2), 3),
             })
         # Amino groups
-        atoms.append({"element": "N", "x": round(center[0] - 1.8, 3), "y": round(center[1] + 0.5, 3), "z": round(center[2], 3)})
-        atoms.append({"element": "N", "x": round(center[0] - 1.8, 3), "y": round(center[1] - 1.2, 3), "z": round(center[2], 3)})
+        atoms.append({"element": "N", "x": round(
+            center[0] - 1.8, 3), "y": round(center[1] + 0.5, 3), "z": round(center[2], 3)})
+        atoms.append({"element": "N", "x": round(
+            center[0] - 1.8, 3), "y": round(center[1] - 1.2, 3), "z": round(center[2], 3)})
         return atoms
     else:
         # Valproic acid: branched chain carboxylic acid
@@ -613,7 +632,9 @@ def _fetch_alphafold_pdb(uniprot_id: str) -> Optional[str]:
     latest_version = 4  # default fallback
     try:
         api_url = f"https://alphafold.ebi.ac.uk/api/prediction/{uniprot_id}"
-        req = urllib.request.Request(api_url, headers={"User-Agent": "QuantaMed/1.0"})
+        req = urllib.request.Request(
+            api_url, headers={
+                "User-Agent": "QuantaMed/1.0"})
         resp = urllib.request.urlopen(req, timeout=10)
         import json
         data = json.loads(resp.read())
@@ -626,11 +647,15 @@ def _fetch_alphafold_pdb(uniprot_id: str) -> Optional[str]:
     for ver in [latest_version, latest_version - 1, 4, 3, 2]:
         url = f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v{ver}.pdb"
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "QuantaMed/1.0"})
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "QuantaMed/1.0"})
             resp = urllib.request.urlopen(req, timeout=15)
             pdb_text = resp.read().decode("utf-8")
             _alphafold_cache[uniprot_id] = pdb_text
-            _log.info("Fetched AlphaFold structure for %s (v%d)", uniprot_id, ver)
+            _log.info(
+                "Fetched AlphaFold structure for %s (v%d)",
+                uniprot_id,
+                ver)
             return pdb_text
         except urllib.error.HTTPError:
             continue
@@ -734,19 +759,22 @@ def _parse_pdb_to_residues(
             # Use the virtual bond angle at CA[i]
             v1 = cas[i] - cas[i - 1]
             v2 = cas[i + 1] - cas[i]
-            v3 = cas[i + 2] - cas[i + 1] if i + 2 < n else v2
+            cas[i + 2] - cas[i + 1] if i + 2 < n else v2
 
             # CA-CA distance (helix ~5.5Å, sheet ~6.7Å for i to i+2)
             d_ca = np.linalg.norm(cas[i + 1] - cas[i - 1])
 
             # Virtual bond angle
-            cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-9)
+            cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1)
+                                          * np.linalg.norm(v2) + 1e-9)
             angle = math.degrees(math.acos(np.clip(cos_angle, -1, 1)))
 
-            # Helix: tight turns, short i→i+2 distance (~5.0-6.1Å), angle 75-100°
+            # Helix: tight turns, short i→i+2 distance (~5.0-6.1Å), angle
+            # 75-100°
             if 4.5 < d_ca < 6.2 and 75 < angle < 100:
                 ss[i] = "H"
-            # Sheet: extended chain, large i→i+2 distance (>5.8Å), small angle (<80°)
+            # Sheet: extended chain, large i→i+2 distance (>5.8Å), small angle
+            # (<80°)
             elif d_ca > 5.8 and angle < 80:
                 ss[i] = "E"
 

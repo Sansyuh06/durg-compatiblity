@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>QuantaMed — Quantum-Enhanced Drug Discovery</title>
+<title>Foldables — Quantum-Enhanced Drug Discovery</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="/quantamed/static/three.min.js"></script>
 <style>
@@ -634,7 +634,7 @@ canvas.chart-canvas { width:100%!important; }
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loader"></div>
-  <div class="loading-text" id="loadingText">INITIALIZING QUANTAMED...</div>
+  <div class="loading-text" id="loadingText">INITIALIZING FOLDABLES...</div>
 </div>
 
 <!-- HEADER -->
@@ -656,7 +656,7 @@ canvas.chart-canvas { width:100%!important; }
 
   <!-- MODE SWITCHER -->
   <div class="mode-tabs">
-    <button id="tab-quantamed" class="mode-tab active" onclick="switchMode('quantamed')">🧬 QUANTAMED DISCOVERY</button>
+    <button id="tab-quantamed" class="mode-tab active" onclick="switchMode('quantamed')">🧬 FOLDABLES DISCOVERY</button>
     <button id="tab-protein"   class="mode-tab" onclick="switchMode('protein')">🔬 PROTEIN SIMULATION</button>
     <button id="tab-triage"    class="mode-tab" onclick="switchMode('triage')">⚕️ PHARMACOVIGILANCE</button>
   </div>
@@ -666,10 +666,10 @@ canvas.chart-canvas { width:100%!important; }
   <!-- HERO ROW -->
   <div style="margin-bottom:28px;">
     <div class="section-title">CASE STUDY — PRIMARY DEMO</div>
-    <div class="main-title">Quantum Drug Prediction for <span>Gabi</span></div>
+    <div class="main-title">Quantum Drug Prediction for <span class="dyn-patient-name">Gabi</span></div>
     <p style="color:var(--text2); font-size:15px; max-width:700px; line-height:1.6; margin-top:8px;">
-      Gabi has been on Valproic Acid for 9 months and developed PCOS — a preventable outcome.
-      QuantaMed demonstrates how quantum binding simulation, pharmacogenomics, and RL together
+      <span class="dyn-patient-name">Gabi</span> has been on Valproic Acid for 9 months and developed PCOS — a preventable outcome.
+      Foldables demonstrates how quantum binding simulation, pharmacogenomics, and RL together
       would have recommended Lamotrigine from day one.
     </p>
     <div style="margin-top:18px;">
@@ -685,7 +685,7 @@ canvas.chart-canvas { width:100%!important; }
     <div class="patient-panel">
       <div class="patient-avatar-wrap">
         <div class="avatar-circle">🧬</div>
-        <div class="patient-name">GABI</div>
+        <div class="patient-name"><span class="dyn-patient-name-upper">GABI</span></div>
         <div class="patient-dx">Juvenile Myoclonic<br/>Epilepsy · Female · 24y</div>
         <div class="risk-badge">⚠ PCOS DETECTED<br/>Month 6 on Valproic Acid</div>
       </div>
@@ -791,7 +791,7 @@ canvas.chart-canvas { width:100%!important; }
         </div>
         <div class="info-box" style="margin-top:16px; font-size:12px;">
           ⚠️ VPA and LTG have similar Nav1.2 affinity. The difference emerges in
-          <strong class="text-red">off-target binding</strong> — Step 2 reveals why VPA is dangerous for Gabi.
+          <strong class="text-red">off-target binding</strong> — Step 2 reveals why VPA is dangerous for <span class="dyn-patient-name">Gabi</span>.
         </div>
       </div>
     </div>
@@ -908,7 +908,7 @@ canvas.chart-canvas { width:100%!important; }
         For <strong>female patients under 30</strong>, AR off-target binding is associated with a <strong>2.8× elevated PCOS risk</strong>
         that accumulates over 3–6 months of chronic exposure. This flag is <strong>sex-specific and weighted 2× in the safety score</strong>.
         Mechanism: VPA stimulates IGF-1 secretion → ovarian androgen synthesis → follicular arrest → PCOS.
-        <em>This is the outcome Gabi experienced. This flag would have appeared on Day 1.</em>
+        <em>This is the outcome <span class="dyn-patient-name">Gabi</span> experienced. This flag would have appeared on Day 1.</em>
       </div>
     </div>
   </div>
@@ -919,7 +919,7 @@ canvas.chart-canvas { width:100%!important; }
   <div class="panel" id="panel2">
     <div class="section-title">PHARMACOGENOMICS — CYP PHENOTYPE × ONE-COMPARTMENT PK MODEL</div>
     <div class="info-box">
-      <strong class="text-cyan">Method:</strong> Gabi's CYP phenotype adjusts the elimination rate constant (ke) in
+      <strong class="text-cyan">Method:</strong> <span class="dyn-patient-name">Gabi</span>'s CYP phenotype adjusts the elimination rate constant (ke) in
       C(t) = (F·Dose/Vd)·e^(−ke·t). CYP2C9 IM status reduces ke by 30% for VPA, raising predicted steady-state
       concentration (Css) above normal therapeutic range.
     </div>
@@ -927,7 +927,7 @@ canvas.chart-canvas { width:100%!important; }
       <div class="cyp-card" style="border-color:rgba(255,82,82,0.3)">
         <div class="cyp-name">CYP 2D6</div>
         <div class="cyp-phenotype poor">Poor Metabolizer</div>
-        <div class="cyp-effect">Drug accumulation 3–5× normal. VPA & many antidepressants affected. Gabi's PM status compounds her risk.</div>
+        <div class="cyp-effect">Drug accumulation 3–5× normal. VPA & many antidepressants affected. <span class="dyn-patient-name">Gabi</span>'s PM status compounds her risk.</div>
       </div>
       <div class="cyp-card" style="border-color:rgba(255,171,64,0.3)">
         <div class="cyp-name">CYP 2C9</div>
@@ -962,7 +962,7 @@ canvas.chart-canvas { width:100%!important; }
           <div class="mono" style="font-size:10px;color:var(--text2);margin-bottom:6px;letter-spacing:1px;">CYP2C9</div>
           <select id="pkCyp2c9" style="width:100%;background:rgba(17,30,56,0.7);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font-family:'Space Mono',monospace;font-size:12px;">
             <option value="normal">Normal</option>
-            <option value="intermediate" selected>Intermediate (Gabi)</option>
+            <option value="intermediate" selected>Intermediate (<span class="dyn-patient-name">Gabi</span>)</option>
             <option value="poor">Poor</option>
           </select>
         </div>
@@ -1034,7 +1034,7 @@ canvas.chart-canvas { width:100%!important; }
       <div class="flag-alert" style="border-color:rgba(255,171,64,0.3);background:rgba(255,171,64,0.06);margin-top:20px;">
         <div class="flag-icon">🟡</div>
         <div class="flag-text">
-          <strong style="color:var(--amber)">CYP GENOMIC ALERT:</strong> At 1000mg/day, Gabi's CYP2C9 Intermediate Metabolizer status predicts a steady-state concentration of
+          <strong style="color:var(--amber)">CYP GENOMIC ALERT:</strong> At 1000mg/day, <span class="dyn-patient-name">Gabi</span>'s CYP2C9 Intermediate Metabolizer status predicts a steady-state concentration of
           <strong>78.4 µg/mL</strong> — 31% above what a Normal Metabolizer would achieve. This is within the therapeutic range
           but approaching the hepatotoxicity threshold of 100 µg/mL. Combined with her already elevated ALT (42 U/L), continued dose escalation would
           be contraindicated. Lamotrigine avoids CYP entirely — no genomic risk adjustment needed.
@@ -1279,9 +1279,9 @@ canvas.chart-canvas { width:100%!important; }
             <td style="color:var(--amber)">71 / 100</td>
           </tr>
           <tr>
-            <td style="color:var(--text2);font-family:'Space Mono',monospace;font-size:10px;">VERDICT FOR GABI</td>
+            <td style="color:var(--text2);font-family:'Space Mono',monospace;font-size:10px;">VERDICT FOR <span class="dyn-patient-name-upper">GABI</span></td>
             <td><span class="badge-rec">RECOMMENDED</span></td>
-            <td><span class="badge-no">NOT FOR GABI</span></td>
+            <td><span class="badge-no">NOT FOR <span class="dyn-patient-name-upper">GABI</span></span></td>
             <td><span class="badge-ok">ACCEPTABLE</span></td>
             <td><span class="badge-ok">ACCEPTABLE</span></td>
             <td><span class="badge-no">LOW BINDING</span></td>
@@ -1295,7 +1295,7 @@ canvas.chart-canvas { width:100%!important; }
         <strong style="color:var(--green)">MATRIX INSIGHT:</strong> Lamotrigine and Valproic Acid have near-identical Nav1.2 binding affinity (79 vs 82).
         The composite gap — <strong>88 vs 63</strong> — is entirely driven by VPA's off-target androgen receptor binding, CYP2C9 genomic incompatibility,
         and ADMET hepatotoxicity signal. The quantum layer alone would not catch this.
-        It is the <strong>multi-layer integration</strong> that reveals VPA as the wrong drug for Gabi specifically.
+        It is the <strong>multi-layer integration</strong> that reveals VPA as the wrong drug for <span class="dyn-patient-name">Gabi</span> specifically.
       </div>
     </div>
   </div>
@@ -1308,14 +1308,14 @@ canvas.chart-canvas { width:100%!important; }
     <div class="info-box">
       <strong class="text-cyan">Bridge Explained:</strong>
       TRIBE v2 is a sensory-stimuli simulation platform, not a pharmacological simulator.
-      QuantaMed maps <em>clinical outcome predictions</em> from the quantum/RL pipeline to
+      Foldables maps <em>clinical outcome predictions</em> from the quantum/RL pipeline to
       <em>sensory input parameters</em> in TRIBE (audio frequency, rhythm, light intensity, chaos level).
       This produces brain state visualizations that communicate drug effects in human terms.
       Calm harmonics → integrated brain state. Discordant stimuli → dysregulated reward pathway.
     </div>
     <div class="tribe-layout mb-20">
       <div class="tribe-card before card">
-        <div class="tribe-header">⚡ GABI — VALPROIC ACID (CURRENT STATE)</div>
+        <div class="tribe-header">⚡ <span class="dyn-patient-name-upper">GABI</span> — VALPROIC ACID (CURRENT STATE)</div>
         <div class="tribe-brain">
           <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg" id="brainBefore">
             <!-- Brain outline -->
@@ -1364,7 +1364,7 @@ canvas.chart-canvas { width:100%!important; }
         </div>
       </div>
       <div class="tribe-card after card">
-        <div class="tribe-header">🌿 GABI — LAMOTRIGINE (PREDICTED STATE)</div>
+        <div class="tribe-header">🌿 <span class="dyn-patient-name-upper">GABI</span> — LAMOTRIGINE (PREDICTED STATE)</div>
         <div class="tribe-brain">
           <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg" id="brainAfter">
             <!-- Brain outline -->
@@ -1446,7 +1446,7 @@ canvas.chart-canvas { width:100%!important; }
     </div>
     <div class="info-box" style="margin-top:16px;">
       <strong class="text-cyan">TRIBE v2 Science:</strong> Meta's foundation model predicts high-resolution fMRI activity for any stimulus.
-      QuantaMed maps <em>NeuroState vectors</em> from the quantum/RL pipeline onto TRIBE stimuli parameters (audio frequency, visual rhythm, light intensity, semantic valence)
+      Foldables maps <em>NeuroState vectors</em> from the quantum/RL pipeline onto TRIBE stimuli parameters (audio frequency, visual rhythm, light intensity, semantic valence)
       to produce whole-brain activation maps. The 3D brain shows predicted neural topology — <strong style="color:#ff5252;">VPA = chaotic hyperactivation</strong> in hormonal &amp; reward circuits,
       <strong style="color:#00e676;">LTG = calm integrated activation</strong> restoring normal hippocampal-PFC connectivity.
     </div>
@@ -1571,12 +1571,13 @@ canvas.chart-canvas { width:100%!important; }
   <div class="panel" id="panel7">
     <div class="section-title">FINAL RECOMMENDATION — END-TO-END PIPELINE VERDICT</div>
     <div class="final-rec">
-      <div class="final-rec-title">QUANTAMED RECOMMENDATION FOR GABI</div>
+      <div class="final-rec-title">FOLDABLES RECOMMENDATION FOR <span class="dyn-patient-name-upper">GABI</span></div>
       <div class="final-drug">SWITCH TO <span>LAMOTRIGINE</span></div>
-      <p style="color:var(--text2);margin-top:12px;font-size:15px;max-width:600px;margin-left:auto;margin-right:auto;line-height:1.7;">
-        Across all six simulation layers, Lamotrigine achieves equivalent seizure control with a
-        dramatically superior safety, genomic, and metabolic profile for Gabi's specific biology.
-      </p>
+      <div id="ollama-summary-container" style="color:var(--text2);margin-top:12px;font-size:15px;max-width:800px;margin-left:auto;margin-right:auto;line-height:1.7;background:rgba(255,255,255,0.03);padding:15px;border-radius:8px;border-left:3px solid var(--cyan);">
+        <div id="ollama-summary-text">
+          <i class="fa fa-spinner fa-spin" style="margin-right:8px;"></i> Calling local Ollama LLM to generate clinical summary...
+        </div>
+      </div>
       <div class="final-stats">
         <div class="final-stat-item"><div class="final-stat-num">88</div><div class="final-stat-lbl">Composite Score (vs 63)</div></div>
         <div class="final-stat-item"><div class="final-stat-num">94%</div><div class="final-stat-lbl">Efficacy Equivalence</div></div>
@@ -1588,7 +1589,7 @@ canvas.chart-canvas { width:100%!important; }
 
     <div class="grid-2" style="margin-top:24px;">
       <div class="card red-top">
-        <div class="circuit-label mb-20">VALPROIC ACID — WHY IT FAILED FOR GABI</div>
+        <div class="circuit-label mb-20">VALPROIC ACID — WHY IT FAILED FOR <span class="dyn-patient-name-upper">GABI</span></div>
         <div style="font-size:14px;line-height:1.8;color:var(--text)">
           ❌ <strong class="text-red">Androgen Receptor binding 0.71</strong> → PCOS risk 2.8× elevated<br/>
           ❌ <strong class="text-amber">CYP2C9 IM status</strong> → Css 78.4 µg/mL (31% above normal)<br/>
@@ -1598,7 +1599,7 @@ canvas.chart-canvas { width:100%!important; }
         </div>
       </div>
       <div class="card green-top">
-        <div class="circuit-label mb-20">LAMOTRIGINE — WHY IT'S RIGHT FOR GABI</div>
+        <div class="circuit-label mb-20">LAMOTRIGINE — WHY IT'S RIGHT FOR <span class="dyn-patient-name-upper">GABI</span></div>
         <div style="font-size:14px;line-height:1.8;color:var(--text)">
           ✅ <strong class="text-green">AR binding 0.09</strong> → Zero PCOS risk<br/>
           ✅ <strong class="text-green">UGT-metabolized</strong> → CYP2C9 status irrelevant<br/>
@@ -1629,11 +1630,11 @@ canvas.chart-canvas { width:100%!important; }
         <div style="font-size:20px;color:var(--border)">→</div>
         <div style="background:rgba(255,171,64,0.08);border:1px solid rgba(255,171,64,0.25);border-radius:8px;padding:12px 16px;text-align:center;">
           <div style="color:var(--amber);font-weight:700;font-size:13px;margin-bottom:4px;">PATIENT OUTCOME</div>
-          <div style="color:var(--text2)">Right drug, Day 1<br/>Gabi never gets PCOS<br/>9 months saved</div>
+          <div style="color:var(--text2)">Right drug, Day 1<br/><span class="dyn-patient-name">Gabi</span> never gets PCOS<br/>9 months saved</div>
         </div>
       </div>
       <div style="margin-top:20px;font-size:13px;color:var(--text2);font-style:italic;">
-        ⚠️ QuantaMed is a computational decision-support tool. All outputs require review by a licensed physician before clinical application.
+        ⚠️ Foldables is a computational decision-support tool. All outputs require review by a licensed physician before clinical application.
       </div>
     </div>
 
@@ -1654,7 +1655,7 @@ canvas.chart-canvas { width:100%!important; }
   <div id="panel6_5" style="display:block;">
     <div class="section-title">PROTEIN STRUCTURE MODELING — SWISS-MODEL INSPIRED</div>
     <div class="info-box">
-      <strong class="text-cyan">How it works:</strong> Paste a FASTA protein sequence (or choose an example), and QuantaMed will
+      <strong class="text-cyan">How it works:</strong> Paste a FASTA protein sequence (or choose an example), and Foldables will
       simulate homology modeling — predicting secondary structure, generating 3D coordinates, computing quality metrics
       (GMQE, QMEAN, Ramachandran), and overlaying drug docking positions. Just like
       <a href="https://swissmodel.expasy.org" target="_blank" style="color:var(--cyan)">SWISS-MODEL</a>.
@@ -1826,7 +1827,7 @@ LQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN" rows="6"></textarea>
           <div class="protein-viewport" id="proteinViewport">
             <!-- Three.js renders here -->
             <div class="protein-overlay-info">
-              <div class="poi-label" id="proteinViewLabel">QUANTAMED · PROTEIN STRUCTURE VIEWER</div>
+              <div class="poi-label" id="proteinViewLabel">FOLDABLES · PROTEIN STRUCTURE VIEWER</div>
             </div>
           </div>
         </div>
@@ -1841,7 +1842,7 @@ LQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN" rows="6"></textarea>
 
 <script>
 // ── LOADING ───────────────────────────────────────────────────
-const msgs = ['INITIALIZING QUANTAMED...','LOADING QISKIT MODULES...','CALIBRATING VQE ENGINE...','CONNECTING TO ChEMBL DATABASE...','READY'];
+const msgs = ['INITIALIZING FOLDABLES...','LOADING QISKIT MODULES...','CALIBRATING VQE ENGINE...','CONNECTING TO ChEMBL DATABASE...','READY'];
 let mi = 0;
 const lt = document.getElementById('loadingText');
 const lo = document.getElementById('loadingOverlay');
@@ -1897,6 +1898,45 @@ function showPanel(idx, btn){
   const panel = document.getElementById(panelId);
   if(panel) panel.classList.add('active');
   if(btn) btn.classList.add('active');
+  
+  if (idx === 'FINAL' || idx === '7' || idx === 7) {
+    fetchOllamaSummary();
+  }
+}
+
+let ollamaFetched = false;
+function fetchOllamaSummary() {
+    if (ollamaFetched) return;
+    ollamaFetched = true;
+    
+    // Get patientData globally (set by intake wizard)
+    const pData = window.patientData || { basic_info: { name: 'Patient', age: 24, gender: 'female' }, condition: { primary_diagnosis: 'epilepsy' } };
+    
+    fetch('/api/quantamed/ollama_summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            patient_name: pData.basic_info.name || 'Patient',
+            age: parseInt(pData.basic_info.age) || 24,
+            gender: pData.basic_info.gender || 'female',
+            condition: pData.condition.subtype || pData.condition.primary_diagnosis || 'epilepsy',
+            top_drug: 'lamotrigine',
+            avoid_drug: 'valproic acid'
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        const textContainer = document.getElementById('ollama-summary-text');
+        if (textContainer) {
+            textContainer.innerHTML = data.summary;
+        }
+    })
+    .catch(err => {
+        const textContainer = document.getElementById('ollama-summary-text');
+        if (textContainer) {
+            textContainer.innerHTML = 'Error generating clinical summary. Please ensure local Ollama is running.';
+        }
+    });
 }
 
 // ── INIT ALL CHARTS ───────────────────────────────────────────

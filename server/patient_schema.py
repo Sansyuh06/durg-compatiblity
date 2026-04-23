@@ -6,9 +6,8 @@ Includes real clinical thresholds (AASLD/KDIGO) for organ status classification.
 """
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field, asdict
-from typing import Any, Optional
+from typing import Any
 
 
 # ── Clinical Thresholds ────────────────────────────────────────────────
@@ -40,7 +39,9 @@ def classify_kidney(egfr: float | None) -> str:
     return "severe_impairment"
 
 
-def compute_bmi(weight_kg: float | None, height_cm: float | None) -> float | None:
+def compute_bmi(
+        weight_kg: float | None,
+        height_cm: float | None) -> float | None:
     """Compute BMI from weight and height."""
     if not weight_kg or not height_cm or height_cm <= 0:
         return None
@@ -194,8 +195,10 @@ class PatientProfile:
     organs: Organs = field(default_factory=Organs)
     labs: Labs = field(default_factory=Labs)
     biomarkers: Biomarkers = field(default_factory=Biomarkers)
-    target_expression: TargetExpression = field(default_factory=TargetExpression)
-    drug_response_profile: DrugResponseProfile = field(default_factory=DrugResponseProfile)
+    target_expression: TargetExpression = field(
+        default_factory=TargetExpression)
+    drug_response_profile: DrugResponseProfile = field(
+        default_factory=DrugResponseProfile)
     side_effect_history: list[SideEffectEntry] = field(default_factory=list)
     allergies: list[AllergyEntry] = field(default_factory=list)
     lifestyle: Lifestyle = field(default_factory=Lifestyle)

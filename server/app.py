@@ -14,6 +14,8 @@ Exposes:
 """
 
 from __future__ import annotations
+import urllib.error
+import urllib.request
 
 import asyncio
 import json
@@ -26,7 +28,7 @@ from typing import Any, Optional, cast
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse, RedirectResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -49,17 +51,12 @@ from .protein_structure import (
     get_example_sequences,
 )
 from .patient_schema import (
-    PatientProfile,
     build_patient_from_dict,
     GABI_PRESET,
 )
 from .scoring_engine import (
     run_full_analysis,
     pipeline_pk,
-    pipeline_off_target,
-    pipeline_admet,
-    pipeline_faers,
-    pipeline_composite,
 )
 from .kaggle_data import (
     get_drug_properties,
@@ -97,11 +94,18 @@ class HealthResponse(BaseModel):
 # Leaderboard — in-memory store (persists for the lifetime of the process)
 # ---------------------------------------------------------------------------
 
-_DIFFICULTY_META: dict[str, dict[str, Any]] = {
-    "easy":   {"label": "Easy",   "avg_frontier_score": 0.78, "note": "Clear single signal; well-characterized Black Box Warning"},
-    "medium": {"label": "Medium", "avg_frontier_score": 0.65, "note": "Critical signal buried in class-effect noise; requires literature confirmation"},
-    "hard":   {"label": "Hard",   "avg_frontier_score": 0.52, "note": "Dual concurrent signals; complex REMS restriction reasoning required"},
-}
+_DIFFICULTY_META: dict[str,
+                       dict[str,
+                            Any]] = {"easy": {"label": "Easy",
+                                              "avg_frontier_score": 0.78,
+                                              "note": "Clear single signal; well-characterized Black Box Warning"},
+                                     "medium": {"label": "Medium",
+                                                "avg_frontier_score": 0.65,
+                                                "note": "Critical signal buried in class-effect noise; requires literature confirmation"},
+                                     "hard": {"label": "Hard",
+                                              "avg_frontier_score": 0.52,
+                                              "note": "Dual concurrent signals; complex REMS restriction reasoning required"},
+                                     }
 
 _leaderboard: list[dict[str, Any]] = []
 
@@ -151,8 +155,7 @@ app = FastAPI(
     description=(
         "A real-world OpenEnv pharmacovigilance environment where AI agents "
         "investigate FDA FAERS adverse event signals and recommend regulatory actions "
-        "across 3 drugs of increasing difficulty."
-    ),
+        "across 3 drugs of increasing difficulty."),
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -303,7 +306,11 @@ async def run_demo_step(task_id: str) -> JSONResponse:
     steps_out = []
 
     for action_type, params in script:
-        action = DrugAction(action_type=cast(Any, action_type), parameters=params)
+        action = DrugAction(
+            action_type=cast(
+                Any,
+                action_type),
+            parameters=params)
         obs, reward, done, info = env.step(action)
         steps_out.append({
             "action_type": action_type,
@@ -320,25 +327,29 @@ async def run_demo_step(task_id: str) -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
-# QuantaMed (Quantum-Enhanced Precision Drug Discovery) demo module
+# Foldables (Quantum-Enhanced Precision Drug Discovery) demo module
 # ---------------------------------------------------------------------------
 
 @app.get("/quantamed", response_class=FileResponse)
 async def quantamed_dashboard() -> FileResponse:
-    """Serve the QuantaMed interactive demo page."""
+    """Serve the Foldables interactive demo page."""
     return FileResponse("server/quantamed/index.html", media_type="text/html")
 
 
 # Serve static assets inside the quantamed folder (three.min.js, brain.obj, etc.)
-# Mounted at /quantamed/static to avoid shadowing the explicit /quantamed HTML route
+# Mounted at /quantamed/static to avoid shadowing the explicit /quantamed
+# HTML route
 _quantamed_dir = os.path.join(os.path.dirname(__file__), "quantamed")
-app.mount("/quantamed/static", StaticFiles(directory=_quantamed_dir), name="quantamed_static")
-
+app.mount(
+    "/quantamed/static",
+    StaticFiles(
+        directory=_quantamed_dir),
+    name="quantamed_static")
 
 
 @app.get("/api/quantamed/vqe")
 async def quantamed_vqe() -> JSONResponse:
-    """Return VQE convergence curves for the QuantaMed UI chart."""
+    """Return VQE convergence curves for the Foldables UI chart."""
     return JSONResponse(vqe_demo_payload())
 
 
@@ -366,18 +377,21 @@ async def quantamed_pk(
 
 @app.get("/api/quantamed/candidates")
 async def quantamed_candidates() -> JSONResponse:
-    """Return QuantaMed drug candidates with scoring metadata."""
+    """Return Foldables drug candidates with scoring metadata."""
     return JSONResponse(get_quantamed_candidates())
 
 
 @app.get("/api/quantamed/patients")
 async def quantamed_patients() -> JSONResponse:
-    """Return sample patient profiles for the QuantaMed demo."""
+    """Return sample patient profiles for the Foldables demo."""
     return JSONResponse(get_quantamed_patient_profiles())
 
 
 @app.get("/api/quantamed/score")
-async def quantamed_score(drug: str = Query(..., description="Candidate drug id"), patient: str = Query(..., description="Patient profile id")) -> JSONResponse:
+async def quantamed_score(drug: str = Query(...,
+                                            description="Candidate drug id"),
+                          patient: str = Query(...,
+                                               description="Patient profile id")) -> JSONResponse:
     """Return a scored candidate summary for a patient-specific scenario."""
     try:
         payload = get_quantamed_drug_summary(drug, patient)
@@ -387,7 +401,8 @@ async def quantamed_score(drug: str = Query(..., description="Candidate drug id"
 
 
 @app.get("/api/quantamed/recommendations")
-async def quantamed_recommendations(patient: str = Query(..., description="Patient profile id")) -> JSONResponse:
+async def quantamed_recommendations(
+        patient: str = Query(..., description="Patient profile id")) -> JSONResponse:
     """Return ranked candidate recommendations for a patient."""
     try:
         payload = recommend_quantamed_candidates(patient)
@@ -396,9 +411,54 @@ async def quantamed_recommendations(patient: str = Query(..., description="Patie
     return JSONResponse(payload)
 
 
+class OllamaRequest(BaseModel):
+    patient_name: str
+    condition: str
+    age: int
+    gender: str
+    top_drug: str
+    avoid_drug: str
+
+
+@app.post("/api/quantamed/ollama_summary")
+async def quantamed_ollama_summary(req: OllamaRequest) -> JSONResponse:
+    """Generate a clinical summary using local Ollama model."""
+    prompt = (
+        f"You are an expert clinical pharmacologist AI. Write a concise, 3-sentence clinical recommendation "
+        f"for a {req.age}-year-old {req.gender} patient named {req.patient_name} diagnosed with {req.condition}. "
+        f"Strongly recommend starting {req.top_drug.upper()} based on excellent genomic compatibility and safety profile. "
+        f"Strongly advise against {req.avoid_drug.upper()} due to high risk of adverse events and poor metabolizer status. "
+        f"Do not include any disclaimers or introductory fluff, just the 3 sentences."
+    )
+
+    data = json.dumps({
+        "model": "llama3:latest",
+        "prompt": prompt,
+        "stream": False
+    }).encode("utf-8")
+
+    req_obj = urllib.request.Request(
+        "http://127.0.0.1:11434/api/generate",
+        data=data,
+        headers={
+            "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req_obj, timeout=30) as response:
+            result = json.loads(response.read().decode())
+            return JSONResponse({"summary": result.get(
+                "response", "Error generating response.")})
+    except urllib.error.URLError as e:
+        return JSONResponse(
+            {
+                "summary": f"Ollama connection error: Ensure Ollama is running on port 11434. ({
+                    str(e)})"},
+            status_code=503)
+
+
 @app.get("/api/quantamed/patient")
-async def quantamed_patient(patient: str = Query(..., description="Patient profile id")) -> JSONResponse:
-    """Return patient metadata for the QuantaMed demo."""
+async def quantamed_patient(patient: str = Query(...,
+                                                 description="Patient profile id")) -> JSONResponse:
+    """Return patient metadata for the Foldables demo."""
     try:
         payload = get_quantamed_patient_summary(patient)
     except ValueError as exc:
@@ -407,7 +467,10 @@ async def quantamed_patient(patient: str = Query(..., description="Patient profi
 
 
 @app.get("/api/quantamed/protein-folding")
-async def quantamed_protein_folding(case: str = Query("default", description="Protein folding demo case")) -> JSONResponse:
+async def quantamed_protein_folding(
+    case: str = Query(
+        "default",
+        description="Protein folding demo case")) -> JSONResponse:
     """Run a toy quantum-backed protein folding simulation and return animation frames."""
     try:
         payload = quantum_protein_folding_payload(case=case)
@@ -417,7 +480,8 @@ async def quantamed_protein_folding(case: str = Query("default", description="Pr
 
 
 @app.get("/api/quantamed/report")
-async def quantamed_report(patient: str = Query(..., description="Patient profile id")) -> Response:
+async def quantamed_report(patient: str = Query(...,
+                                                description="Patient profile id")) -> Response:
     """Generate and return a clinical PDF report for the patient."""
     try:
         pdf_bytes = generate_quantamed_pdf(patient_id=patient)
@@ -477,7 +541,10 @@ async def foldables_drug_list() -> JSONResponse:
 
 
 @app.post("/api/foldables/pk")
-async def foldables_pk(body: PatientInput, drug: str = Query(...), dose_mg: float = Query(500)) -> JSONResponse:
+async def foldables_pk(
+        body: PatientInput,
+        drug: str = Query(...),
+        dose_mg: float = Query(500)) -> JSONResponse:
     """Real PK curve from DrugBank parameters + CYP modifier from patient genetics."""
     try:
         profile = build_patient_from_dict(body.patient)
@@ -510,7 +577,9 @@ async def foldables_protein_target(gene: str = Query(...)) -> JSONResponse:
     """Look up a protein target by gene name."""
     result = lookup_protein_target(gene)
     if not result:
-        raise HTTPException(status_code=404, detail=f"No target found for: {gene}")
+        raise HTTPException(
+            status_code=404,
+            detail=f"No target found for: {gene}")
     return JSONResponse(result)
 
 
@@ -549,12 +618,15 @@ async def protein_examples() -> JSONResponse:
     return JSONResponse(get_example_sequences())
 
 
-
 # ---------------------------------------------------------------------------
 # Interactive HTML Dashboard
 # ---------------------------------------------------------------------------
 
-frontend_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "out")
+frontend_dir = os.path.join(
+    os.path.dirname(
+        os.path.dirname(__file__)),
+    "frontend",
+    "out")
 
 
 # Root is now handled by the frontend mount below
@@ -591,9 +663,11 @@ try:
             # Store env on app.state so action buttons can reuse it
             app.state.gradio_env = env
             return (
-                f"✅ Episode started — drug: {obs_dict['drug_name']} | task: {task.upper()}",
-                f"```json\n{json.dumps(obs_dict, indent=2)}\n```",
-            )
+                f"✅ Episode started — drug: {
+                    obs_dict['drug_name']} | task: {
+                    task.upper()}", f"```json\n{
+                    json.dumps(
+                        obs_dict, indent=2)}\n```", )
         except Exception as e:
             return f"❌ Reset failed: {e}", ""
 
@@ -606,11 +680,17 @@ try:
                 env_or_none.reset()
                 app.state.gradio_env = env_or_none
             env = cast(DrugTriageEnv, env_or_none)
-            step_action = DrugAction(action_type=cast(Any, action), parameters={})
+            step_action = DrugAction(
+                action_type=cast(
+                    Any, action), parameters={})
             obs, reward, done, info = env.step(step_action)
             obs_dict = obs.model_dump()
             rwd_dict = reward.model_dump()
-            data = {"observation": obs_dict, "reward": rwd_dict, "done": done, "info": info}
+            data = {
+                "observation": obs_dict,
+                "reward": rwd_dict,
+                "done": done,
+                "info": info}
             summary = (
                 f"Step {obs_dict.get('step_number', '?')} | action={action} | "
                 f"reward={rwd_dict.get('value', 0):.4f} | done={done}"
@@ -619,7 +699,8 @@ try:
         except Exception as e:
             return f"❌ Action failed: {e}", ""
 
-    def _gr_submit(drug: str, primary: str, secondary: str, action: str) -> tuple[str, str]:
+    def _gr_submit(drug: str, primary: str, secondary: str,
+                   action: str) -> tuple[str, str]:
         """Submit final assessment on the Gradio-private env."""
         params: dict = {
             "drug_name": drug.strip().lower(),
@@ -637,8 +718,15 @@ try:
             obs, reward, done, info = env.step(step_action)
             rwd_dict = reward.model_dump()
             bd = rwd_dict.get("breakdown", {})
-            bd_str = "\n".join(f"  {k}: {v:+.2f}" for k, v in bd.items()) if bd else ""
-            data = {"observation": obs.model_dump(), "reward": rwd_dict, "done": done, "info": info}
+            bd_str = "\n".join(
+                f"  {k}: {
+                    v:+.2f}" for k,
+                v in bd.items()) if bd else ""
+            data = {
+                "observation": obs.model_dump(),
+                "reward": rwd_dict,
+                "done": done,
+                "info": info}
             summary = (
                 f"🏁 FINAL SCORE: {rwd_dict.get('value', 0):.4f}\n"
                 f"{bd_str}\n\n"
@@ -658,7 +746,8 @@ try:
             script = DEMO_SCRIPTS[task]
             steps_out: list[dict[str, Any]] = []
             for action_type, params in script:
-                step_action = DrugAction(action_type=cast(Any, action_type), parameters=params)
+                step_action = DrugAction(action_type=cast(
+                    Any, action_type), parameters=params)
                 obs, reward, done, info = env.step(step_action)
                 steps_out.append({
                     "action_type": action_type,
@@ -675,10 +764,18 @@ try:
             for i, s in enumerate(steps_out):
                 rwd: dict[str, Any] = s.get("reward", {})
                 lines.append(
-                    f"Step {i+1}: {s.get('action_type','?')} \u2192 reward={rwd.get('value',0):.4f}"
-                )
+                    f"Step {
+                        i +
+                        1}: {
+                        s.get(
+                            'action_type',
+                            '?')} \u2192 reward={
+                        rwd.get(
+                            'value',
+                            0):.4f}")
             final: float = steps_out[-1]["reward"]["value"] if steps_out else 0.0
-            summary = "\n".join(lines) + f"\n\n\U0001f3c6 Final score: {final:.4f}"
+            summary = "\n".join(lines) + \
+                f"\n\n\U0001f3c6 Final score: {final:.4f}"
             return summary, f"```json\n{json.dumps(data, indent=2)}\n```"
         except Exception as e:
             return f"❌ Demo failed: {e}", ""
@@ -707,7 +804,10 @@ try:
 
         with gr.Row():
             task_dd = gr.Dropdown(
-                choices=["easy", "medium", "hard"],
+                choices=[
+                    "easy",
+                    "medium",
+                    "hard"],
                 value="easy",
                 label="Task (Drug)",
                 info="easy=Metformin · medium=Rofecoxib (Vioxx) · hard=Isotretinoin",
@@ -715,23 +815,34 @@ try:
             reset_btn = gr.Button("🔄 New Episode", variant="primary")
 
         with gr.Row():
-            status_box = gr.Textbox(label="Episode Status", interactive=False, lines=1)
-            raw_box = gr.Code(label="Raw Response", language="json", interactive=False, lines=10)
+            status_box = gr.Textbox(
+                label="Episode Status",
+                interactive=False,
+                lines=1)
+            raw_box = gr.Code(
+                label="Raw Response",
+                language="json",
+                interactive=False,
+                lines=10)
 
         gr.Markdown("### 🔬 Investigation Actions")
         with gr.Row():
-            faers_btn  = gr.Button("🔍 Search FAERS")
-            label_btn  = gr.Button("📄 Fetch Label")
+            faers_btn = gr.Button("🔍 Search FAERS")
+            label_btn = gr.Button("📄 Fetch Label")
             signal_btn = gr.Button("📈 Analyze Signal")
-            mech_btn   = gr.Button("🔬 Lookup Mechanism")
-            lit_btn    = gr.Button("📚 Check Literature")
+            mech_btn = gr.Button("🔬 Lookup Mechanism")
+            lit_btn = gr.Button("📚 Check Literature")
 
         gr.Markdown("### 📋 Final Assessment (Submit)")
         with gr.Row():
-            drug_in    = gr.Textbox(label="Drug Name", placeholder="metformin")
-            primary_in = gr.Textbox(label="Primary Signal", placeholder="lactic acidosis")
-            second_in  = gr.Textbox(label="Secondary Signal (hard only)", placeholder="depression")
-            action_in  = gr.Dropdown(
+            drug_in = gr.Textbox(label="Drug Name", placeholder="metformin")
+            primary_in = gr.Textbox(
+                label="Primary Signal",
+                placeholder="lactic acidosis")
+            second_in = gr.Textbox(
+                label="Secondary Signal (hard only)",
+                placeholder="depression")
+            action_in = gr.Dropdown(
                 choices=["monitor", "restrict", "withdraw"],
                 value="monitor",
                 label="Regulatory Action",
@@ -739,16 +850,66 @@ try:
         submit_btn = gr.Button("⚖️ Submit Assessment", variant="primary")
 
         gr.Markdown("### 🤖 Auto Demo")
-        demo_btn = gr.Button("▶  Run Scripted Demo (perfect score)", variant="secondary")
+        demo_btn = gr.Button(
+            "▶  Run Scripted Demo (perfect score)",
+            variant="secondary")
 
-        reset_btn.click(_gr_reset, inputs=[task_dd], outputs=[status_box, raw_box])
-        faers_btn.click(lambda t: _gr_action("search_faers", t),  inputs=[task_dd], outputs=[status_box, raw_box])
-        label_btn.click(lambda t: _gr_action("fetch_label", t),   inputs=[task_dd], outputs=[status_box, raw_box])
-        signal_btn.click(lambda t: _gr_action("analyze_signal", t), inputs=[task_dd], outputs=[status_box, raw_box])
-        mech_btn.click(lambda t: _gr_action("lookup_mechanism", t), inputs=[task_dd], outputs=[status_box, raw_box])
-        lit_btn.click(lambda t: _gr_action("check_literature", t),  inputs=[task_dd], outputs=[status_box, raw_box])
-        submit_btn.click(_gr_submit, inputs=[drug_in, primary_in, second_in, action_in], outputs=[status_box, raw_box])
-        demo_btn.click(_gr_demo, inputs=[task_dd], outputs=[status_box, raw_box])
+        reset_btn.click(
+            _gr_reset,
+            inputs=[task_dd],
+            outputs=[
+                status_box,
+                raw_box])
+        faers_btn.click(
+            lambda t: _gr_action(
+                "search_faers",
+                t),
+            inputs=[task_dd],
+            outputs=[
+                status_box,
+                raw_box])
+        label_btn.click(
+            lambda t: _gr_action(
+                "fetch_label",
+                t),
+            inputs=[task_dd],
+            outputs=[
+                status_box,
+                raw_box])
+        signal_btn.click(
+            lambda t: _gr_action(
+                "analyze_signal",
+                t),
+            inputs=[task_dd],
+            outputs=[
+                status_box,
+                raw_box])
+        mech_btn.click(
+            lambda t: _gr_action(
+                "lookup_mechanism",
+                t),
+            inputs=[task_dd],
+            outputs=[
+                status_box,
+                raw_box])
+        lit_btn.click(
+            lambda t: _gr_action(
+                "check_literature",
+                t),
+            inputs=[task_dd],
+            outputs=[
+                status_box,
+                raw_box])
+        submit_btn.click(
+            _gr_submit, inputs=[
+                drug_in, primary_in, second_in, action_in], outputs=[
+                status_box, raw_box])
+        demo_btn.click(
+            _gr_demo,
+            inputs=[task_dd],
+            outputs=[
+                status_box,
+                raw_box])
 
     # Mount Gradio at /gradio (separate from the Next.js frontend at /)
     gr.mount_gradio_app(app, _gradio_app, path="/gradio")
@@ -763,7 +924,13 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 if os.path.exists(frontend_dir):
-    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+    app.mount(
+        "/",
+        StaticFiles(
+            directory=frontend_dir,
+            html=True),
+        name="frontend")
+
 
 def main() -> None:
     uvicorn.run(

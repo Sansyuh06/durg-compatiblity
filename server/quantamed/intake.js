@@ -9,7 +9,7 @@ const INTAKE_STEPS = [
 let currentStepIndex = 0;
 
 const initialPatientData = {
-  basic_info: { age: '', gender: 'female', weight_kg: '', height_cm: '', bmi: '', ethnicity: '', pregnancy_status: 'false' },
+  basic_info: { name: '', age: '', gender: 'female', weight_kg: '', height_cm: '', bmi: '', ethnicity: '', pregnancy_status: 'false' },
   condition: { primary_diagnosis: 'epilepsy', subtype: '', severity: 'moderate', duration_months: '', comorbidities: '', family_history: '' },
   symptoms: { seizure_frequency_per_month: '', anxiety_score: '', depression_score: '', sleep_disturbance_score: '', fatigue_score: '', cognitive_impairment_score: '' },
   vitals: { heart_rate: '', blood_pressure: '', temperature: '' },
@@ -60,6 +60,7 @@ function renderWizard() {
         <div class="wizard-step-content active" id="step-0">
           <div class="section-title">Demographics & Vitals</div>
           <div class="form-grid">
+            <div class="form-group"><label>Patient Name</label><input type="text" class="form-input" data-path="basic_info.name" oninput="updateData(this)"></div>
             <div class="form-group"><label>Age <span class="optional">yrs</span></label><input type="number" class="form-input" data-path="basic_info.age" oninput="updateData(this)"></div>
             <div class="form-group"><label>Gender</label>
               <select class="form-select" data-path="basic_info.gender" onchange="updateData(this)">
@@ -195,6 +196,7 @@ function updateData(el) {
 }
 
 function fillDemoData() {
+  patientData.basic_info.name = 'Gabi';
   patientData.basic_info.age = '24';
   patientData.basic_info.gender = 'female';
   patientData.basic_info.weight_kg = '62';
@@ -290,11 +292,21 @@ function finishIntake() {
   const container = document.getElementById('intake-wizard');
   container.classList.add('hidden');
   
+  // Set default name if missing
+  if (!patientData.basic_info.name) {
+      patientData.basic_info.name = "Custom Patient";
+  }
+  const pName = patientData.basic_info.name;
+  
   const nameEl = document.querySelector('.patient-name');
-  if(nameEl) nameEl.innerText = "Custom Patient";
+  if(nameEl) nameEl.innerText = pName.toUpperCase();
   
   const dxEl = document.querySelector('.patient-dx');
   if(dxEl) dxEl.innerHTML = patientData.condition.subtype + '<br/>' + patientData.basic_info.gender + ' • ' + patientData.basic_info.age + 'y';
+
+  // Update all dynamic name spans
+  document.querySelectorAll('.dyn-patient-name').forEach(el => el.innerText = pName);
+  document.querySelectorAll('.dyn-patient-name-upper').forEach(el => el.innerText = pName.toUpperCase());
 }
 
 window.addEventListener('DOMContentLoaded', () => {

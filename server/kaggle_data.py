@@ -140,28 +140,28 @@ OFF_TARGET_BINDING: dict[str, dict[str, Any]] = {
     "vpa": {
         "hERG": {"ki_um": 1500, "risk": "LOW", "prob": 0.08},
         "Androgen_Receptor": {"ki_um": 28, "risk": "HIGH", "prob": 0.71,
-            "evidence": "Isojärvi et al. 1993, Epilepsia; Nelson-DeGrave et al. 2004"},
+                              "evidence": "Isojärvi et al. 1993, Epilepsia; Nelson-DeGrave et al. 2004"},
         "HDAC1": {"ki_um": 0.4, "risk": "HIGH", "prob": 0.92,
-            "evidence": "Phiel et al. 2001, J Biol Chem"},
+                  "evidence": "Phiel et al. 2001, J Biol Chem"},
         "PPARdelta": {"ki_um": 20, "risk": "MOD", "prob": 0.45,
-            "evidence": "Lampen et al. 2001"},
+                      "evidence": "Lampen et al. 2001"},
         "Histamine_H1": {"ki_um": 85, "risk": "MOD", "prob": 0.44},
         "GAT1": {"ki_um": 1800, "risk": "LOW", "prob": 0.05},
     },
     "ltg": {
         "hERG": {"ki_um": 22, "risk": "MOD", "prob": 0.31,
-            "evidence": "Bhoelan et al. 2017"},
+                 "evidence": "Bhoelan et al. 2017"},
         "Androgen_Receptor": {"ki_um": ">10000", "risk": "LOW", "prob": 0.02},
         "Nav1.1": {"ki_um": 52, "risk": "MOD", "prob": 0.38,
-            "evidence": "Xie et al. 1995, Pflugers Arch"},
+                   "evidence": "Xie et al. 1995, Pflugers Arch"},
         "Nav1.2": {"ki_um": 31, "risk": "TARGET", "prob": 0.79,
-            "evidence": "Primary therapeutic target"},
+                   "evidence": "Primary therapeutic target"},
         "Histamine_H1": {"ki_um": ">10000", "risk": "LOW", "prob": 0.01},
     },
     "lev": {
         "hERG": {"ki_um": ">10000", "risk": "LOW", "prob": 0.02},
         "SV2A": {"ki_um": 1.2, "risk": "TARGET", "prob": 0.97,
-            "evidence": "Lynch et al. 2004, primary target"},
+                 "evidence": "Lynch et al. 2004, primary target"},
         "Androgen_Receptor": {"ki_um": ">10000", "risk": "LOW", "prob": 0.01},
         "Histamine_H1": {"ki_um": ">10000", "risk": "LOW", "prob": 0.01},
     },
@@ -169,7 +169,7 @@ OFF_TARGET_BINDING: dict[str, dict[str, Any]] = {
         "hERG": {"ki_um": ">10000", "risk": "LOW", "prob": 0.03},
         "AMPA_R": {"ki_um": 8, "risk": "TARGET", "prob": 0.85},
         "Carbonic_Anhydrase_II": {"ki_um": 0.01, "risk": "HIGH", "prob": 0.98,
-            "evidence": "Causes metabolic acidosis, paresthesias"},
+                                  "evidence": "Causes metabolic acidosis, paresthesias"},
         "Androgen_Receptor": {"ki_um": ">10000", "risk": "LOW", "prob": 0.02},
     },
     "zns": {
@@ -395,7 +395,10 @@ def lookup_protein_target(gene_or_name: str) -> dict[str, Any] | None:
     """Look up a protein target by gene name or common name."""
     q = (gene_or_name or "").strip().upper()
     for key, data in PROTEIN_TARGETS.items():
-        if q in (key, data.get("name", "").upper(), data.get("gene", "").upper()):
+        if q in (
+            key, data.get(
+                "name", "").upper(), data.get(
+                "gene", "").upper()):
             return data
     return None
 
