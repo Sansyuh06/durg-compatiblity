@@ -297,16 +297,29 @@ function finishIntake() {
       patientData.basic_info.name = "Custom Patient";
   }
   const pName = patientData.basic_info.name;
-  
+  window.patientData = patientData; // Set globally
+
   const nameEl = document.querySelector('.patient-name');
   if(nameEl) nameEl.innerText = pName.toUpperCase();
   
   const dxEl = document.querySelector('.patient-dx');
-  if(dxEl) dxEl.innerHTML = patientData.condition.subtype + '<br/>' + patientData.basic_info.gender + ' • ' + patientData.basic_info.age + 'y';
+  if(dxEl) dxEl.innerHTML = (patientData.condition.subtype || patientData.condition.primary_diagnosis) + '<br/>' + patientData.basic_info.gender + ' • ' + patientData.basic_info.age + 'y';
 
   // Update all dynamic name spans
   document.querySelectorAll('.dyn-patient-name').forEach(el => el.innerText = pName);
   document.querySelectorAll('.dyn-patient-name-upper').forEach(el => el.innerText = pName.toUpperCase());
+
+  // Automatically jump to the first panel of the simulation
+  if (typeof showPanel === 'function') {
+      const firstBtn = document.querySelector('.step-btn');
+      showPanel(0, firstBtn);
+  }
+
+  // Hide the entry choice screen if it was still there
+  const entryScreen = document.getElementById('entry-choice-screen');
+  if (entryScreen) entryScreen.style.display = 'none';
+
+  console.log("Intake finished for", pName);
 }
 
 window.addEventListener('DOMContentLoaded', () => {

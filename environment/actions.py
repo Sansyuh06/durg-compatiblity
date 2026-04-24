@@ -9,13 +9,13 @@ all data is deterministic and reproducible.
 from __future__ import annotations
 
 import json
-import logging
+import logging as _logging
 from pathlib import Path
 from typing import Any
 
 from environment.models import DrugAction
 
-_log = logging.getLogger(__name__)
+_log = _logging.getLogger(__name__)
 
 _FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

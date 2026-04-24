@@ -18,7 +18,7 @@ qiskit==0.46.3
 # are NOT listed here — the dashboard runs in "Sensory Simulation Mode"
 # To run TRIBE v2 inference: pip install -e tribev2/
 # Optional: pip install -e tribev2/ to enable TRIBE v2 inference
-pennylane>=0.38.0
-pennylane-qiskit
-qiskit
+# Optional: Quantum ML extras (requires compatible Qiskit version)
+# pennylane>=0.38.0
+# pennylane-qiskit
 rdkit

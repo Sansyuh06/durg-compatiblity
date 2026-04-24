@@ -96,11 +96,8 @@ def generate_quantamed_pdf(
 
     _add_field(pdf, "Name", patient.get("name", "N/A"))
     _add_field(pdf, "Condition", patient.get("condition", "N/A"))
-    _add_field(pdf,
-               "Age / Sex",
-               f"{patient.get('age',
-                              'N/A')} / {patient.get('sex',
-                                                     'N/A').title()}")
+    age_sex = f"{patient.get('age', 'N/A')} / {patient.get('sex', 'N/A').title()}"
+    _add_field(pdf, "Age / Sex", age_sex)
     _add_field(pdf, "Weight", f"{patient.get('weight_kg', 'N/A')} kg")
     _add_field(pdf, "CYP2C9 Status", patient.get("cyp_variant", "N/A"))
     _add_field(

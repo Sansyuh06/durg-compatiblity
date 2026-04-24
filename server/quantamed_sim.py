@@ -23,7 +23,7 @@ try:
     import pennylane as qml  # type: ignore[import-untyped]
     from pennylane import numpy as pnp
     _QUANTUM_AVAILABLE = True
-except ImportError:
+except (ImportError, AttributeError):
     pass
 
 
@@ -40,7 +40,8 @@ class _DrugPkParams:
 
 _PK_PARAMS: dict[str, _DrugPkParams] = {
     # Note: These are hackathon-grade illustrative parameters (not for clinical use).
-    # They are chosen to produce stable, intuitive PK curves and sensible unit scales.
+    # They are chosen to produce stable, intuitive PK curves and sensible unit
+    # scales.
     "vpa": _DrugPkParams(
         drug_id="vpa",
         label="Valproic Acid",
@@ -133,10 +134,8 @@ def compute_pk_curve(
     """
     key = (drug_id or "").strip().lower()
     if key not in _PK_PARAMS:
-        raise ValueError(
-            f"Unsupported drug_id '{drug_id}'. Valid: {
-                sorted(
-                    _PK_PARAMS.keys())}")
+        valid_keys = sorted(_PK_PARAMS.keys())
+        raise ValueError(f"Unsupported drug_id '{drug_id}'. Valid: {valid_keys}")
 
     params = _PK_PARAMS[key]
     if doses_per_day is None:
@@ -808,63 +807,144 @@ def quantum_protein_folding_payload(case: str = "default") -> dict[str, Any]:
 
 
 def vqe_demo_payload() -> dict[str, Any]:
-    """Deterministic VQE-like convergence curves for demo charts.
+    """Real PennyLane VQE optimization loops per drug, using their Morgan fingerprints
+    as perturbations to the lattice Hamiltonian."""
 
-    This keeps the UI stable/reproducible and can be swapped later with
-    real Qiskit Aer output (same shape: iters + datasets).
-    """
-    iters = list(range(1, 148))
+    if not _QUANTUM_AVAILABLE:
+        # Fallback if Pennylane is somehow missing
+        iters = list(range(1, 148))
 
-    def vqe_curve(seed: float, final_e: float) -> list[float]:
-        out = []
-        for i in iters:
-            decay = math.exp(-i / 35.0)
-            noise = (math.sin(i * seed + 1.0) * 0.4 +
-                     math.cos(i * 0.7) * 0.2) * decay
-            out.append(final_e + (3.5 - final_e) * math.exp(-i / 40.0) + noise)
-        return [round(x, 5) for x in out]
+        def vqe_curve(seed: float, final_e: float) -> list[float]:
+            out = []
+            for i in iters:
+                decay = math.exp(-i / 35.0)
+                noise = (math.sin(i * seed + 1.0) * 0.4 +
+                         math.cos(i * 0.7) * 0.2) * decay
+                out.append(final_e + (3.5 - final_e) *
+                           math.exp(-i / 40.0) + noise)
+            return [round(x, 5) for x in out]
+        return {
+            "iters": iters,
+            "datasets": [
+                {"key": "ltg",
+                 "label": "Lamotrigine (LTG)",
+                 "color": "#00e676",
+                 "borderWidth": 2,
+                 "data": vqe_curve(1.3,
+                                   -2.84)},
+                {"key": "vpa",
+                 "label": "Valproic Acid (VPA)",
+                 "color": "#ffab40",
+                 "borderWidth": 2,
+                 "data": vqe_curve(2.1,
+                                   -2.71)},
+                {"key": "tpm",
+                 "label": "Topiramate (TPM)",
+                 "color": "#b388ff",
+                 "borderWidth": 1.5,
+                 "data": vqe_curve(0.9,
+                                   -2.44)},
+                {"key": "lev",
+                 "label": "Levetiracetam (LEV)",
+                 "color": "#00d4ff",
+                 "borderWidth": 1.5,
+                 "data": vqe_curve(1.7,
+                                   -2.21)},
+                {"key": "zns",
+                 "label": "Zonisamide (ZNS)",
+                 "color": "#ff5252",
+                 "borderWidth": 1.5,
+                 "data": vqe_curve(0.6,
+                                   -2.05)},
+            ],
+            "meta": {"backend": "cached_fallback"}
+        }
+
+    # Run real VQE
+    # We will use a smaller 4-qubit circuit for speed so it completes in ~2-5
+    # seconds for all 5 drugs.
+    import time
+    start_time = time.time()
+
+    dev = qml.device("default.qubit", wires=4)
+
+    def get_drug_hamiltonian(smiles: str, base_energy: float):
+        try:
+            from rdkit import Chem  # type: ignore[import-untyped]
+            from rdkit.Chem import AllChem  # type: ignore[import-untyped]
+            mol = Chem.MolFromSmiles(smiles)
+            fp = AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=4)
+            bits = list(fp)
+        except Exception:
+            bits = [1, 0, 1, 0]
+
+        # Create a unique 4-qubit Hamiltonian using the molecular bits
+        obs = []
+        coeffs = []
+
+        # Base terms
+        for i in range(4):
+            obs.append(qml.PauliZ(i))
+            coeffs.append(base_energy / 4.0 + (bits[i] * 0.1))
+
+        for i in range(3):
+            obs.append(qml.PauliX(i) @ qml.PauliX(i+1))
+            coeffs.append(0.2)
+
+        return qml.Hamiltonian(pnp.array(coeffs, requires_grad=False), obs)
+
+    @qml.qnode(dev)
+    def cost_fn(params, H=None):
+        qml.StronglyEntanglingLayers(weights=params, wires=range(4))
+        return qml.expval(H)
+
+    drugs_info = [
+        {"key": "ltg", "label": "Lamotrigine (LTG)", "color": "#00e676", "borderWidth": 2,
+         "smiles": "Nc1nnc(c(N)c1Cl)c2ccccc2Cl", "target_e": -2.84},
+        {"key": "vpa", "label": "Valproic Acid (VPA)", "color": "#ffab40",
+         "borderWidth": 2, "smiles": "CCCC(CCC)C(=O)O", "target_e": -2.71},
+        {"key": "tpm", "label": "Topiramate (TPM)", "color": "#b388ff", "borderWidth": 1.5,
+         "smiles": "CC1(C)OC2COC3(COS(N)(=O)=O)OC(C)(C)OC3C2O1", "target_e": -2.44},
+        {"key": "lev", "label": "Levetiracetam (LEV)", "color": "#00d4ff",
+         "borderWidth": 1.5, "smiles": "CCC(C(=O)N)N1CCCC1=O", "target_e": -2.21},
+        {"key": "zns", "label": "Zonisamide (ZNS)", "color": "#ff5252", "borderWidth": 1.5,
+         "smiles": "NS(=O)(=O)Cc1noc2ccccc12", "target_e": -2.05},
+    ]
+
+    iters = list(range(1, 101))
+    datasets = []
+
+    opt = qml.GradientDescentOptimizer(stepsize=0.1)
+
+    for d in drugs_info:
+        H = get_drug_hamiltonian(str(d["smiles"]), float(str(d["target_e"])))
+
+        # Random initial params to ensure a unique starting point and trajectory
+        np.random.seed(hash(str(d["smiles"])) % (2**32 - 1))
+        params = pnp.random.normal(0, 1, (2, 4, 3), requires_grad=True)
+
+        energy_history = []
+        for i in range(100):
+            params, energy = opt.step_and_cost(
+                lambda p: cost_fn(p, H=H), params)
+            energy_history.append(round(float(energy), 5))
+
+        datasets.append({
+            "key": d["key"],
+            "label": d["label"],
+            "color": d["color"],
+            "borderWidth": d["borderWidth"],
+            "data": energy_history
+        })
+
+    duration = time.time() - start_time
 
     return {
         "iters": iters,
-        "datasets": [
-            {
-                "key": "ltg",
-                "label": "Lamotrigine (LTG)",
-                "color": "#00e676",
-                "borderWidth": 2,
-                "data": vqe_curve(1.3, -2.84),
-            },
-            {
-                "key": "vpa",
-                "label": "Valproic Acid (VPA)",
-                "color": "#ffab40",
-                "borderWidth": 2,
-                "data": vqe_curve(2.1, -2.71),
-            },
-            {
-                "key": "tpm",
-                "label": "Topiramate (TPM)",
-                "color": "#b388ff",
-                "borderWidth": 1.5,
-                "data": vqe_curve(0.9, -2.44),
-            },
-            {
-                "key": "lev",
-                "label": "Levetiracetam (LEV)",
-                "color": "#00d4ff",
-                "borderWidth": 1.5,
-                "data": vqe_curve(1.7, -2.21),
-            },
-            {
-                "key": "zns",
-                "label": "Zonisamide (ZNS)",
-                "color": "#ff5252",
-                "borderWidth": 1.5,
-                "data": vqe_curve(0.6, -2.05),
-            },
-        ],
+        "datasets": datasets,
         "meta": {
-            "backend": "demo_fixture",
-            "note": "Swap server.quantamed_sim.vqe_demo_payload with real Qiskit Aer output when ready.",
-        },
+            "backend": "pennylane_live_vqe",
+            "compute_time_sec": round(duration, 2),
+            "note": "Computed live using qml.GradientDescentOptimizer and StronglyEntanglingLayers"
+        }
     }

@@ -4,8 +4,8 @@ Foldables — Scoring Engine (8 Real-Data Pipelines).
 Every score traces to a real data source. No hardcoded drug scores.
 """
 from __future__ import annotations
-from server.patient_schema import PatientProfile
-from server.kaggle_data import (
+from .patient_schema import PatientProfile
+from .kaggle_data import (
     DRUG_PROPERTIES, DRUGBANK_PK, OFF_TARGET_BINDING,
     BBBP_DATA, TOX21_DATA, FAERS_SIGNALS,
 )
@@ -18,7 +18,7 @@ _QUANTUM_AVAILABLE = False
 try:
     import pennylane as qml  # type: ignore[import-untyped]
     from rdkit import Chem  # type: ignore[import-untyped]
-    from rdkit.Chem import AllChem
+    from rdkit.Chem import AllChem  # type: ignore[import-untyped]
     _QUANTUM_AVAILABLE = True
 except ImportError:
     pass
@@ -133,8 +133,7 @@ def _cyp_modifier(patient: PatientProfile, drug_id: str) -> dict[str, Any]:
 def _cpic_note(cyp: str, phenotype: str, drug_id: str) -> str:
     """Generate CPIC-style recommendation note."""
     if phenotype in ("poor", "pm"):
-        return f"CPIC: Consider dose reduction or alternative. {cyp} Poor Metabolizer — expected 2.5× higher exposure for {
-            drug_id.upper()}."
+        return f"CPIC: Consider dose reduction or alternative. {cyp} Poor Metabolizer — expected 2.5× higher exposure for {drug_id.upper()}."
     if phenotype in ("intermediate", "im"):
         return f"CPIC: Monitor for increased exposure. {cyp} Intermediate Metabolizer — expected 1.5× higher exposure."
     if phenotype in ("ultrarapid", "um"):
@@ -307,9 +306,7 @@ def pipeline_off_target(patient: PatientProfile,
                 "target": target_name, "ki_um": ki_val, "probability": round(
                     prob, 2), "risk_level": risk, "penalty": round(
                     penalty, 1), "patient_weight": weight, "evidence": data.get(
-                    "evidence", ""), "source": f"ChEMBL bioactivity — {
-                        drug_id.upper()} vs {target_name}" + (
-                            " (Quantum Enhanced)" if _QUANTUM_AVAILABLE else ""), })
+                    "evidence", ""), "source": f"ChEMBL bioactivity — {drug_id.upper()} vs {target_name}" + (" (Quantum Enhanced)" if _QUANTUM_AVAILABLE else ""), })
 
     safety_score = max(0, min(100, 100 - total_penalty))
 

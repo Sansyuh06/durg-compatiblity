@@ -436,11 +436,7 @@ def _find_template(header: str, sequence: str, seed: int) -> dict[str, Any]:
             }
 
     # Generate a plausible template
-    fake_pdb = f"{rng.randint(1,
-                              9)}{chr(rng.randint(65,
-                                                  90))}{chr(rng.randint(65,
-                                                                        90))}{rng.randint(0,
-                                                                                          9)}"
+    fake_pdb = f"{rng.randint(1, 9)}{chr(rng.randint(65, 90))}{chr(rng.randint(65, 90))}{rng.randint(0, 9)}"
     return {
         "pdb_id": fake_pdb,
         "name": "AlphaFold DB model",
@@ -841,8 +837,8 @@ def model_protein_from_fasta(fasta_text: str) -> dict[str, Any]:
     protein_info = _extract_protein_info(header)
 
     # ── Try AlphaFold DB first ─────────────────────────────────────
-    residues = None
-    ss = None
+    residues: list[Any] | None = None
+    ss: list[str] = []
     source = "generated"
 
     uniprot_id = _extract_uniprot_id(header)

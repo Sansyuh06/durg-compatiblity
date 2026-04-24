@@ -4,8 +4,78 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Foldables — Quantum-Enhanced Drug Discovery</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="/quantamed/static/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
+function startManualIntake() {
+    document.getElementById('entry-choice-screen').style.display = 'none';
+    document.getElementById('intake-wizard').classList.remove('hidden');
+    document.getElementById('intake-wizard').style.display = 'block';
+}
+
+function handleJsonUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            window.patientData = data;
+            console.log("Loaded Patient JSON:", data);
+            
+            // Show a success toast or notification
+            alert("Patient data successfully loaded. Jumping to simulation...");
+            
+            // Hide selection screen and skip intake
+            document.getElementById('entry-choice-screen').style.display = 'none';
+            
+            // Navigate directly to the first simulation step (e.g. Mol Binding)
+            // Step 8 is usually Mol Binding in this app
+            showPanel('8', document.querySelector('[onclick*="showPanel('8'"]'));
+        } catch (err) {
+            alert("Error parsing JSON file. Please ensure it follows the correct schema.");
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+}
+
+</script>
+<script src="/quantamed/static/three.min.js">
+function startManualIntake() {
+    document.getElementById('entry-choice-screen').style.display = 'none';
+    document.getElementById('intake-wizard').classList.remove('hidden');
+    document.getElementById('intake-wizard').style.display = 'block';
+}
+
+function handleJsonUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            window.patientData = data;
+            console.log("Loaded Patient JSON:", data);
+            
+            // Show a success toast or notification
+            alert("Patient data successfully loaded. Jumping to simulation...");
+            
+            // Hide selection screen and skip intake
+            document.getElementById('entry-choice-screen').style.display = 'none';
+            
+            // Navigate directly to the first simulation step (e.g. Mol Binding)
+            // Step 8 is usually Mol Binding in this app
+            showPanel('8', document.querySelector('[onclick*="showPanel('8'"]'));
+        } catch (err) {
+            alert("Error parsing JSON file. Please ensure it follows the correct schema.");
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+}
+
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
@@ -628,8 +698,79 @@ canvas.chart-canvas { width:100%!important; }
   <link rel="stylesheet" href="/quantamed/static/intake.css">
 </head>
 <body>
-  <div id="intake-wizard"></div>
+<!-- PROFESSIONAL LOADING SCREEN -->
+<div id="app-loading-screen" class="loading-overlay">
+  <div class="loading-content">
+    <img src="/quantamed/static/logo.png" alt="Foldables Logo" class="loading-logo">
+    <div class="loading-text">FOLDABLES</div>
+    <div class="loading-subtext">INITIALIZING QUANTUM ENGINES...</div>
+    <div class="loading-bar-container">
+      <div class="loading-bar"></div>
+    </div>
+  </div>
+</div>
+
+  
+  <div id="entry-choice-screen" class="entry-overlay">
+    <div class="entry-card-container">
+      <h2 class="entry-title">Patient Data Entry</h2>
+      <p class="entry-subtitle">Choose how you want to initialize the simulation</p>
+      
+      <div class="entry-options">
+        <div class="entry-option-card" onclick="document.getElementById('json-upload').click()">
+          <div class="option-icon"><i data-lucide="file-up"></i></div>
+          <h3>Upload Patient JSON</h3>
+          <p>Import a complete clinical profile from a .json file</p>
+          <input type="file" id="json-upload" accept=".json" style="display:none" onchange="handleJsonUpload(event)">
+        </div>
+        
+        <div class="entry-option-card" onclick="startManualIntake()">
+          <div class="option-icon"><i data-lucide="user-edit"></i></div>
+          <h3>Fill Manually</h3>
+          <p>Manually enter demographics, genetics, and lab data</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div id="intake-wizard" class="hidden"></div>
   <script src="/quantamed/static/intake.js"></script>
+  <script>
+function startManualIntake() {
+    document.getElementById('entry-choice-screen').style.display = 'none';
+    document.getElementById('intake-wizard').classList.remove('hidden');
+    document.getElementById('intake-wizard').style.display = 'block';
+}
+
+function handleJsonUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            window.patientData = data;
+            console.log("Loaded Patient JSON:", data);
+            
+            // Show a success toast or notification
+            alert("Patient data successfully loaded. Jumping to simulation...");
+            
+            // Hide selection screen and skip intake
+            document.getElementById('entry-choice-screen').style.display = 'none';
+            
+            // Navigate directly to the first simulation step (e.g. Mol Binding)
+            // Step 8 is usually Mol Binding in this app
+            showPanel('8', document.querySelector('[onclick*="showPanel('8'"]'));
+        } catch (err) {
+            alert("Error parsing JSON file. Please ensure it follows the correct schema.");
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+}
+
+</script>
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
@@ -640,7 +781,7 @@ canvas.chart-canvas { width:100%!important; }
 <!-- HEADER -->
 <header>
   <div>
-    <div class="logo">QUANTA<span>MED</span></div>
+    <div class="logo" style="display: flex; align-items: center;"><img src="/quantamed/static/logo.png" style="height: 32px; margin-right: 12px;" onerror="this.style.display='none'">FOLD<span>ABLES</span></div>
     <div class="logo-sub">QUANTUM-ENHANCED PRECISION DRUG DISCOVERY</div>
   </div>
   <div class="status-bar">
@@ -1883,7 +2024,8 @@ function switchMode(mode) {
       triageView = document.createElement('div');
       triageView.id = 'view-triage';
       triageView.className = 'mode-view active';
-      triageView.innerHTML = '<iframe src="/index.html?v=2" style="width:100%;height:850px;border:none;border-radius:12px;background:var(--panel);"></iframe>';
+      // Load the root triage interface (server/index.html)
+      triageView.innerHTML = '<iframe src="/?v=' + Date.now() + '" style="width:100%;height:1000px;border:none;border-radius:12px;background:var(--panel);"></iframe>';
       document.querySelector('.app').appendChild(triageView);
     }
     triageView.style.display = 'block';
@@ -1916,10 +2058,7 @@ function fetchOllamaSummary() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            patient_name: pData.basic_info.name || 'Patient',
-            age: parseInt(pData.basic_info.age) || 24,
-            gender: pData.basic_info.gender || 'female',
-            condition: pData.condition.subtype || pData.condition.primary_diagnosis || 'epilepsy',
+            patient_profile: pData,
             top_drug: 'lamotrigine',
             avoid_drug: 'valproic acid'
         })
@@ -3233,9 +3372,75 @@ function autoAdvance(){
   }
   advance();
 }
+
+// ── INTAKE HELPERS ───────────────────────────────────────────
+function startManualIntake() {
+    const screen = document.getElementById('entry-choice-screen');
+    if (screen) screen.style.display = 'none';
+    const wizard = document.getElementById('intake-wizard');
+    if (wizard) {
+        wizard.classList.remove('hidden');
+        wizard.style.display = 'flex';
+    }
+}
+
+function triggerJsonUpload() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = handleJsonUpload;
+    input.click();
+}
+
+function handleJsonUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            window.patientData = data;
+            console.log("Loaded Patient JSON:", data);
+            
+            // Update UI components with patient name
+            const pName = data.basic_info?.name || "Custom Patient";
+            document.querySelectorAll('.dyn-patient-name').forEach(el => el.innerText = pName);
+            document.querySelectorAll('.dyn-patient-name-upper').forEach(el => el.innerText = pName.toUpperCase());
+
+            const nameEl = document.querySelector('.patient-name');
+            if(nameEl) nameEl.innerText = pName.toUpperCase();
+            
+            // Hide selection screen and skip intake
+            const screen = document.getElementById('entry-choice-screen');
+            if (screen) screen.style.display = 'none';
+            
+            // Navigate directly to the first simulation step
+            const firstBtn = document.querySelector('.step-btn');
+            showPanel(0, firstBtn);
+            
+            console.log("Jumped to dashboard for", pName);
+        } catch (err) {
+            alert("Error parsing JSON file. Please ensure it follows the correct schema.");
+            console.error(err);
+        }
+    };
+    reader.readAsText(file);
+}
+
+window.addEventListener('load', () => {
+  // Minimum 1.5s delay to ensure the loading screen is visible
+  setTimeout(() => {
+    const loader = document.getElementById('app-loading-screen');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => {
+        loader.style.display = 'none';
+      }, 800); // Wait for transition
+    }
+  }, 1500);
+});
 </script>
-<script src="/quantamed/static/molecular_binding.js"></script>
-<script src="/quantamed/static/advanced_features.js"></script>
 </body>
 </html>
 

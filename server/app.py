@@ -412,23 +412,35 @@ async def quantamed_recommendations(
 
 
 class OllamaRequest(BaseModel):
-    patient_name: str
-    condition: str
-    age: int
-    gender: str
+    patient_profile: dict
     top_drug: str
     avoid_drug: str
 
 
 @app.post("/api/quantamed/ollama_summary")
 async def quantamed_ollama_summary(req: OllamaRequest) -> JSONResponse:
-    """Generate a clinical summary using local Ollama model."""
+    """Generate a clinical summary using local Ollama model and a full JSON patient profile."""
+    
+    # Safely extract basic info to avoid key errors if fields are missing
+    b_info = req.patient_profile.get('basic_info', {})
+    name = b_info.get('name', 'the patient')
+    age = b_info.get('age', 'unknown age')
+    gender = b_info.get('gender', 'unknown gender')
+    
+    cond_info = req.patient_profile.get('condition', {})
+    condition = cond_info.get('primary_diagnosis', 'an unknown condition')
+    
+    # Dump the full json for the prompt
+    profile_str = json.dumps(req.patient_profile, indent=2)
+
     prompt = (
-        f"You are an expert clinical pharmacologist AI. Write a concise, 3-sentence clinical recommendation "
-        f"for a {req.age}-year-old {req.gender} patient named {req.patient_name} diagnosed with {req.condition}. "
-        f"Strongly recommend starting {req.top_drug.upper()} based on excellent genomic compatibility and safety profile. "
-        f"Strongly advise against {req.avoid_drug.upper()} due to high risk of adverse events and poor metabolizer status. "
-        f"Do not include any disclaimers or introductory fluff, just the 3 sentences."
+        f"You are an expert clinical pharmacologist AI. You are provided with the following comprehensive patient profile in JSON format:\n"
+        f"{profile_str}\n\n"
+        f"Write a highly personalized, concise, 3-sentence clinical recommendation for {name} (age {age}, {gender}) diagnosed with {condition}. "
+        f"You MUST factor in the patient's unique genetics, labs, and biomarkers provided in the JSON when making your recommendation. "
+        f"Strongly recommend starting {req.top_drug.upper()} as the top candidate. "
+        f"Strongly advise against {req.avoid_drug.upper()} due to risks. "
+        f"Do not include any disclaimers, warnings, or introductory fluff. Output exactly 3 sentences."
     )
 
     data = json.dumps({
@@ -448,10 +460,17 @@ async def quantamed_ollama_summary(req: OllamaRequest) -> JSONResponse:
             return JSONResponse({"summary": result.get(
                 "response", "Error generating response.")})
     except urllib.error.URLError as e:
+        error_msg = str(e)
+        user_msg = "Ollama is unavailable. Ensure Ollama is running locally on port 11434."
+        if "timed out" in error_msg.lower() or "timeout" in error_msg.lower():
+            user_msg = "Ollama timed out after 30 seconds"
+        
         return JSONResponse(
             {
-                "summary": f"Ollama connection error: Ensure Ollama is running on port 11434. ({
-                    str(e)})"},
+                "summary": user_msg,
+                "error": error_msg,
+                "available": False
+            },
             status_code=503)
 
 
@@ -608,6 +627,8 @@ async def protein_model(body: FASTAInput) -> JSONResponse:
         if "error" in result:
             raise HTTPException(status_code=400, detail=result["error"])
         return JSONResponse(result)
+    except HTTPException:
+        raise  # let FastAPI handle it correctly
     except Exception as exc:
         return JSONResponse({"error": str(exc)}, status_code=500)
 
@@ -616,6 +637,16 @@ async def protein_model(body: FASTAInput) -> JSONResponse:
 async def protein_examples() -> JSONResponse:
     """Return example FASTA sequences for the protein modeling UI."""
     return JSONResponse(get_example_sequences())
+
+
+frontend_dir = os.path.join(os.path.dirname(__file__), "quantamed")
+if os.path.exists(frontend_dir):
+    app.mount(
+        "/",
+        StaticFiles(
+            directory=frontend_dir,
+            html=True),
+        name="frontend")
 
 
 # ---------------------------------------------------------------------------
@@ -663,11 +694,9 @@ try:
             # Store env on app.state so action buttons can reuse it
             app.state.gradio_env = env
             return (
-                f"✅ Episode started — drug: {
-                    obs_dict['drug_name']} | task: {
-                    task.upper()}", f"```json\n{
-                    json.dumps(
-                        obs_dict, indent=2)}\n```", )
+                f"✅ Episode started — drug: {obs_dict['drug_name']} | task: {task.upper()}",
+                f"```json\n{json.dumps(obs_dict, indent=2)}\n```",
+            )
         except Exception as e:
             return f"❌ Reset failed: {e}", ""
 
@@ -718,10 +747,7 @@ try:
             obs, reward, done, info = env.step(step_action)
             rwd_dict = reward.model_dump()
             bd = rwd_dict.get("breakdown", {})
-            bd_str = "\n".join(
-                f"  {k}: {
-                    v:+.2f}" for k,
-                v in bd.items()) if bd else ""
+            bd_str = "\n".join(f"  {k}: {v:+.2f}" for k, v in bd.items()) if bd else ""
             data = {
                 "observation": obs.model_dump(),
                 "reward": rwd_dict,
@@ -764,15 +790,8 @@ try:
             for i, s in enumerate(steps_out):
                 rwd: dict[str, Any] = s.get("reward", {})
                 lines.append(
-                    f"Step {
-                        i +
-                        1}: {
-                        s.get(
-                            'action_type',
-                            '?')} \u2192 reward={
-                        rwd.get(
-                            'value',
-                            0):.4f}")
+                    f"Step {i + 1}: {s.get('action_type', '?')} \u2192 reward={rwd.get('value', 0):.4f}"
+                )
             final: float = steps_out[-1]["reward"]["value"] if steps_out else 0.0
             summary = "\n".join(lines) + \
                 f"\n\n\U0001f3c6 Final score: {final:.4f}"
@@ -923,13 +942,7 @@ except ImportError:
 # Entry-point
 # ---------------------------------------------------------------------------
 
-if os.path.exists(frontend_dir):
-    app.mount(
-        "/",
-        StaticFiles(
-            directory=frontend_dir,
-            html=True),
-        name="frontend")
+
 
 
 def main() -> None:
