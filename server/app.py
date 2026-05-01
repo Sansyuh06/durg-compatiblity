@@ -50,6 +50,9 @@ from .protein_structure import (
     model_protein_from_fasta,
     get_example_sequences,
 )
+from .protein_dynamics import (
+    analyze_protein_dynamics,
+)
 from .patient_schema import (
     build_patient_from_dict,
     GABI_PRESET,
@@ -329,6 +332,12 @@ async def run_demo_step(task_id: str) -> JSONResponse:
 # ---------------------------------------------------------------------------
 # Foldables (Quantum-Enhanced Precision Drug Discovery) demo module
 # ---------------------------------------------------------------------------
+
+
+@app.get("/protein-dynamics", response_class=FileResponse)
+async def protein_dynamics_page() -> FileResponse:
+    """Serve the Protein Dynamics Analysis interactive page."""
+    return FileResponse("server/quantamed/protein_dynamics.html", media_type="text/html")
 
 @app.get("/quantamed", response_class=FileResponse)
 async def quantamed_dashboard() -> FileResponse:
@@ -632,6 +641,33 @@ async def protein_model(body: FASTAInput) -> JSONResponse:
     except Exception as exc:
         return JSONResponse({"error": str(exc)}, status_code=500)
 
+
+
+@app.get("/api/quantamed/protein-dynamics")
+async def protein_dynamics_analysis(
+    sequence: str = Query(..., description="Protein amino acid sequence"),
+    n_frames: int = Query(100, ge=50, le=500, description="Number of MD frames"),
+    duration_ns: float = Query(100.0, ge=10.0, le=500.0, description="Simulation duration in nanoseconds"),
+) -> JSONResponse:
+    """
+    Run complete protein dynamics analysis: RMSF, RMSD, PCA clustering.
+    
+    This endpoint performs molecular dynamics simulation and analysis:
+    - RMSF: Per-residue flexibility (identifies flexible loops vs rigid cores)
+    - RMSD: Overall structural stability (convergence analysis)
+    - PCA + K-means: Conformational state clustering (cryptic pocket discovery)
+    
+    Returns comprehensive analysis suitable for research visualization.
+    """
+    try:
+        result = analyze_protein_dynamics(
+            sequence=sequence,
+            n_frames=n_frames,
+            duration_ns=duration_ns,
+        )
+        return JSONResponse(result)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 @app.get("/api/quantamed/protein-examples")
 async def protein_examples() -> JSONResponse:

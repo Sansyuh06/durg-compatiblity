@@ -1,0 +1,150 @@
+{
+  "basic_info": {
+    "age": 24,
+    "gender": "female",
+    "weight_kg": 58.0,
+    "height_cm": 165.0,
+    "bmi": 21.3,
+    "ethnicity": "Caucasian",
+    "pregnancy_status": "not_pregnant"
+  },
+  "condition": {
+    "primary_diagnosis": "epilepsy",
+    "subtype": "Juvenile Myoclonic Epilepsy",
+    "severity": "moderate",
+    "duration_months": 36,
+    "comorbidities": [
+      "PCOS",
+      "anxiety"
+    ],
+    "family_history": [
+      "epilepsy",
+      "depression"
+    ]
+  },
+  "symptoms": {
+    "seizure_frequency_per_month": 1.5,
+    "anxiety_score": 4,
+    "depression_score": 3,
+    "sleep_disturbance_score": 5,
+    "fatigue_score": 6,
+    "cognitive_impairment_score": 3
+  },
+  "vitals": {
+    "heart_rate": 72,
+    "blood_pressure": "118/76",
+    "temperature": 36.8
+  },
+  "current_meds": [
+    {
+      "drug_id": "vpa",
+      "drug_name": "Valproic Acid",
+      "dose_mg": 1000.0,
+      "frequency": "BID",
+      "duration_months": 9,
+      "reason_stopped": null
+    }
+  ],
+  "past_meds": [
+    {
+      "drug_id": "lev",
+      "drug_name": "Levetiracetam",
+      "dose_mg": 1500.0,
+      "frequency": "BID",
+      "duration_months": 6,
+      "reason_stopped": "Behavioral side effects - increased irritability and aggression"
+    }
+  ],
+  "genetics": {
+    "CYP2D6": "Poor",
+    "CYP3A4": "Normal",
+    "CYP2C19": "Normal",
+    "CYP2C9": "Intermediate",
+    "UGT1A4": "Normal",
+    "HLA_variants": [
+      "HLA-B*15:02"
+    ]
+  },
+  "labs": {
+    "ALT": 42.0,
+    "AST": 38.0,
+    "creatinine": 0.8,
+    "eGFR": 95.0,
+    "glucose": 92.0
+  },
+  "biomarkers": {
+    "serotonin_level": "normal",
+    "dopamine_level": "normal",
+    "androgen_level": "high"
+  },
+  "target_expression": {
+    "GABA_activity": "low",
+    "NMDA_activity": "high"
+  },
+  "drug_response_profile": {
+    "antiepileptic_response": "partial",
+    "ssri_response": "unknown"
+  },
+  "side_effect_history": [
+    {
+      "drug_id": "vpa",
+      "reaction": "Weight gain",
+      "severity": "moderate"
+    },
+    {
+      "drug_id": "vpa",
+      "reaction": "Hair loss",
+      "severity": "mild"
+    },
+    {
+      "drug_id": "lev",
+      "reaction": "Irritability",
+      "severity": "severe"
+    },
+    {
+      "drug_id": "lev",
+      "reaction": "Aggression",
+      "severity": "moderate"
+    }
+  ],
+  "allergies": [
+    {
+      "substance": "Penicillin",
+      "reaction_type": "Rash"
+    },
+    {
+      "substance": "Sulfa drugs",
+      "reaction_type": "Stevens-Johnson syndrome risk"
+    }
+  ],
+  "lifestyle": {
+    "sleep_hours": 7.0,
+    "sleep_quality": "fair",
+    "stress_level": "moderate",
+    "alcohol_use": "none",
+    "smoking": false,
+    "exercise_frequency": 3
+  },
+  "risk_profile": {
+    "side_effect_tolerance": "low",
+    "urgency_level": "moderate"
+  },
+  "treatment_goal": {
+    "primary_goal": "seizure_freedom",
+    "secondary_goal": "minimize_side_effects",
+    "quality_of_life_priority": true
+  },
+  "_metadata": {
+    "profile_name": "Gabi - Juvenile Myoclonic Epilepsy Patient",
+    "description": "24-year-old female with JME on Valproic Acid experiencing PCOS and weight gain. CYP2D6 Poor Metabolizer and CYP2C9 Intermediate Metabolizer. Partial seizure control with 1-2 breakthrough seizures per month.",
+    "clinical_context": "This patient represents a common scenario where VPA provides seizure control but causes significant metabolic and hormonal side effects in young women. The CYP2C9 intermediate metabolizer status increases VPA exposure by ~25%, contributing to elevated ALT and PCOS risk. Alternative AEDs with better safety profiles should be considered.",
+    "data_completeness": "HIGH - All major clinical, genetic, and laboratory parameters included",
+    "use_cases": [
+      "Pharmacogenomic decision support testing",
+      "Drug-drug interaction analysis",
+      "Adverse event prediction modeling",
+      "Personalized medicine algorithm validation",
+      "Clinical decision support system evaluation"
+    ]
+  }
+}

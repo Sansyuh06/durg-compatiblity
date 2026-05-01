@@ -755,7 +755,8 @@ def _parse_pdb_to_residues(
             # Use the virtual bond angle at CA[i]
             v1 = cas[i] - cas[i - 1]
             v2 = cas[i + 1] - cas[i]
-            cas[i + 2] - cas[i + 1] if i + 2 < n else v2
+            # v3 would be: cas[i + 2] - cas[i + 1] if i + 2 < n else v2
+            # Not used in current DSSP-like calculation
 
             # CA-CA distance (helix ~5.5Å, sheet ~6.7Å for i to i+2)
             d_ca = np.linalg.norm(cas[i + 1] - cas[i - 1])

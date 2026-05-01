@@ -12,3 +12,4 @@ exec python -m uvicorn server.app:app \
     --workers 1 \
     --log-level info \
     --timeout-keep-alive 30
+    

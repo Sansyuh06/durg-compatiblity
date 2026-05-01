@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantaMed - Protein Dynamics Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            background: rgba(10, 14, 39, 0.95);
+            padding: 20px 40px;
+            border-bottom: 2px solid #00e676;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #00e676;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #b0b0b0;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: rgba(26, 31, 58, 0.8);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(0, 230, 118, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .panel h2 {
+            color: #00e676;
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel h2::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #00e676;
+            border-radius: 2px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-top: 15px;
+        }
+        
+        .protein-viewer {
+            width: 100%;
+            height: 500px;
+            background: #0a0e27;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 230, 118, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .control-group label {
+            font-size: 12px;
+            color: #b0b0b0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        input[type="text"], select {
+            background: rgba(10, 14, 39, 0.6);
+            border: 1px solid rgba(0, 230, 118, 0.3);
+            color: #e0e0e0;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #00e676 0%, #00c853 100%);
+            color: #0a0e27;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 230, 118, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            background: rgba(0, 230, 118, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 230, 118, 0.2);
+        }
+        
+        .metric-card .label {
+            font-size: 11px;
+            color: #b0b0b0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .metric-card .value {
+            font-size: 24px;
+            color: #00e676;
+            font-weight: 600;
+        }
+        
+        .metric-card .unit {
+            font-size: 12px;
+            color: #808080;
+            margin-left: 4px;
+        }
+        
+        .cluster-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .cluster-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .cluster-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00e676;
+            font-size: 16px;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-converged {
+            background: rgba(0, 230, 118, 0.2);
+            color: #00e676;
+            border: 1px solid #00e676;
+        }
+        
+        .status-unstable {
+            background: rgba(255, 82, 82, 0.2);
+            color: #ff5252;
+            border: 1px solid #ff5252;
+        }
+        
+        .cryptic-pocket-alert {
+            background: rgba(255, 171, 64, 0.1);
+            border: 1px solid #ffab40;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .cryptic-pocket-alert::before {
+            content: '🔍';
+            font-size: 24px;
+        }
+        
+        .cryptic-pocket-alert .text {
+            flex: 1;
+        }
+        
+        .cryptic-pocket-alert .title {
+            color: #ffab40;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .cryptic-pocket-alert .description {
+            color: #b0b0b0;
+            font-size: 13px;
+        }
+        
+        #protein3d {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .animation-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 14, 39, 0.9);
+            padding: 15px 25px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid rgba(0, 230, 118, 0.3);
+        }
+        
+        .play-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #00e676;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 230, 118, 0.5);
+        }
+        
+        .timeline {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .timeline input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 230, 118, 0.2);
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        .timeline input[type="range"]::-webkit-slider-thumb {
+            width: 16px;
+            height: 16px;
+            background: #00e676;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .time-display {
+            color: #00e676;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧬 Protein Dynamics Analysis</h1>
+        <p>Molecular Dynamics Simulation • RMSF • RMSD • PCA Clustering • Cryptic Pocket Discovery</p>
+    </div>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Input Protein Sequence</h2>
+            <div class="controls">
+                <div class="control-group">
+                    <label>Amino Acid Sequence</label>
+                    <input type="text" id="sequence" placeholder="Enter sequence (e.g., MTSQFWEEFYVLVVQFGFHWFRESLITGYLWTCIVNIIPSTFLADLNHNNEKTSIEFSNL)" value="MTSQFWEEFYVLVVQFGFHWFRESLITGYLWTCIVNIIPSTFLADLNHNNEKTSIEFSNL">
+                </div>
+                <div class="control-group">
+                    <label>Simulation Duration (ns)</label>
+                    <select id="duration">
+                        <option value="50">50 ns</option>
+                        <option value="100" selected>100 ns</option>
+                        <option value="200">200 ns</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Number of Frames</label>
+                    <select id="frames">
+                        <option value="50">50 frames</option>
+                        <option value="100" selected>100 frames</option>
+                        <option value="200">200 frames</option>
+                    </select>
+                </div>
+                <button id="runAnalysis" style="align-self: flex-end;">▶ Run Analysis</button>
+            </div>
+        </div>
+        
+        <div id="results" style="display: none;">
+            <div class="analysis-grid">
+                <!-- RMSF Panel -->
+                <div class="panel">
+                    <h2>RMSF - Per-Residue Flexibility</h2>
+                    <p style="color: #b0b0b0; font-size: 13px; margin-bottom: 15px;">
+                        Root Mean Square Fluctuation measures how much each residue wobbles around its average position.
+                        High RMSF = flexible loops. Low RMSF = rigid core.
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="rmsfChart"></canvas>
+                    </div>
+                    <div class="metrics">
+                        <div class="metric-card">
+                            <div class="label">Mean RMSF</div>
+                            <div class="value" id="meanRmsf">-</div>
+                            <span class="unit">Å</span>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">Max RMSF</div>
+                            <div class="value" id="maxRmsf">-</div>
+                            <span class="unit">Å</span>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">Flexible Regions</div>
+                            <div class="value" id="flexRegions">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- RMSD Panel -->
+                <div class="panel">
+                    <h2>RMSD - Structural Stability</h2>
+                    <p style="color: #b0b0b0; font-size: 13px; margin-bottom: 15px;">
+                        Root Mean Square Deviation tracks overall structural changes from the starting conformation.
+                        Plateau = stable. Rising = unfolding.
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="rmsdChart"></canvas>
+                    </div>
+                    <div class="metrics">
+                        <div class="metric-card">
+                            <div class="label">Status</div>
+                            <div id="convergenceStatus">-</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">Convergence Time</div>
+                            <div class="value" id="convTime">-</div>
+                            <span class="unit">ns</span>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">Stability Score</div>
+                            <div class="value" id="stability">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PCA Clustering Panel -->
+            <div class="panel">
+                <h2>PCA + K-means Clustering - Conformational States</h2>
+                <p style="color: #b0b0b0; font-size: 13px; margin-bottom: 15px;">
+                    Principal Component Analysis reduces complex 3D motion to 2D. K-means identifies distinct conformational clusters.
+                    Each cluster = a major "pose" the protein adopts during simulation.
+                </p>
+                <div class="chart-container" style="height: 450px;">
+                    <canvas id="pcaChart"></canvas>
+                </div>
+                <div class="cluster-legend" id="clusterLegend"></div>
+                <div id="crypticPocketAlert" style="display: none;" class="cryptic-pocket-alert">
+                    <div class="text">
+                        <div class="title">🔍 Cryptic Pocket Discovered!</div>
+                        <div class="description">
+                            The protein opens to reveal a hidden binding site not visible in the starting structure.
+                            This represents a novel drug target opportunity.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3D Protein Viewer -->
+            <div class="panel">
+                <h2>3D Protein Structure - Animated Trajectory</h2>
+                <p style="color: #b0b0b0; font-size: 13px; margin-bottom: 15px;">
+                    Interactive 3D visualization of protein folding trajectory. Colors represent conformational clusters.
+                </p>
+                <div class="protein-viewer">
+                    <div id="protein3d"></div>
+                    <div class="animation-controls">
+                        <button class="play-btn" id="playBtn">▶</button>
+                        <div class="timeline">
+                            <input type="range" id="timeSlider" min="0" max="100" value="0">
+                        </div>
+                        <div class="time-display" id="timeDisplay">0.0 ns</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            Running molecular dynamics simulation
+        </div>
+    </div>
+    
+    <script>
+        let analysisData = null;
+        let rmsfChart = null;
+        let rmsdChart = null;
+        let pcaChart = null;
+        let scene, camera, renderer, proteinMesh;
+        let animationFrame = 0;
+        let isPlaying = false;
+        
+        // Run analysis
+        document.getElementById('runAnalysis').addEventListener('click', async () => {
+            const sequence = document.getElementById('sequence').value.trim();
+            const duration = document.getElementById('duration').value;
+            const frames = document.getElementById('frames').value;
+            
+            if (!sequence) {
+                alert('Please enter a protein sequence');
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('runAnalysis').disabled = true;
+            
+            try {
+                const response = await fetch(`/api/quantamed/protein-dynamics?sequence=${encodeURIComponent(sequence)}&n_frames=${frames}&duration_ns=${duration}`);
+                analysisData = await response.json();
+                
+                displayResults();
+                init3DViewer();
+            } catch (error) {
+                alert('Error running analysis: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('runAnalysis').disabled = false;
+            }
+        });
+        
+        function displayResults() {
+            document.getElementById('results').style.display = 'block';
+            
+            // RMSF metrics
+            document.getElementById('meanRmsf').textContent = analysisData.rmsf.mean.toFixed(2);
+            document.getElementById('maxRmsf').textContent = analysisData.rmsf.max.toFixed(2);
+            document.getElementById('flexRegions').textContent = analysisData.rmsf.flexible_regions.length;
+            
+            // RMSD metrics
+            const converged = analysisData.rmsd.converged;
+            document.getElementById('convergenceStatus').innerHTML = converged 
+                ? '<span class="status-badge status-converged">Converged</span>'
+                : '<span class="status-badge status-unstable">Unstable</span>';
+            document.getElementById('convTime').textContent = converged 
+                ? analysisData.rmsd.convergence_time_ns.toFixed(1)
+                : 'N/A';
+            document.getElementById('stability').textContent = analysisData.rmsd.stability_score.toFixed(2);
+            
+            // Check for cryptic pockets
+            const hasCrypticPocket = analysisData.pca.clusters.some(c => c.has_cryptic_pocket);
+            if (hasCrypticPocket) {
+                document.getElementById('crypticPocketAlert').style.display = 'flex';
+            }
+            
+            // Create charts
+            createRMSFChart();
+            createRMSDChart();
+            createPCAChart();
+        }
+        
+        function createRMSFChart() {
+            const ctx = document.getElementById('rmsfChart').getContext('2d');
+            if (rmsfChart) rmsfChart.destroy();
+            
+            const data = analysisData.rmsf;
+            const colors = data.values.map(v => 
+                v > data.mean + 0.5 ? 'rgba(255, 82, 82, 0.8)' : 'rgba(0, 230, 118, 0.8)'
+            );
+            
+            rmsfChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.residue_ids,
+                    datasets: [{
+                        label: 'RMSF (Å)',
+                        data: data.values,
+                        backgroundColor: colors,
+                        borderColor: colors.map(c => c.replace('0.8', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${data.residue_names[context.dataIndex]}: ${context.parsed.y.toFixed(2)} Å`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Residue Number', color: '#b0b0b0' },
+                            ticks: { color: '#808080' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        },
+                        y: { 
+                            title: { display: true, text: 'RMSF (Å)', color: '#b0b0b0' },
+                            ticks: { color: '#808080' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createRMSDChart() {
+            const ctx = document.getElementById('rmsdChart').getContext('2d');
+            if (rmsdChart) rmsdChart.destroy();
+            
+            const data = analysisData.rmsd;
+            
+            rmsdChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.timesteps,
+                    datasets: [{
+                        label: 'RMSD (Å)',
+                        data: data.values,
+                        borderColor: '#00e676',
+                        backgroundColor: 'rgba(0, 230, 118, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        annotation: data.converged ? {
+                            annotations: {
+                                line1: {
+                                    type: 'line',
+                                    xMin: data.convergence_time_ns,
+                                    xMax: data.convergence_time_ns,
+                                    borderColor: '#ffab40',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        content: 'Convergence',
+                                        enabled: true,
+                                        position: 'start'
+                                    }
+                                }
+                            }
+                        } : {}
+                    },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Time (ns)', color: '#b0b0b0' },
+                            ticks: { color: '#808080' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        },
+                        y: { 
+                            title: { display: true, text: 'RMSD (Å)', color: '#b0b0b0' },
+                            ticks: { color: '#808080' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createPCAChart() {
+            const ctx = document.getElementById('pcaChart').getContext('2d');
+            if (pcaChart) pcaChart.destroy();
+            
+            const data = analysisData.pca;
+            const clusterColors = [
+                '#00e676', '#00d4ff', '#b388ff', '#ffab40', '#ff5252'
+            ];
+            
+            // Create datasets for each cluster
+            const datasets = data.clusters.map((cluster, idx) => {
+                const clusterPoints = data.trajectory_path.filter((_, i) => {
+                    // Simplified: assign points to nearest cluster
+                    return i % data.clusters.length === idx;
+                });
+                
+                return {
+                    label: cluster.label,
+                    data: clusterPoints.map(p => ({ x: p[0], y: p[1] })),
+                    backgroundColor: clusterColors[idx] + '80',
+                    borderColor: clusterColors[idx],
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                };
+            });
+            
+            // Add trajectory line
+            datasets.push({
+                label: 'Trajectory',
+                data: data.trajectory_path.map(p => ({ x: p[0], y: p[1] })),
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                backgroundColor: 'transparent',
+                pointRadius: 0,
+                borderWidth: 1,
+                showLine: true,
+                fill: false
+            });
+            
+            pcaChart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: `PC1 (${data.pc1_variance_pct.toFixed(1)}%) vs PC2 (${data.pc2_variance_pct.toFixed(1)}%)`,
+                            color: '#b0b0b0'
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'PC1', color: '#b0b0b0' },
+                            ticks: { color: '#808080' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        },
+                        y: { 
+                            title: { display: true, text: 'PC2', color: '#b0b0b0' },
+                            ticks: { color: '#808080' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        }
+                    }
+                }
+            });
+            
+            // Create cluster legend
+            const legend = document.getElementById('clusterLegend');
+            legend.innerHTML = '';
+            data.clusters.forEach((cluster, idx) => {
+                const item = document.createElement('div');
+                item.className = 'cluster-item';
+                item.innerHTML = `
+                    <div class="cluster-color" style="background: ${clusterColors[idx]}"></div>
+                    <div>
+                        <strong>${cluster.label}</strong> (${(cluster.population * 100).toFixed(1)}%)
+                        ${cluster.has_cryptic_pocket ? '🔍' : ''}
+                    </div>
+                `;
+                legend.appendChild(item);
+            });
+        }
+        
+        function init3DViewer() {
+            const container = document.getElementById('protein3d');
+            container.innerHTML = '';
+            
+            // Setup Three.js scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0e27);
+            
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 50;
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 10);
+            scene.add(directionalLight);
+            
+            // Create protein representation (simplified)
+            const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+            const material = new THREE.MeshPhongMaterial({ color: 0x00e676 });
+            
+            const group = new THREE.Group();
+            const n_residues = analysisData.n_residues;
+            
+            for (let i = 0; i < n_residues; i++) {
+                const sphere = new THREE.Mesh(geometry, material.clone());
+                sphere.position.x = (i - n_residues / 2) * 2;
+                sphere.position.y = Math.sin(i * 0.5) * 5;
+                sphere.position.z = Math.cos(i * 0.5) * 5;
+                group.add(sphere);
+            }
+            
+            scene.add(group);
+            proteinMesh = group;
+            
+            // Animation controls
+            const slider = document.getElementById('timeSlider');
+            const playBtn = document.getElementById('playBtn');
+            const timeDisplay = document.getElementById('timeDisplay');
+            
+            slider.max = analysisData.n_frames - 1;
+            
+            slider.addEventListener('input', (e) => {
+                animationFrame = parseInt(e.target.value);
+                updateProteinFrame();
+            });
+            
+            playBtn.addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                playBtn.textContent = isPlaying ? '⏸' : '▶';
+                if (isPlaying) animate();
+            });
+            
+            function animate() {
+                if (!isPlaying) return;
+                
+                animationFrame = (animationFrame + 1) % analysisData.n_frames;
+                slider.value = animationFrame;
+                updateProteinFrame();
+                
+                setTimeout(() => requestAnimationFrame(animate), 50);
+            }
+            
+            function updateProteinFrame() {
+                const time = analysisData.rmsd.timesteps[animationFrame];
+                timeDisplay.textContent = time.toFixed(1) + ' ns';
+                
+                // Rotate protein
+                proteinMesh.rotation.y = animationFrame * 0.02;
+                
+                // Update colors based on RMSD
+                const rmsd = analysisData.rmsd.values[animationFrame];
+                const hue = Math.max(0, 120 - rmsd * 20); // Green to red
+                proteinMesh.children.forEach(sphere => {
+                    sphere.material.color.setHSL(hue / 360, 1, 0.5);
+                });
+            }
+            
+            // Render loop
+            function render() {
+                requestAnimationFrame(render);
+                renderer.render(scene, camera);
+            }
+            render();
+            
+            // Handle resize
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
+    </script>
+</body>
+</html>
