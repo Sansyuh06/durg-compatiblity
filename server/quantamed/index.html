@@ -11,33 +11,7 @@ function startManualIntake() {
     document.getElementById('intake-wizard').style.display = 'block';
 }
 
-function handleJsonUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-            window.patientData = data;
-            console.log("Loaded Patient JSON:", data);
-            
-            // Show a success toast or notification
-            alert("Patient data successfully loaded. Jumping to simulation...");
-            
-            // Hide selection screen and skip intake
-            document.getElementById('entry-choice-screen').style.display = 'none';
-            
-            // Navigate directly to the first simulation step (e.g. Mol Binding)
-            // Step 8 is usually Mol Binding in this app
-            showPanel('8', document.querySelector('[onclick*="showPanel('8'"]'));
-        } catch (err) {
-            alert("Error parsing JSON file. Please ensure it follows the correct schema.");
-            console.error(err);
-        }
-    };
-    reader.readAsText(file);
-}
+// Duplicate removed - main function is at line 3397
 
 </script>
 <script src="/quantamed/static/three.min.js">
@@ -47,33 +21,7 @@ function startManualIntake() {
     document.getElementById('intake-wizard').style.display = 'block';
 }
 
-function handleJsonUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-            window.patientData = data;
-            console.log("Loaded Patient JSON:", data);
-            
-            // Show a success toast or notification
-            alert("Patient data successfully loaded. Jumping to simulation...");
-            
-            // Hide selection screen and skip intake
-            document.getElementById('entry-choice-screen').style.display = 'none';
-            
-            // Navigate directly to the first simulation step (e.g. Mol Binding)
-            // Step 8 is usually Mol Binding in this app
-            showPanel('8', document.querySelector('[onclick*="showPanel('8'"]'));
-        } catch (err) {
-            alert("Error parsing JSON file. Please ensure it follows the correct schema.");
-            console.error(err);
-        }
-    };
-    reader.readAsText(file);
-}
+// Duplicate removed - main function is at line 3397
 
 </script>
 <style>
@@ -744,33 +692,7 @@ function startManualIntake() {
     document.getElementById('intake-wizard').style.display = 'block';
 }
 
-function handleJsonUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-            window.patientData = data;
-            console.log("Loaded Patient JSON:", data);
-            
-            // Show a success toast or notification
-            alert("Patient data successfully loaded. Jumping to simulation...");
-            
-            // Hide selection screen and skip intake
-            document.getElementById('entry-choice-screen').style.display = 'none';
-            
-            // Navigate directly to the first simulation step (e.g. Mol Binding)
-            // Step 8 is usually Mol Binding in this app
-            showPanel('8', document.querySelector('[onclick*="showPanel('8'"]'));
-        } catch (err) {
-            alert("Error parsing JSON file. Please ensure it follows the correct schema.");
-            console.error(err);
-        }
-    };
-    reader.readAsText(file);
-}
+// Duplicate removed - main function is at line 3397
 
 </script>
 
@@ -3394,40 +3316,151 @@ function triggerJsonUpload() {
     input.click();
 }
 
-function handleJsonUpload(event) {
+async function handleJsonUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
     
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
         try {
             const data = JSON.parse(e.target.result);
             window.patientData = data;
             console.log("Loaded Patient JSON:", data);
             
-            // Update UI components with patient name
-            const pName = data.basic_info?.name || "Custom Patient";
-            document.querySelectorAll('.dyn-patient-name').forEach(el => el.innerText = pName);
-            document.querySelectorAll('.dyn-patient-name-upper').forEach(el => el.innerText = pName.toUpperCase());
-
-            const nameEl = document.querySelector('.patient-name');
-            if(nameEl) nameEl.innerText = pName.toUpperCase();
-            
-            // Hide selection screen and skip intake
-            const screen = document.getElementById('entry-choice-screen');
-            if (screen) screen.style.display = 'none';
-            
-            // Navigate directly to the first simulation step
-            const firstBtn = document.querySelector('.step-btn');
-            showPanel(0, firstBtn);
-            
-            console.log("Jumped to dashboard for", pName);
+            // Call backend API to create patient session
+            try {
+                const response = await fetch('/api/patients/sessions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    const sessionData = await response.json();
+                    window.patientSessionId = sessionData.session_id;
+                    console.log("Patient session created:", sessionData.session_id);
+                    
+                    // Update all UI elements with patient data
+                    updatePatientUI(data);
+                    
+                    // Hide selection screen
+                    const screen = document.getElementById('entry-choice-screen');
+                    if (screen) screen.style.display = 'none';
+                    
+                    // Navigate to first simulation step
+                    const firstBtn = document.querySelector('.step-btn');
+                    showPanel(0, firstBtn);
+                    
+                    alert(`✅ Patient data loaded successfully!\nSession ID: ${sessionData.session_id}`);
+                } else {
+                    throw new Error('Failed to create patient session');
+                }
+            } catch (apiError) {
+                console.error("API Error:", apiError);
+                // Fallback: Update UI without backend
+                updatePatientUI(data);
+                const screen = document.getElementById('entry-choice-screen');
+                if (screen) screen.style.display = 'none';
+                const firstBtn = document.querySelector('.step-btn');
+                showPanel(0, firstBtn);
+                alert("⚠️ Patient data loaded (offline mode)");
+            }
         } catch (err) {
             alert("Error parsing JSON file. Please ensure it follows the correct schema.");
             console.error(err);
         }
     };
     reader.readAsText(file);
+}
+
+function updatePatientUI(data) {
+    // Extract patient information
+    const basic = data.basic_info || {};
+    const condition = data.condition || {};
+    const genetic = data.genetic_profile || {};
+    const labs = data.lab_results || {};
+    const meds = data.medication_history || {};
+    
+    const pName = basic.name || "Custom Patient";
+    const age = basic.age || "N/A";
+    const sex = basic.sex || "N/A";
+    const weight = basic.weight_kg || "N/A";
+    
+    // Update patient name everywhere
+    document.querySelectorAll('.dyn-patient-name').forEach(el => el.innerText = pName);
+    document.querySelectorAll('.dyn-patient-name-upper').forEach(el => el.innerText = pName.toUpperCase());
+    
+    // Update patient diagnosis
+    const dxEl = document.querySelector('.patient-dx');
+    if (dxEl) {
+        const diagnosis = condition.primary_diagnosis || "Unknown Condition";
+        dxEl.innerHTML = `${diagnosis}<br/>${sex} · ${age}y`;
+    }
+    
+    // Update risk badge
+    const riskEl = document.querySelector('.risk-badge');
+    if (riskEl && meds.current_medications && meds.current_medications.length > 0) {
+        const currentDrug = meds.current_medications[0];
+        riskEl.innerHTML = `⚠ ON MEDICATION<br/>${currentDrug.name} · ${currentDrug.duration_months || 0} months`;
+    }
+    
+    // Update stat grid items
+    const statGrid = document.querySelector('.stat-grid');
+    if (statGrid) {
+        // Current Drug
+        if (meds.current_medications && meds.current_medications.length > 0) {
+            const drug = meds.current_medications[0];
+            updateStatItem(statGrid, 0, 'CURRENT DRUG', drug.name, `${drug.dosage_mg}mg/day · ${drug.duration_months || 0} months`, 'warn');
+        }
+        
+        // Condition Status
+        updateStatItem(statGrid, 1, 'CONDITION STATUS', condition.severity || 'Moderate', condition.notes || 'Under monitoring', 'warn');
+        
+        // CYP2D6 Status
+        const cyp2d6 = genetic.cyp2d6_phenotype || 'normal';
+        const cyp2d6Class = cyp2d6.includes('poor') ? 'danger' : (cyp2d6.includes('intermediate') ? 'warn' : 'good');
+        updateStatItem(statGrid, 2, 'CYP2D6 STATUS', cyp2d6.replace('_', ' ').toUpperCase(), 'Metabolizer status', cyp2d6Class);
+        
+        // CYP2C9 Status
+        const cyp2c9 = genetic.cyp2c9_phenotype || 'normal';
+        const cyp2c9Class = cyp2c9.includes('poor') ? 'danger' : (cyp2c9.includes('intermediate') ? 'warn' : 'good');
+        updateStatItem(statGrid, 3, 'CYP2C9 STATUS', cyp2c9.replace('_', ' ').toUpperCase(), 'Metabolizer status', cyp2c9Class);
+        
+        // Hepatic Function
+        const alt = labs.alt_u_l || 'N/A';
+        const altClass = (typeof alt === 'number' && alt > 40) ? 'warn' : 'good';
+        updateStatItem(statGrid, 4, 'HEPATIC FUNCTION', `ALT ${alt} U/L`, 'Liver enzyme level', altClass);
+        
+        // Weight
+        updateStatItem(statGrid, 5, 'WEIGHT', `${weight} kg`, `BMI: ${(weight / ((basic.height_cm/100)**2)).toFixed(1)}`, 'good');
+        
+        // Target Protein
+        updateStatItem(statGrid, 6, 'TARGET PROTEIN', condition.target_protein || 'Unknown', 'Primary drug target', 'good');
+        
+        // Candidate Drugs
+        const drugCount = condition.candidate_drugs ? condition.candidate_drugs.length : 0;
+        updateStatItem(statGrid, 7, 'CANDIDATE DRUGS', `${drugCount} Analyzed`, condition.candidate_drugs ? condition.candidate_drugs.join(' · ') : 'N/A', 'cyan');
+    }
+    
+    console.log("✅ Patient UI updated for:", pName);
+}
+
+function updateStatItem(grid, index, label, value, detail, valueClass = '') {
+    const items = grid.querySelectorAll('.stat-item');
+    if (items[index]) {
+        const labelEl = items[index].querySelector('.stat-label');
+        const valueEl = items[index].querySelector('.stat-value');
+        const detailEl = items[index].querySelector('div[style*="font-size:12px"]');
+        
+        if (labelEl) labelEl.textContent = label;
+        if (valueEl) {
+            valueEl.textContent = value;
+            valueEl.className = 'stat-value ' + valueClass;
+        }
+        if (detailEl) detailEl.innerHTML = detail;
+    }
 }
 
 window.addEventListener('load', () => {

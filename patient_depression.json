@@ -1,0 +1,93 @@
+{
+  "basic_info": {
+    "age": 34,
+    "gender": "female",
+    "weight_kg": 62.0,
+    "height_cm": 165,
+    "bmi": 22.8,
+    "ethnicity": "Asian"
+  },
+  "condition": {
+    "primary_diagnosis": "Depression",
+    "subtype": "Major Depressive Disorder",
+    "severity": "moderate",
+    "duration_years": 3.5,
+    "comorbidities": ["Generalized Anxiety Disorder", "Insomnia"],
+    "icd10_codes": ["F32.1", "F41.1", "G47.00"]
+  },
+  "genetics": {
+    "cyp2d6": "poor",
+    "cyp2c9": "normal",
+    "cyp2c19": "poor",
+    "cyp3a4": "normal",
+    "cyp1a2": "normal",
+    "slco1b1": "*1/*15",
+    "vkorc1": null,
+    "hla_b5701": null
+  },
+  "labs": {
+    "alt_u_l": 22.0,
+    "ast_u_l": 25.0,
+    "bilirubin_mg_dl": 0.6,
+    "albumin_g_dl": 4.5,
+    "egfr_ml_min": 105.0,
+    "creatinine_mg_dl": 0.8,
+    "glucose_mg_dl": 88.0,
+    "hba1c_percent": 5.2,
+    "ldl_mg_dl": 95.0,
+    "hdl_mg_dl": 62.0,
+    "triglycerides_mg_dl": 85.0,
+    "test_date": "2026-04-25"
+  },
+  "medications": {
+    "current": [
+      {
+        "name": "Sertraline",
+        "dose_mg": 50,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2023-01-15",
+        "indication": "Major Depressive Disorder",
+        "active": true
+      },
+      {
+        "name": "Trazodone",
+        "dose_mg": 50,
+        "frequency": "at bedtime",
+        "route": "oral",
+        "start_date": "2024-06-01",
+        "indication": "Insomnia",
+        "active": true
+      }
+    ],
+    "past": [
+      {
+        "name": "Fluoxetine",
+        "dose_mg": 20,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2022-09-01",
+        "indication": "Major Depressive Disorder",
+        "active": false
+      }
+    ],
+    "allergies": [],
+    "adverse_reactions": [
+      {
+        "drug": "Fluoxetine",
+        "reaction": "Sexual dysfunction",
+        "severity": "mild",
+        "date": "2022-12-15"
+      }
+    ]
+  },
+  "lifestyle": {
+    "smoking": "never",
+    "smoking_pack_years": 0,
+    "alcohol": "light",
+    "alcohol_drinks_per_week": 2,
+    "exercise": "moderate",
+    "exercise_minutes_per_week": 180,
+    "diet": "Mediterranean diet"
+  }
+}

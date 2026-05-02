@@ -1,0 +1,102 @@
+{
+  "basic_info": {
+    "age": 52,
+    "gender": "male",
+    "weight_kg": 95.5,
+    "height_cm": 175,
+    "bmi": 31.2,
+    "ethnicity": "Caucasian"
+  },
+  "condition": {
+    "primary_diagnosis": "Type 2 Diabetes",
+    "subtype": "Insulin Resistant",
+    "severity": "moderate",
+    "duration_years": 8.5,
+    "comorbidities": ["Hypertension", "Dyslipidemia", "Obesity"],
+    "icd10_codes": ["E11.9", "I10", "E78.5"]
+  },
+  "genetics": {
+    "cyp2d6": "normal",
+    "cyp2c9": "intermediate",
+    "cyp2c19": "normal",
+    "cyp3a4": "normal",
+    "cyp1a2": "normal",
+    "slco1b1": "*1/*1",
+    "vkorc1": null,
+    "hla_b5701": false
+  },
+  "labs": {
+    "alt_u_l": 45.0,
+    "ast_u_l": 38.0,
+    "bilirubin_mg_dl": 0.9,
+    "albumin_g_dl": 4.2,
+    "egfr_ml_min": 75.0,
+    "creatinine_mg_dl": 1.1,
+    "glucose_mg_dl": 165.0,
+    "hba1c_percent": 8.2,
+    "ldl_mg_dl": 145.0,
+    "hdl_mg_dl": 38.0,
+    "triglycerides_mg_dl": 220.0,
+    "test_date": "2026-04-15"
+  },
+  "medications": {
+    "current": [
+      {
+        "name": "Metformin",
+        "dose_mg": 1000,
+        "frequency": "twice daily",
+        "route": "oral",
+        "start_date": "2018-06-01",
+        "indication": "Type 2 Diabetes",
+        "active": true
+      },
+      {
+        "name": "Lisinopril",
+        "dose_mg": 10,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2020-03-15",
+        "indication": "Hypertension",
+        "active": true
+      },
+      {
+        "name": "Atorvastatin",
+        "dose_mg": 20,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2021-01-10",
+        "indication": "Dyslipidemia",
+        "active": true
+      }
+    ],
+    "past": [
+      {
+        "name": "Glipizide",
+        "dose_mg": 5,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2018-01-01",
+        "indication": "Type 2 Diabetes",
+        "active": false
+      }
+    ],
+    "allergies": ["Sulfa drugs"],
+    "adverse_reactions": [
+      {
+        "drug": "Glipizide",
+        "reaction": "Hypoglycemia",
+        "severity": "moderate",
+        "date": "2018-05-20"
+      }
+    ]
+  },
+  "lifestyle": {
+    "smoking": "former",
+    "smoking_pack_years": 15,
+    "alcohol": "moderate",
+    "alcohol_drinks_per_week": 7,
+    "exercise": "sedentary",
+    "exercise_minutes_per_week": 30,
+    "diet": "Standard American Diet"
+  }
+}

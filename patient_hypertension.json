@@ -1,0 +1,102 @@
+{
+  "basic_info": {
+    "age": 68,
+    "gender": "female",
+    "weight_kg": 72.0,
+    "height_cm": 162,
+    "bmi": 27.4,
+    "ethnicity": "African American"
+  },
+  "condition": {
+    "primary_diagnosis": "Hypertension",
+    "subtype": "Essential Hypertension",
+    "severity": "moderate",
+    "duration_years": 12.0,
+    "comorbidities": ["Chronic Kidney Disease Stage 3", "Osteoarthritis"],
+    "icd10_codes": ["I10", "N18.3", "M19.90"]
+  },
+  "genetics": {
+    "cyp2d6": "normal",
+    "cyp2c9": "poor",
+    "cyp2c19": "intermediate",
+    "cyp3a4": "normal",
+    "cyp1a2": "rapid",
+    "slco1b1": "*5/*5",
+    "vkorc1": "AG",
+    "hla_b5701": null
+  },
+  "labs": {
+    "alt_u_l": 28.0,
+    "ast_u_l": 32.0,
+    "bilirubin_mg_dl": 0.7,
+    "albumin_g_dl": 3.9,
+    "egfr_ml_min": 52.0,
+    "creatinine_mg_dl": 1.4,
+    "glucose_mg_dl": 98.0,
+    "hba1c_percent": 5.6,
+    "ldl_mg_dl": 118.0,
+    "hdl_mg_dl": 52.0,
+    "triglycerides_mg_dl": 135.0,
+    "test_date": "2026-04-20"
+  },
+  "medications": {
+    "current": [
+      {
+        "name": "Amlodipine",
+        "dose_mg": 10,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2014-08-01",
+        "indication": "Hypertension",
+        "active": true
+      },
+      {
+        "name": "Losartan",
+        "dose_mg": 50,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2016-03-15",
+        "indication": "Hypertension with renal protection",
+        "active": true
+      },
+      {
+        "name": "Ibuprofen",
+        "dose_mg": 400,
+        "frequency": "as needed",
+        "route": "oral",
+        "start_date": "2020-01-01",
+        "indication": "Osteoarthritis pain",
+        "active": true
+      }
+    ],
+    "past": [
+      {
+        "name": "Hydrochlorothiazide",
+        "dose_mg": 25,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2014-01-01",
+        "indication": "Hypertension",
+        "active": false
+      }
+    ],
+    "allergies": ["Penicillin"],
+    "adverse_reactions": [
+      {
+        "drug": "Hydrochlorothiazide",
+        "reaction": "Hypokalemia",
+        "severity": "moderate",
+        "date": "2016-02-10"
+      }
+    ]
+  },
+  "lifestyle": {
+    "smoking": "never",
+    "smoking_pack_years": 0,
+    "alcohol": "none",
+    "alcohol_drinks_per_week": 0,
+    "exercise": "light",
+    "exercise_minutes_per_week": 120,
+    "diet": "DASH diet"
+  }
+}

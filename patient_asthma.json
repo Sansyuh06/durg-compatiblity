@@ -1,0 +1,111 @@
+{
+  "basic_info": {
+    "age": 28,
+    "gender": "male",
+    "weight_kg": 78.0,
+    "height_cm": 180,
+    "bmi": 24.1,
+    "ethnicity": "Hispanic"
+  },
+  "condition": {
+    "primary_diagnosis": "Asthma",
+    "subtype": "Moderate Persistent Asthma",
+    "severity": "moderate",
+    "duration_years": 15.0,
+    "comorbidities": ["Allergic Rhinitis", "Eczema"],
+    "icd10_codes": ["J45.40", "J30.9", "L20.9"]
+  },
+  "genetics": {
+    "cyp2d6": "normal",
+    "cyp2c9": "normal",
+    "cyp2c19": "rapid",
+    "cyp3a4": "normal",
+    "cyp1a2": "normal",
+    "slco1b1": "*1/*1",
+    "vkorc1": null,
+    "hla_b5701": false
+  },
+  "labs": {
+    "alt_u_l": 24.0,
+    "ast_u_l": 28.0,
+    "bilirubin_mg_dl": 0.8,
+    "albumin_g_dl": 4.6,
+    "egfr_ml_min": 115.0,
+    "creatinine_mg_dl": 0.9,
+    "glucose_mg_dl": 92.0,
+    "hba1c_percent": 5.1,
+    "ldl_mg_dl": 102.0,
+    "hdl_mg_dl": 48.0,
+    "triglycerides_mg_dl": 110.0,
+    "test_date": "2026-04-28"
+  },
+  "medications": {
+    "current": [
+      {
+        "name": "Fluticasone/Salmeterol",
+        "dose_mg": 250,
+        "frequency": "twice daily",
+        "route": "inhaled",
+        "start_date": "2020-03-01",
+        "indication": "Asthma maintenance",
+        "active": true
+      },
+      {
+        "name": "Albuterol",
+        "dose_mg": 90,
+        "frequency": "as needed",
+        "route": "inhaled",
+        "start_date": "2011-01-01",
+        "indication": "Asthma rescue",
+        "active": true
+      },
+      {
+        "name": "Montelukast",
+        "dose_mg": 10,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2019-09-15",
+        "indication": "Asthma and allergic rhinitis",
+        "active": true
+      },
+      {
+        "name": "Cetirizine",
+        "dose_mg": 10,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2018-04-01",
+        "indication": "Allergic rhinitis",
+        "active": true
+      }
+    ],
+    "past": [
+      {
+        "name": "Prednisone",
+        "dose_mg": 40,
+        "frequency": "once daily",
+        "route": "oral",
+        "start_date": "2024-01-15",
+        "indication": "Asthma exacerbation",
+        "active": false
+      }
+    ],
+    "allergies": ["Aspirin (causes bronchospasm)"],
+    "adverse_reactions": [
+      {
+        "drug": "Aspirin",
+        "reaction": "Bronchospasm",
+        "severity": "severe",
+        "date": "2015-07-20"
+      }
+    ]
+  },
+  "lifestyle": {
+    "smoking": "never",
+    "smoking_pack_years": 0,
+    "alcohol": "light",
+    "alcohol_drinks_per_week": 3,
+    "exercise": "moderate",
+    "exercise_minutes_per_week": 150,
+    "diet": "Balanced diet"
+  }
+}
