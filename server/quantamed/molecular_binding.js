@@ -1,6 +1,8 @@
 // ═══════════════════════════════════════════════════════════
-// MOLECULAR BINDING COLLISION SIMULATOR
-// Three.js dual-canvas drug binding visualization
+// MOLECULAR BINDING COLLISION SIMULATOR - CINEMATIC EDITION
+// Three.js dual-canvas drug binding visualization with advanced effects
+// Enhanced with: Advanced lighting, smooth camera animations, custom shaders,
+// particle effects, bloom post-processing, and cinematic rendering
 // ═══════════════════════════════════════════════════════════
 
 const DRUG_DB = {
@@ -58,6 +60,74 @@ const ATOM_RADIUS = {C:.18,O:.2,N:.17,Cl:.22,H:.1,S:.2};
 
 let molBindingInited = false;
 
+// ═══════════════════════════════════════════════════════════
+// CINEMATIC ENHANCEMENT UTILITIES
+// ═══════════════════════════════════════════════════════════
+
+// Easing functions for smooth animations
+const Easing = {
+  easeInOutCubic: t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+  easeOutElastic: t => {
+    const c4 = (2 * Math.PI) / 3;
+    return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+  },
+  easeInOutQuad: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+  easeOutCubic: t => 1 - Math.pow(1 - t, 3)
+};
+
+// Custom shader materials for cinematic effects
+const CustomShaders = {
+  // Fresnel shader for rim lighting effect
+  fresnelVertex: `
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vViewPosition = -mvPosition.xyz;
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `,
+  fresnelFragment: `
+    uniform vec3 baseColor;
+    uniform vec3 rimColor;
+    uniform float rimPower;
+    uniform float rimIntensity;
+    varying vec3 vNormal;
+    varying vec3 vViewPosition;
+    void main() {
+      vec3 normal = normalize(vNormal);
+      vec3 viewDir = normalize(vViewPosition);
+      float fresnel = pow(1.0 - max(0.0, dot(normal, viewDir)), rimPower);
+      vec3 color = mix(baseColor, rimColor, fresnel * rimIntensity);
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `,
+  // Glow shader for binding sites
+  glowVertex: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  glowFragment: `
+    uniform vec3 glowColor;
+    uniform float glowIntensity;
+    uniform float time;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      float pulse = 0.5 + 0.5 * sin(time * 2.0);
+      float intensity = glowIntensity * (0.8 + 0.2 * pulse);
+      vec3 color = glowColor * intensity;
+      gl_FragColor = vec4(color, 0.6);
+    }
+  `
+};
+
 function initMolecularBinding() {
   if (molBindingInited) return;
   molBindingInited = true;
@@ -72,62 +142,177 @@ function initMolecularBinding() {
     const w = container.clientWidth || 500, h = container.clientHeight || 450;
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x060d1a);
+    scene.fog = new THREE.FogExp2(0x060d1a, 0.02);
+    
     const camera = new THREE.PerspectiveCamera(45, w/h, 0.1, 100);
     camera.position.set(4, 2, 5);
     camera.lookAt(0, 0, 0);
-    const renderer = new THREE.WebGLRenderer({antialias: true, alpha: false});
+    
+    // Enhanced renderer with shadows
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false,
+      powerPreference: 'high-performance'
+    });
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
 
-    // Lighting
-    scene.add(new THREE.AmbientLight(0x222244, 0.5));
-    const dl = new THREE.DirectionalLight(0xffffff, 1.2);
-    dl.position.set(5, 8, 5);
-    scene.add(dl);
-    scene.add(new THREE.PointLight(0x4488ff, 0.8, 20).position.set(-3, 2, 3) && new THREE.PointLight(0x4488ff, 0.8, 20));
-    const pocketLight = new THREE.PointLight(isLeft ? 0xff2200 : 0x00ff88, 0.3, 8);
+    // ═══ CINEMATIC LIGHTING SYSTEM ═══
+    const ambientLight = new THREE.AmbientLight(0x1a2332, 0.4);
+    scene.add(ambientLight);
+    
+    const hemiLight = new THREE.HemisphereLight(0x4488ff, 0x1a0a2e, 0.6);
+    hemiLight.position.set(0, 20, 0);
+    scene.add(hemiLight);
+    
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    mainLight.position.set(8, 12, 6);
+    mainLight.castShadow = true;
+    mainLight.shadow.mapSize.width = 2048;
+    mainLight.shadow.mapSize.height = 2048;
+    mainLight.shadow.camera.near = 0.5;
+    mainLight.shadow.camera.far = 50;
+    mainLight.shadow.bias = -0.0001;
+    scene.add(mainLight);
+    
+    const rimLight = new THREE.DirectionalLight(0x6699ff, 0.8);
+    rimLight.position.set(-5, 3, -5);
+    scene.add(rimLight);
+    
+    const accentLight1 = new THREE.PointLight(0x4488ff, 1.2, 25);
+    accentLight1.position.set(-4, 3, 4);
+    scene.add(accentLight1);
+    
+    const accentLight2 = new THREE.PointLight(0x8844ff, 0.9, 20);
+    accentLight2.position.set(4, 2, -3);
+    scene.add(accentLight2);
+    
+    const pocketLight = new THREE.PointLight(isLeft ? 0xff3300 : 0x00ffaa, 0.5, 10);
+    pocketLight.position.set(0, -0.2, 0);
     scene.add(pocketLight);
+    
+    const spotLight = new THREE.SpotLight(0xffffff, 0.8);
+    spotLight.position.set(0, 10, 0);
+    spotLight.angle = Math.PI / 6;
+    spotLight.penumbra = 0.3;
+    spotLight.decay = 2;
+    spotLight.distance = 30;
+    scene.add(spotLight);
 
     // Grid
     const grid = new THREE.GridHelper(20, 20, 0x0a1a30, 0x0a1a30);
     grid.position.y = -2;
     scene.add(grid);
 
-    // Protein: Alpha helices
+    // ═══ ENHANCED PROTEIN RENDERING ═══
     const proteinGroup = new THREE.Group();
+    
+    // Alpha helices with Fresnel rim lighting
     for (let i = 0; i < 6; i++) {
       const pts = [];
-      for (let t = 0; t <= 1; t += 1/60) {
-        pts.push(new THREE.Vector3(0.3*Math.cos(t*3*2*Math.PI), t*2.5-1.25, 0.3*Math.sin(t*3*2*Math.PI)));
+      for (let t = 0; t <= 1; t += 1/80) {
+        const radius = 0.35 + Math.sin(t * Math.PI * 6) * 0.05;
+        pts.push(new THREE.Vector3(
+          radius * Math.cos(t * 3 * 2 * Math.PI),
+          t * 2.5 - 1.25,
+          radius * Math.sin(t * 3 * 2 * Math.PI)
+        ));
       }
       const curve = new THREE.CatmullRomCurve3(pts);
-      const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.08, 8, false);
-      const tubeMat = new THREE.MeshPhongMaterial({color:0x1e50b4, shininess:60, transparent:true, opacity:0.85});
+      const tubeGeo = new THREE.TubeGeometry(curve, 80, 0.1, 12, false);
+      
+      // Custom shader material with Fresnel effect
+      const tubeMat = new THREE.ShaderMaterial({
+        uniforms: {
+          baseColor: { value: new THREE.Color(0x1e50b4) },
+          rimColor: { value: new THREE.Color(0x4488ff) },
+          rimPower: { value: 3.0 },
+          rimIntensity: { value: 0.8 }
+        },
+        vertexShader: CustomShaders.fresnelVertex,
+        fragmentShader: CustomShaders.fresnelFragment,
+        transparent: true,
+        opacity: 0.9
+      });
+      
       const tube = new THREE.Mesh(tubeGeo, tubeMat);
+      tube.castShadow = true;
+      tube.receiveShadow = true;
       const angle = i * Math.PI / 3;
-      tube.position.set(1.8*Math.cos(angle), 0, 1.8*Math.sin(angle));
+      tube.position.set(1.8 * Math.cos(angle), 0, 1.8 * Math.sin(angle));
       tube.rotation.y = angle;
       proteinGroup.add(tube);
     }
 
-    // Beta sheets
+    // Beta sheets with gradient and metallic finish
     for (let j = -1; j <= 1; j++) {
-      const planeGeo = new THREE.PlaneGeometry(1.2, 0.3);
-      const planeMat = new THREE.MeshPhongMaterial({color:0x64c8dc, transparent:true, opacity:0.7, side:THREE.DoubleSide});
+      const planeGeo = new THREE.PlaneGeometry(1.4, 0.35, 10, 10);
+      const planeMat = new THREE.MeshStandardMaterial({
+        color: 0x64c8dc,
+        metalness: 0.3,
+        roughness: 0.4,
+        transparent: true,
+        opacity: 0.75,
+        side: THREE.DoubleSide,
+        emissive: 0x2244aa,
+        emissiveIntensity: 0.2
+      });
       const plane = new THREE.Mesh(planeGeo, planeMat);
-      plane.position.set(0, j*0.5, 0);
+      plane.castShadow = true;
+      plane.receiveShadow = true;
+      plane.position.set(0, j * 0.5, 0);
       plane.rotation.y = j * 0.8;
       proteinGroup.add(plane);
     }
 
-    // Binding pocket
-    const pocketGeo = new THREE.ConeGeometry(0.6, 1.2, 16, 1, true);
-    const pocketMat = new THREE.MeshStandardMaterial({color:0xFFD700, emissive:0xAA8800, emissiveIntensity:0.4, transparent:true, opacity:0.6});
+    // Binding pocket with glow shader
+    const pocketGeo = new THREE.ConeGeometry(0.65, 1.3, 24, 1, true);
+    const pocketMat = new THREE.ShaderMaterial({
+      uniforms: {
+        glowColor: { value: new THREE.Color(isLeft ? 0xff6600 : 0x00ffaa) },
+        glowIntensity: { value: 1.5 },
+        time: { value: 0 }
+      },
+      vertexShader: CustomShaders.glowVertex,
+      fragmentShader: CustomShaders.glowFragment,
+      transparent: true,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
     const pocket = new THREE.Mesh(pocketGeo, pocketMat);
     pocket.rotation.x = Math.PI;
     pocket.position.y = -0.2;
     proteinGroup.add(pocket);
+    
+    // Add glow particles around binding site
+    const glowParticles = [];
+    for (let i = 0; i < 40; i++) {
+      const angle = (i / 40) * Math.PI * 2;
+      const radius = 0.7 + Math.random() * 0.2;
+      const particleGeo = new THREE.SphereGeometry(0.02, 8, 8);
+      const particleMat = new THREE.MeshBasicMaterial({
+        color: isLeft ? 0xff6600 : 0x00ffaa,
+        transparent: true,
+        opacity: 0.6
+      });
+      const particle = new THREE.Mesh(particleGeo, particleMat);
+      particle.position.set(
+        Math.cos(angle) * radius,
+        -0.2 + (Math.random() - 0.5) * 0.4,
+        Math.sin(angle) * radius
+      );
+      particle.userData.angle = angle;
+      particle.userData.radius = radius;
+      particle.userData.speed = 0.5 + Math.random() * 0.5;
+      glowParticles.push(particle);
+      proteinGroup.add(particle);
+    }
+    
     scene.add(proteinGroup);
 
     // Off-target markers (left only)
@@ -147,33 +332,54 @@ function initMolecularBinding() {
       });
     }
 
-    // Drug molecule builder
+    // ═══ ENHANCED DRUG MOLECULE BUILDER ═══
     function buildMolecule(key) {
       const drug = DRUG_DB[key];
       const mol = new THREE.Group();
       const atomMeshes = [];
+      
       drug.atoms.forEach(a => {
-        const sg = new THREE.SphereGeometry(ATOM_RADIUS[a.t]||0.15, 12, 12);
-        const sm = new THREE.MeshPhongMaterial({color: ATOM_COLORS[a.t]||0x888888, shininess:40});
+        const sg = new THREE.SphereGeometry(ATOM_RADIUS[a.t] || 0.15, 16, 16);
+        const sm = new THREE.MeshStandardMaterial({
+          color: ATOM_COLORS[a.t] || 0x888888,
+          metalness: 0.4,
+          roughness: 0.3,
+          emissive: ATOM_COLORS[a.t] || 0x888888,
+          emissiveIntensity: 0.1
+        });
         const sp = new THREE.Mesh(sg, sm);
         sp.position.set(a.p[0], a.p[1], a.p[2]);
+        sp.castShadow = true;
+        sp.receiveShadow = true;
         mol.add(sp);
         atomMeshes.push(sp);
       });
+      
       drug.bonds.forEach(b => {
         if (b[0] < drug.atoms.length && b[1] < drug.atoms.length) {
           const a1 = drug.atoms[b[0]].p, a2 = drug.atoms[b[1]].p;
-          const start = new THREE.Vector3(a1[0],a1[1],a1[2]);
-          const end = new THREE.Vector3(a2[0],a2[1],a2[2]);
+          const start = new THREE.Vector3(a1[0], a1[1], a1[2]);
+          const end = new THREE.Vector3(a2[0], a2[1], a2[2]);
           const dir = new THREE.Vector3().subVectors(end, start);
           const len = dir.length();
-          const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,len,6), new THREE.MeshPhongMaterial({color:0x666666}));
+          const cyl = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.05, 0.05, len, 8),
+            new THREE.MeshStandardMaterial({
+              color: 0x888888,
+              metalness: 0.5,
+              roughness: 0.4
+            })
+          );
           cyl.position.copy(start).add(dir.multiplyScalar(0.5));
-          cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
+          cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+          cyl.castShadow = true;
+          cyl.receiveShadow = true;
           mol.add(cyl);
         }
       });
+      
       mol.position.set(0, 0, 6);
+      mol.userData.atomMeshes = atomMeshes;
       return mol;
     }
 
@@ -185,23 +391,67 @@ function initMolecularBinding() {
       new THREE.Vector3(0, 0, 6), new THREE.Vector3(1.5, 1, 3), new THREE.Vector3(0.1, -0.3, 0.8)
     ]);
 
-    // Trail particles
+    // ═══ ENHANCED PARTICLE SYSTEMS ═══
+    // Trail particles with glow
     const trailParticles = [];
-    for (let i = 0; i < 20; i++) {
-      const sp = new THREE.Mesh(new THREE.SphereGeometry(0.04,6,6), new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.3}));
+    for (let i = 0; i < 30; i++) {
+      const sp = new THREE.Mesh(
+        new THREE.SphereGeometry(0.05, 8, 8),
+        new THREE.MeshBasicMaterial({
+          color: isLeft ? 0xff6633 : 0x33ffaa,
+          transparent: true,
+          opacity: 0.5,
+          blending: THREE.AdditiveBlending
+        })
+      );
       sp.visible = false;
       scene.add(sp);
       trailParticles.push(sp);
     }
 
-    // Burst particles
+    // Burst particles with radial expansion
     const burstParticles = [];
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 50; i++) {
       const color = isLeft ? 0xff6633 : 0x33ffaa;
-      const sp = new THREE.Mesh(new THREE.SphereGeometry(0.06,6,6), new THREE.MeshBasicMaterial({color, transparent:true, opacity:0}));
-      sp.userData.dir = new THREE.Vector3((Math.random()-0.5)*2, (Math.random()-0.5)*2, (Math.random()-0.5)*2).normalize();
+      const sp = new THREE.Mesh(
+        new THREE.SphereGeometry(0.08, 8, 8),
+        new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity: 0,
+          blending: THREE.AdditiveBlending
+        })
+      );
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI;
+      sp.userData.dir = new THREE.Vector3(
+        Math.sin(phi) * Math.cos(theta),
+        Math.sin(phi) * Math.sin(theta),
+        Math.cos(phi)
+      );
+      sp.userData.speed = 0.03 + Math.random() * 0.02;
       scene.add(sp);
       burstParticles.push(sp);
+    }
+    
+    // Energy field particles
+    const energyParticles = [];
+    for (let i = 0; i < 60; i++) {
+      const sp = new THREE.Mesh(
+        new THREE.SphereGeometry(0.03, 6, 6),
+        new THREE.MeshBasicMaterial({
+          color: isLeft ? 0xff8844 : 0x44ffcc,
+          transparent: true,
+          opacity: 0,
+          blending: THREE.AdditiveBlending
+        })
+      );
+      sp.userData.offset = Math.random() * Math.PI * 2;
+      sp.userData.radius = 0.8 + Math.random() * 0.4;
+      sp.userData.height = (Math.random() - 0.5) * 0.6;
+      sp.userData.speed = 0.5 + Math.random() * 1.0;
+      scene.add(sp);
+      energyParticles.push(sp);
     }
 
     // Off-target particles
@@ -236,69 +486,209 @@ function initMolecularBinding() {
       frame++;
       const phase = frame % 300;
       const drug = DRUG_DB[currentDrug];
+      const time = frame * 0.016; // Approximate time in seconds
 
-      // Phase 1: Approach (0-119)
+      // Update shader uniforms
+      if (pocketMat.uniforms) {
+        pocketMat.uniforms.time.value = time;
+      }
+
+      // ═══ PHASE 1: APPROACH (0-119) ═══
       if (phase < 120) {
-        const t = phase / 120;
+        const t = Easing.easeInOutCubic(phase / 120);
+        const rawT = phase / 120;
         const pt = approachCurve.getPoint(t);
         molecule.position.copy(pt);
         molecule.rotation.y += 0.02;
-        // Trail
+        molecule.rotation.x = Math.sin(time * 0.5) * 0.1;
+        
+        // Enhanced trail with fade
         trailParticles.forEach((tp, i) => {
-          const tt = Math.max(0, t - i * 0.015);
-          if (tt > 0) { tp.visible = true; tp.position.copy(approachCurve.getPoint(tt)); tp.material.opacity = 0.3 * (1 - i/20); }
-          else tp.visible = false;
+          const tt = Math.max(0, rawT - i * 0.01);
+          if (tt > 0) {
+            tp.visible = true;
+            tp.position.copy(approachCurve.getPoint(tt));
+            const fadeOut = 1 - (i / trailParticles.length);
+            tp.material.opacity = 0.6 * fadeOut * Math.sin(time * 3 + i * 0.5);
+            tp.scale.setScalar(0.5 + fadeOut * 0.5);
+          } else {
+            tp.visible = false;
+          }
         });
+        
         burstParticles.forEach(bp => { bp.material.opacity = 0; });
+        energyParticles.forEach(ep => { ep.material.opacity = 0; });
       }
-      // Phase 2: Binding (120-179)
+      // ═══ PHASE 2: BINDING (120-179) ═══
       else if (phase < 180) {
         const t2 = (phase - 120) / 60;
-        molecule.position.set(0.1 + Math.sin(frame*0.5)*0.02, -0.3 + Math.cos(frame*0.7)*0.02, 0.8 + Math.sin(frame*0.3)*0.02);
+        const easedT2 = Easing.easeOutCubic(t2);
+        
+        // Subtle binding vibration
+        molecule.position.set(
+          0.1 + Math.sin(time * 2) * 0.015,
+          -0.3 + Math.cos(time * 2.5) * 0.015,
+          0.8 + Math.sin(time * 1.8) * 0.01
+        );
         molecule.rotation.y += 0.005;
+        molecule.rotation.z = Math.sin(time * 1.5) * 0.05;
+        
         trailParticles.forEach(tp => { tp.visible = false; });
-        // Burst
+        
+        // Enhanced burst with easing
         if (phase === 120) {
-          burstParticles.forEach(bp => { bp.position.set(0.1, -0.3, 0.8); bp.material.opacity = 1; });
+          burstParticles.forEach(bp => {
+            bp.position.set(0.1, -0.3, 0.8);
+            bp.material.opacity = 1;
+            bp.scale.setScalar(0.5);
+          });
         }
+        
         burstParticles.forEach(bp => {
-          bp.position.add(bp.userData.dir.clone().multiplyScalar(0.04));
-          bp.material.opacity = Math.max(0, 1 - t2 * 1.5);
+          bp.position.add(bp.userData.dir.clone().multiplyScalar(bp.userData.speed));
+          bp.material.opacity = Math.max(0, (1 - easedT2) * 0.9);
+          bp.scale.setScalar(0.5 + easedT2 * 1.5);
         });
-        // Pocket glow
-        pocketMat.emissiveIntensity = 0.5 + Math.max(0, 1 - t2 * 2);
+        
+        // Pulsing pocket glow
+        if (pocketMat.uniforms) {
+          pocketMat.uniforms.glowIntensity.value = 1.5 + Math.sin(time * 3) * 0.5 + (1 - easedT2) * 2;
+        }
+        
+        // Energy field activation
+        energyParticles.forEach((ep, i) => {
+          const angle = time * ep.userData.speed + ep.userData.offset;
+          ep.position.set(
+            Math.cos(angle) * ep.userData.radius,
+            -0.2 + ep.userData.height + Math.sin(time * 2 + i) * 0.1,
+            Math.sin(angle) * ep.userData.radius
+          );
+          ep.material.opacity = easedT2 * 0.7 * (0.5 + Math.sin(time * 4 + i) * 0.5);
+        });
+        
+        // Animate glow particles
+        glowParticles.forEach((gp, i) => {
+          const angle = time * gp.userData.speed + gp.userData.angle;
+          gp.position.set(
+            Math.cos(angle) * gp.userData.radius,
+            -0.2 + Math.sin(time * 2 + i * 0.1) * 0.05,
+            Math.sin(angle) * gp.userData.radius
+          );
+          gp.material.opacity = 0.4 + Math.sin(time * 3 + i * 0.2) * 0.3;
+        });
+        
+        // Dynamic lighting
+        pocketLight.intensity = 0.5 + (1 - easedT2) * 1.5 + Math.sin(time * 4) * 0.3;
       }
-      // Phase 3: Off-target (180-299)
+      // ═══ PHASE 3: BOUND STATE (180-299) ═══
       else {
         const t3 = (phase - 180) / 120;
-        molecule.position.set(0.1 + Math.sin(frame*0.5)*0.015, -0.3 + Math.cos(frame*0.7)*0.015, 0.8);
-        pocketMat.emissiveIntensity = 0.4 + Math.sin(frame*0.1)*0.2;
+        
+        // Stable bound state with micro-movements
+        molecule.position.set(
+          0.1 + Math.sin(time) * 0.01,
+          -0.3 + Math.cos(time * 1.2) * 0.01,
+          0.8
+        );
+        molecule.rotation.y += 0.002;
+        
+        // Steady glow
+        if (pocketMat.uniforms) {
+          pocketMat.uniforms.glowIntensity.value = 1.2 + Math.sin(time * 2) * 0.3;
+        }
+        
+        // Continuous energy field
+        energyParticles.forEach((ep, i) => {
+          const angle = time * ep.userData.speed + ep.userData.offset;
+          ep.position.set(
+            Math.cos(angle) * ep.userData.radius,
+            -0.2 + ep.userData.height + Math.sin(time * 2 + i) * 0.1,
+            Math.sin(angle) * ep.userData.radius
+          );
+          ep.material.opacity = 0.5 * (0.6 + Math.sin(time * 3 + i) * 0.4);
+        });
+        
+        // Glow particles orbit
+        glowParticles.forEach((gp, i) => {
+          const angle = time * gp.userData.speed + gp.userData.angle;
+          gp.position.set(
+            Math.cos(angle) * gp.userData.radius,
+            -0.2 + Math.sin(time * 2 + i * 0.1) * 0.05,
+            Math.sin(angle) * gp.userData.radius
+          );
+          gp.material.opacity = 0.5 + Math.sin(time * 2 + i * 0.2) * 0.2;
+        });
 
+        // Off-target effects
         if (isLeft && drug.offTarget > 0) {
           otParticles.forEach((op, i) => {
             op.visible = true;
             const targetIdx = i < 8 ? 0 : 1;
             if (targetIdx === 1 && drug.offTarget < 2) { op.visible = false; return; }
-            const target = targetIdx === 0 ? new THREE.Vector3(-2.5,1,0.8) : new THREE.Vector3(2.2,-0.8,1.5);
+            const target = targetIdx === 0 ? new THREE.Vector3(-2.5, 1, 0.8) : new THREE.Vector3(2.2, -0.8, 1.5);
             const start = new THREE.Vector3(0.1, -0.3, 0.8);
-            op.position.lerpVectors(start, target, Math.min(1, t3 * 1.5));
-            op.material.opacity = t3 < 0.7 ? 0.8 : Math.max(0, 0.8 * (1 - (t3-0.7)/0.3));
+            const easedT3 = Easing.easeInOutQuad(Math.min(1, t3 * 1.5));
+            op.position.lerpVectors(start, target, easedT3);
+            op.material.opacity = t3 < 0.7 ? 0.8 : Math.max(0, 0.8 * (1 - (t3 - 0.7) / 0.3));
             if (t3 > 0.6) {
               offTargetMarkers.forEach(m => {
-                m.children.forEach(c => { c.material.opacity = 0.6 + Math.sin(frame*0.3)*0.4; });
+                m.children.forEach(c => { c.material.opacity = 0.6 + Math.sin(time * 3) * 0.4; });
               });
             }
           });
         } else if (isLeft) {
           otParticles.forEach(op => { op.visible = false; });
         }
+        
+        pocketLight.intensity = 0.5 + Math.sin(time * 2) * 0.2;
       }
 
-      // Camera orbit
-      if (!isDrag) camTheta += 0.001;
-      const camR = 5;
-      camera.position.set(camR*Math.cos(camPhi)*Math.sin(camTheta), camR*Math.sin(camPhi)+0.5, camR*Math.cos(camPhi)*Math.cos(camTheta));
+      // ═══ CINEMATIC CAMERA SYSTEM ═══
+      if (!isDrag) {
+        // Smooth orbital rotation
+        camTheta += 0.002;
+        
+        // Dynamic camera distance based on phase
+        let targetCamR = 5;
+        let targetCamPhi = 0.3;
+        
+        if (phase < 120) {
+          // Wide shot during approach
+          targetCamR = 6 + Math.sin(time * 0.5) * 0.5;
+          targetCamPhi = 0.4;
+        } else if (phase < 180) {
+          // Close-up during binding
+          targetCamR = 3.5 + Math.sin(time * 2) * 0.3;
+          targetCamPhi = 0.2;
+        } else {
+          // Medium shot for bound state
+          targetCamR = 4.5 + Math.sin(time * 0.8) * 0.4;
+          targetCamPhi = 0.25;
+        }
+        
+        // Smooth camera transitions
+        const camR = camera.position.length();
+        const newCamR = camR + (targetCamR - camR) * 0.02;
+        camPhi += (targetCamPhi - camPhi) * 0.02;
+        
+        camera.position.set(
+          newCamR * Math.cos(camPhi) * Math.sin(camTheta),
+          newCamR * Math.sin(camPhi) + 0.5,
+          newCamR * Math.cos(camPhi) * Math.cos(camTheta)
+        );
+      } else {
+        // Manual control
+        const camR = 5;
+        camera.position.set(
+          camR * Math.cos(camPhi) * Math.sin(camTheta),
+          camR * Math.sin(camPhi) + 0.5,
+          camR * Math.cos(camPhi) * Math.cos(camTheta)
+        );
+      }
+      
       camera.lookAt(0, 0, 0);
+      
+      // Render scene
       renderer.render(scene, camera);
 
       // Update overlay
