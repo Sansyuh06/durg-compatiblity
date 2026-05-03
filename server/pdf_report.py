@@ -35,6 +35,11 @@ def _sanitize(text: str) -> str:
     )
 
 
+def _generate_minimal_pdf(patient_id: str) -> bytes:
+    """Fallback minimal PDF when fpdf2 is not installed."""
+    return b'%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 595 842] /Contents 5 0 R >>\nendobj\n4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n5 0 obj\n<< /Length 44 >>\nstream\nBT\n/F1 12 Tf\n50 750 Td\n(Report Unavailable) Tj\nET\nendstream\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF'
+
+
 def _ln(pdf: Any, h: float = 0) -> None:
     """Move cursor to left margin and next line (replaces deprecated ln=1)."""
     if h:
@@ -51,9 +56,28 @@ def generate_quantamed_pdf(
     except ImportError:
         return _generate_minimal_pdf(patient_id)
 
-    patient = get_quantamed_patient_summary(patient_id)
-    recs = recommend_quantamed_candidates(patient_id)
-    ranked = recs["recommendations"]
+    try:
+        patient = get_quantamed_patient_summary(patient_id)
+        recs = recommend_quantamed_candidates(patient_id)
+        ranked = recs["recommendations"]
+    except ValueError:
+        # Unknown patient ID - create minimal data
+        patient = {
+            "name": patient_id,
+            "condition": "Unknown",
+            "age": "N/A",
+            "sex": "N/A",
+            "weight_kg": "N/A",
+            "cyp_variant": "N/A",
+            "current_drug": "N/A",
+            "current_dose_mg": "N/A",
+            "months_on_therapy": "N/A",
+            "alt_u_l": "N/A",
+            "liver_function": "N/A",
+            "target_protein": "N/A",
+            "notes": "Full analysis requires the Foldables API pipeline."
+        }
+        ranked = []
 
     # Sanitize all string values to avoid latin-1 encoding errors in fpdf2
     patient = {

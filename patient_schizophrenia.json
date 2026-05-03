@@ -1,0 +1,161 @@
+{
+  "basic_info": {
+    "age": 35,
+    "gender": "male",
+    "weight_kg": 95.0,
+    "height_cm": 178.0,
+    "bmi": 30.0,
+    "ethnicity": "African American",
+    "pregnancy_status": "not_applicable"
+  },
+  "condition": {
+    "primary_diagnosis": "schizophrenia",
+    "subtype": "Treatment-Resistant Schizophrenia",
+    "severity": "severe",
+    "duration_months": 120,
+    "comorbidities": [
+      "Metabolic Syndrome",
+      "Type 2 Diabetes"
+    ],
+    "family_history": [
+      "schizophrenia",
+      "hypertension"
+    ]
+  },
+  "symptoms": {
+    "psychosis_severity_score": 7,
+    "negative_symptoms_score": 6,
+    "anxiety_score": 4,
+    "depression_score": 2,
+    "sleep_disturbance_score": 4,
+    "fatigue_score": 5,
+    "cognitive_impairment_score": 5
+  },
+  "vitals": {
+    "heart_rate": 95,
+    "blood_pressure": "135/88",
+    "temperature": 37.1
+  },
+  "current_meds": [
+    {
+      "drug_id": "clz",
+      "drug_name": "Clozapine",
+      "dose_mg": 450.0,
+      "frequency": "BID",
+      "duration_months": 18,
+      "reason_stopped": null
+    },
+    {
+      "drug_id": "met",
+      "drug_name": "Metformin",
+      "dose_mg": 1000.0,
+      "frequency": "BID",
+      "duration_months": 12,
+      "reason_stopped": null
+    }
+  ],
+  "past_meds": [
+    {
+      "drug_id": "ola",
+      "drug_name": "Olanzapine",
+      "dose_mg": 20.0,
+      "frequency": "QD",
+      "duration_months": 24,
+      "reason_stopped": "Lack of efficacy for positive symptoms, severe weight gain"
+    },
+    {
+      "drug_id": "ris",
+      "drug_name": "Risperidone",
+      "dose_mg": 6.0,
+      "frequency": "BID",
+      "duration_months": 12,
+      "reason_stopped": "Extrapyramidal symptoms (EPS) and hyperprolactinemia"
+    }
+  ],
+  "genetics": {
+    "CYP1A2": "Rapid",
+    "CYP2D6": "Normal",
+    "CYP3A4": "Normal",
+    "CYP2C19": "Normal",
+    "UGT1A4": "Rapid",
+    "HLA_variants": []
+  },
+  "labs": {
+    "ALT": 55.0,
+    "AST": 48.0,
+    "creatinine": 0.9,
+    "eGFR": 105.0,
+    "glucose": 126.0,
+    "ANC": 2500,
+    "WBC": 5500
+  },
+  "biomarkers": {
+    "dopamine_level": "high",
+    "serotonin_level": "normal",
+    "inflammation_markers": "elevated"
+  },
+  "target_expression": {
+    "D2_receptor_density": "high",
+    "5HT2A_activity": "high"
+  },
+  "drug_response_profile": {
+    "antipsychotic_response": "treatment_resistant",
+    "metabolic_risk": "high"
+  },
+  "side_effect_history": [
+    {
+      "drug_id": "ola",
+      "reaction": "Weight gain (15 kg)",
+      "severity": "severe"
+    },
+    {
+      "drug_id": "ris",
+      "reaction": "Tremor and rigidity",
+      "severity": "moderate"
+    },
+    {
+      "drug_id": "clz",
+      "reaction": "Tachycardia",
+      "severity": "mild"
+    },
+    {
+      "drug_id": "clz",
+      "reaction": "Sialorrhea",
+      "severity": "moderate"
+    }
+  ],
+  "allergies": [
+    {
+      "substance": "Haloperidol",
+      "reaction_type": "Acute Dystonia"
+    }
+  ],
+  "lifestyle": {
+    "sleep_hours": 9.0,
+    "sleep_quality": "poor",
+    "stress_level": "high",
+    "alcohol_use": "occasional",
+    "smoking": true,
+    "exercise_frequency": 0
+  },
+  "risk_profile": {
+    "side_effect_tolerance": "moderate",
+    "urgency_level": "high"
+  },
+  "treatment_goal": {
+    "primary_goal": "symptom_control",
+    "secondary_goal": "manage_metabolic_syndrome",
+    "quality_of_life_priority": true
+  },
+  "_metadata": {
+    "profile_name": "Marcus - Treatment-Resistant Schizophrenia",
+    "description": "35-year-old male with treatment-resistant schizophrenia currently managed on Clozapine. A CYP1A2 rapid metabolizer, particularly induced by his heavy smoking, which causes sub-therapeutic clozapine levels despite a higher dose. He is developing metabolic syndrome.",
+    "clinical_context": "A complex psychiatric case where the patient requires Clozapine for efficacy but struggles with its dose-dependent side effects. Smoking induction of CYP1A2 necessitates a high dose, elevating the risk of cardiovascular events and metabolic dysfunction. If he stops smoking, his clozapine levels will spike dangerously.",
+    "data_completeness": "HIGH",
+    "use_cases": [
+      "Pharmacogenomic dosing adjustments",
+      "Metabolic syndrome management in psychiatry",
+      "Smoking cessation drug interaction modeling"
+    ]
+  }
+}

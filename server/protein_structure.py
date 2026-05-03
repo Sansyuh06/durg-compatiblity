@@ -882,7 +882,10 @@ def model_protein_from_fasta(fasta_text: str) -> dict[str, Any]:
         docking=docking,
     )
 
-    return result.to_dict()
+    result_dict = result.to_dict()
+    result_dict['residue_count'] = result_dict.get('length', 0)
+    result_dict['sequence_length'] = result_dict.get('length', 0)
+    return result_dict
 
 
 # ── Pre-built examples ─────────────────────────────────────────────────
@@ -907,26 +910,15 @@ CGHLANFRNQNQLATIFPELIAIPVFSNIHSLAYVFVIISVL""",
 
 
 def get_example_sequences() -> dict[str, dict[str, str]]:
-    """Return available example FASTA sequences."""
-    return {
-        "insulin": {
-            "name": "Human Insulin",
-            "fasta": EXAMPLE_SEQUENCES["insulin"],
-            "description": "51-residue pancreatic hormone"
-        },
-        "nav1.2": {
-            "name": "Nav1.2",
-            "fasta": EXAMPLE_SEQUENCES["nav1.2"],
-            "description": "Voltage-gated sodium channel fragment"
-        },
-        "androgen_receptor": {
-            "name": "Androgen Receptor",
-            "fasta": EXAMPLE_SEQUENCES["androgen_receptor"],
-            "description": "Nuclear hormone receptor LBD"
-        },
-        "herg_channel": {
-            "name": "hERG Channel",
-            "fasta": EXAMPLE_SEQUENCES["herg_channel"],
-            "description": "Potassium voltage-gated channel fragment"
+    """Return available example FASTA sequences with metadata."""
+    examples = {}
+    for key, fasta_text in EXAMPLE_SEQUENCES.items():
+        header, sequence = parse_fasta(fasta_text)
+        protein_info = _extract_protein_info(header)
+        examples[key] = {
+            "name": protein_info.get("name", "Unknown Protein"),
+            "fasta": fasta_text,
+            "description": f"{len(sequence)}-residue fragment",
+            "length": len(sequence)
         }
-    }
+    return examples

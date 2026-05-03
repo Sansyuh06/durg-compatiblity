@@ -4,103 +4,479 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Foldables — Quantum-Enhanced Drug Discovery</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
-function startManualIntake() {
-    document.getElementById('entry-choice-screen').style.display = 'none';
-    document.getElementById('intake-wizard').classList.remove('hidden');
-    document.getElementById('intake-wizard').style.display = 'block';
-}
-
-// Duplicate removed - main function is at line 3397
-
-</script>
-<script src="/quantamed/static/three.min.js">
-function startManualIntake() {
-    document.getElementById('entry-choice-screen').style.display = 'none';
-    document.getElementById('intake-wizard').classList.remove('hidden');
-    document.getElementById('intake-wizard').style.display = 'block';
-}
-
-// Duplicate removed - main function is at line 3397
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="/quantamed/static/three.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 
 :root {
-  --bg:        #090A0F;
-  --bg2:       #11131A;
-  --bg3:       #1A1D27;
-  --panel:     rgba(17, 19, 26, 0.7);
-  --border:    rgba(255, 255, 255, 0.06);
-  --border-hover: rgba(255, 255, 255, 0.12);
-  --cyan:      #4DB8FF;
-  --cyan2:     #339AF0;
-  --green:     #20C997;
-  --green2:    #12B886;
-  --amber:     #FCC419;
-  --red:       #FF6B6B;
-  --purple:    #845EF7;
-  --text:      #E9ECEF;
-  --text2:     #868E96;
-  --white:     #FFFFFF;
-  --glow-c:    rgba(77, 184, 255, 0.15);
-  --glow-g:    rgba(32, 201, 151, 0.15);
+  /* Scientific Precision Noir Base Palette */
+  --bg-primary:    #03060f;
+  --bg-secondary:  #060d1a;
+  --bg-tertiary:   #0a1628;
+  --bg-elevated:   #0d1e38;
+  
+  /* Border System */
+  --border-subtle:    rgba(255, 255, 255, 0.04);
+  --border-default:   rgba(255, 255, 255, 0.07);
+  --border-strong:    rgba(255, 255, 255, 0.12);
+  --border-accent:    rgba(0, 212, 230, 0.25);
+  
+  /* Surgical Color Palette */
+  --quantum-cyan:     #00d4e6;
+  --quantum-cyan-dim: #007a8a;
+  --quantum-blue:     #00d4e6; /* Aliased to cyan to remove blues */
+  --quantum-purple:   #8080f0;
+  --quantum-violet:   #8080f0;
+  
+  /* Semantic Colors */
+  --success:       #00d4a0;
+  --success-dim:   #008a68;
+  --warning:       #e8a020;
+  --warning-dim:   #b07818;
+  --danger:        #e04060;
+  --danger-dim:    #9e2d44;
+  --info:          #00d4e6;
+  
+  /* Text Hierarchy */
+  --text-primary:    #e8f0fe;
+  --text-secondary:  #7090b0;
+  --text-tertiary:   #3a5070;
+  --text-quaternary: #24354a;
+  --text-disabled:   #1a2638;
+  
+  /* Remove Glow Effects */
+  --glow-cyan:    transparent;
+  --glow-purple:  transparent;
+  --glow-success: transparent;
+  --glow-danger:  transparent;
+  
+  /* Flat Shadows */
+  --shadow-sm:  none;
+  --shadow-md:  none;
+  --shadow-lg:  none;
+  --shadow-xl:  none;
+  
+  /* Legacy Compatibility (for existing code) */
+  --bg: var(--bg-primary);
+  --bg2: var(--bg-secondary);
+  --bg3: var(--bg-tertiary);
+  --panel: var(--bg-elevated);
+  --border: var(--border-default);
+  --border-hover: var(--border-strong);
+  --cyan: var(--quantum-cyan);
+  --cyan2: var(--quantum-cyan-dim);
+  --green: var(--success);
+  --green2: var(--success-dim);
+  --amber: var(--warning);
+  --red: var(--danger);
+  --purple: var(--quantum-purple);
+  --text: var(--text-primary);
+  --text2: var(--text-secondary);
+  --white: var(--text-primary);
+  --glow-c: transparent;
+  --glow-g: transparent;
+
+  /* Surface & Panel System */
+  --surface-base:     #060d1a;
+  --surface-elevated: #0a1628;
+  --surface-overlay:  #03060f;
 }
 
-* { margin:0; padding:0; box-sizing:border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'IBM Plex Sans', sans-serif;
   font-size: 14px;
-  line-height: 1.6;
+  font-weight: 400;
+  line-height: 1.55;
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Subtle radial glow ── */
+/* Subtle dot-grid texture on body */
 body::before {
-  content:''; position:fixed; inset:0;
-  background-image:
-    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(77, 184, 255, 0.03) 0%, transparent 100%),
-    radial-gradient(ellipse 40% 40% at 100% 100%, rgba(132, 94, 247, 0.03) 0%, transparent 100%);
-  pointer-events:none; z-index:0;
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(
+    rgba(0, 212, 230, 0.06) 1px,
+    transparent 1px
+  );
+  background-size: 32px 32px;
 }
 
 /* ── HEADER ── */
 header {
-  position:sticky; top:0; z-index:100;
-  background: rgba(9, 10, 15, 0.6);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 48px;
-  display: flex; align-items:center; justify-content:space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--surface-overlay);
+  
+  -webkit-
+  border-bottom: 1px solid var(--border-default);
+  padding: 18px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: none;
 }
+
 .logo {
-  font-family: 'Outfit', sans-serif;
-  font-weight: 600; font-size: 20px;
-  color: var(--white);
-  letter-spacing: 0.5px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
 }
-.logo span { color: var(--cyan); }
+
+.logo span {
+  background: var(--bg-elevated);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .logo-sub {
-  font-size: 11px; letter-spacing: 0.5px;
-  color: var(--text2); margin-top: 2px;
-  font-family: 'Inter', sans-serif; font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 400;
+  text-transform: uppercase;
 }
 .status-bar { display:flex; gap:24px; align-items:center; }
 .status-dot {
-  width:6px; height:6px; border-radius:50%;
+  width:6px; height:6px; border-radius: 50%;
   background:var(--green);
-  box-shadow: 0 0 8px rgba(32,201,151,0.4);
+  box-shadow: none;
   animation: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-.status-text { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text2); }
+
+/* ── LOADING SCREENS ── */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loading-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-content {
+  text-align: center;
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 2;
+}
+
+.loading-logo {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 32px;
+  animation: float 3s ease-in-out infinite;
+  filter: none;
+}
+
+.loading-text {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+  background: var(--bg-elevated);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+.loading-subtext {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-quaternary);
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+  text-transform: uppercase;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.loading-bar-container {
+  width: 320px;
+  height: 3px;
+  background: var(--surface-base);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 auto;
+  box-shadow: none;
+}
+
+.loading-bar {
+  height: 100%;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  animation: loadingProgress 2s ease-in-out infinite;
+  box-shadow: none;
+}
+
+/* Processing Loader (for API calls) */
+.loader {
+  width: 64px;
+  height: 64px;
+  border: 3px solid var(--border-default);
+  border-top-color: var(--quantum-cyan);
+  border-right-color: var(--quantum-purple);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 28px;
+  box-shadow: none;
+}
+
+/* Quantum Particle Effect */
+.loading-overlay::before {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, var(--glow-cyan) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: quantumPulse 4s ease-in-out infinite;
+  z-index: 1;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes loadingProgress {
+  0% {
+    width: 0%;
+    opacity: 1;
+  }
+  50% {
+    width: 70%;
+    opacity: 1;
+  }
+  100% {
+    width: 100%;
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes quantumPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.1;
+  }
+}
+
+/* Entry Screen Styles */
+.entry-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 11, 15, 0.60);
+  
+  -webkit-
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.entry-card-container {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 56px;
+  max-width: 900px;
+  width: 90%;
+  box-shadow: none;
+  animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.entry-card-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--bg-elevated);
+}
+
+.entry-title {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+  background: var(--bg-elevated);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.entry-subtitle {
+  font-size: 16px;
+  color: var(--text-tertiary);
+  text-align: center;
+  margin-bottom: 48px;
+  line-height: 1.6;
+}
+
+.entry-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+.entry-option-card {
+  background: var(--surface-base);
+  border: 2px solid var(--border-default);
+  border-radius: 6px;
+  padding: 40px 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.entry-option-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--bg-elevated);
+  transform: scaleX(0);
+  transition: transform 0.4s;
+}
+
+.entry-option-card:hover {
+  border-color: var(--border-accent);
+  background: var(--surface-elevated);
+  transform: translateY(-6px);
+  box-shadow: none;
+}
+
+.entry-option-card:hover::before {
+  transform: scaleX(1);
+}
+
+.option-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 24px;
+  background: var(--bg-elevated);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  box-shadow: none;
+  transition: transform 0.4s;
+}
+
+.entry-option-card:hover .option-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.entry-option-card h3 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  letter-spacing: -0.5px;
+}
+
+.entry-option-card p {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  line-height: 1.7;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.status-text { font-family: 'IBM Plex Mono', monospace; font-size:11px; color:var(--text2); }
 
 /* ── MAIN LAYOUT ── */
 .app {
@@ -111,7 +487,7 @@ header {
 
 /* ── SECTION TITLES ── */
 .section-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'IBM Plex Sans', sans-serif;
   font-size: 12px; font-weight: 600;
   letter-spacing: 1.5px; text-transform: uppercase;
   color: var(--text2); margin-bottom: 24px;
@@ -122,7 +498,7 @@ header {
   background: var(--border);
 }
 .main-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'IBM Plex Sans', sans-serif;
   font-size: 32px; font-weight: 600;
   color: var(--white); line-height: 1.2;
   margin-bottom: 8px; letter-spacing: -0.5px;
@@ -131,17 +507,39 @@ header {
 
 /* ── CARDS ── */
 .card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 32px;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-  transition: border-color 0.3s;
+  
+  -webkit-
+  box-shadow: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.card:hover { border-color: var(--border-hover); }
+
+.card:hover {
+  border-color: var(--border-strong);
+  box-shadow: none;
+  transform: translateY(-2px);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--bg-elevated);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.card:hover::before {
+  opacity: 1;
+}
 
 /* ── GRID LAYOUTS ── */
 .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
@@ -158,83 +556,171 @@ header {
   gap:16px;
 }
 .avatar-circle {
-  width:96px; height:96px; border-radius:50%;
+  width:96px; height:96px; border-radius: 50%;
   border:1px solid rgba(77,184,255,0.2);
-  background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  background: var(--bg-elevated);
   display:flex; align-items:center; justify-content:center;
   font-size:36px;
 }
 .patient-name {
-  font-family: 'Outfit', sans-serif;
-  font-size: 20px; font-weight: 600;
-  color: var(--white); text-align: center;
-}
-.patient-dx {
-  font-size: 13px; color: var(--text2);
-  text-align: center; line-height: 1.6;
-}
-.risk-badge {
-  background: rgba(255,107,107,0.1);
-  border: 1px solid rgba(255,107,107,0.2);
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; color: var(--red);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
   text-align: center;
+  letter-spacing: -0.5px;
 }
+
+.patient-dx {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.risk-badge {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--danger);
+  text-align: center;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
 .stat-grid {
-  display:grid; grid-template-columns:1fr 1fr;
-  gap:16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
-.stat-item { 
-  background: rgba(255,255,255,0.02); 
-  border-radius: 12px; padding: 16px 20px; 
-  border: 1px solid var(--border);
+
+.stat-item {
+  background: var(--surface-base);
+  border-radius: 14px;
+  padding: 18px 22px;
+  border: 1px solid var(--border-default);
+  transition: all 0.3s;
 }
-.stat-label { 
-  font-family: 'JetBrains Mono', monospace; 
-  font-size: 10px; color: var(--text2); 
-  letter-spacing: 0.5px; margin-bottom: 8px; 
+
+.stat-item:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-elevated);
+}
+
+.stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-quaternary);
+  letter-spacing: 1px;
+  margin-bottom: 10px;
   text-transform: uppercase;
+  font-weight: 500;
 }
-.stat-value { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 500; color: var(--white); }
-.stat-value.warn { color: var(--amber); }
-.stat-value.danger { color: var(--red); }
-.stat-value.good { color: var(--green); }
+
+.stat-value {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.stat-value.warn { color: var(--warning); }
+.stat-value.danger { color: var(--danger); }
+.stat-value.good { color: var(--success); }
 
 /* ── STEP NAV ── */
 .step-nav {
-  display:flex; gap:8px; margin-bottom:32px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 40px;
   background: transparent;
-  padding:0; border:none;
-  overflow-x:auto;
+  padding: 0;
+  border: none;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
 }
+
+.step-nav::-webkit-scrollbar {
+  height: 6px;
+}
+
+.step-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.step-nav::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+
 .step-btn {
-  flex:1; padding: 14px 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--border);
-  color: var(--text2); cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px; font-weight: 500;
-  border-radius: 10px;
-  transition: all 0.2s ease;
-  white-space: nowrap; min-width: 110px;
+  flex: 1;
+  padding: 16px 14px;
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  min-width: 120px;
   text-align: left;
+  position: relative;
+  overflow: hidden;
 }
-.step-btn:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+
+.step-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--bg-elevated);
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+
+.step-btn:hover {
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
 .step-btn.active {
-  background: var(--panel);
-  color: var(--white);
-  border-color: rgba(77,184,255,0.3);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-accent);
+  box-shadow: none;
 }
+
+.step-btn.active::before {
+  transform: scaleX(1);
+}
+
 .step-btn .step-num {
-  display:block; font-size:10px;
-  color: var(--text2); margin-bottom: 4px;
-  font-family: 'JetBrains Mono', monospace;
+  display: block;
+  font-size: 10px;
+  color: var(--text-quaternary);
+  margin-bottom: 6px;
+  font-family: 'IBM Plex Mono', monospace;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
-.step-btn.active .step-num { color: var(--cyan); }
+
+.step-btn.active .step-num {
+  color: var(--quantum-cyan);
+  font-weight: 500;
+}
 
 /* ── PANELS ── */
 .panel { display:none; animation: slideFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -252,14 +738,14 @@ header {
   padding: 24px; position: relative;
 }
 .circuit-label {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
   color: var(--text2); margin-bottom: 16px; letter-spacing: 1px; text-transform: uppercase;
 }
 canvas.chart-canvas { width:100%!important; }
 .binding-bars { display:flex; flex-direction:column; gap:16px; }
 .drug-bar-row { display:flex; align-items:center; gap:16px; }
 .drug-bar-label {
-  font-family: 'Outfit', sans-serif; font-weight: 500;
+  font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;
   font-size: 13px; color: var(--text); width: 120px;
 }
 .bar-track { flex:1; height: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; overflow: hidden; position: relative; }
@@ -271,7 +757,7 @@ canvas.chart-canvas { width:100%!important; }
 .bar-fill::after {
   content:attr(data-val); position:absolute;
   right:8px; top:50%; transform:translateY(-50%);
-  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
   color: var(--white); font-weight: 500;
 }
 .bar-fill.cyan { background: var(--cyan); }
@@ -281,60 +767,289 @@ canvas.chart-canvas { width:100%!important; }
 .bar-fill.purple { background: var(--purple); }
 
 /* ── OFF-TARGET MATRIX ── */
-.matrix-table { width:100%; border-collapse:collapse; }
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
 .matrix-table th {
-  font-family: 'JetBrains Mono', monospace; font-size: 10px;
-  color: var(--text2); letter-spacing: 0.5px;
-  padding: 12px 16px; text-align: left;
-  border-bottom: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-quaternary);
+  letter-spacing: 1px;
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-default);
   text-transform: uppercase;
+  font-weight: 500;
+  background: var(--surface-base);
 }
+
 .matrix-table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-subtle);
   font-size: 13px;
+  color: var(--text-secondary);
+  transition: background 0.2s;
 }
-.matrix-table tr:last-child td { border-bottom: none; }
-.matrix-table tr:hover td { background: rgba(255,255,255,0.01); }
+
+.matrix-table tr:last-child td {
+  border-bottom: none;
+}
+
+.matrix-table tr:hover td {
+  background: var(--surface-elevated);
+}
+
 .risk-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px; border-radius: 6px;
-  font-family: 'JetBrains Mono', monospace; font-size: 10px;
-  font-weight: 500; letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  border: 1px solid;
 }
-.risk-chip.HIGH { background: rgba(255,107,107,0.1); color: var(--red); }
-.risk-chip.MOD  { background: rgba(252,196,25,0.1); color: var(--amber); }
-.risk-chip.LOW  { background: rgba(32,201,151,0.1); color: var(--green); }
-.risk-chip.NA   { background: rgba(255,255,255,0.05); color: var(--text2); }
+
+.risk-chip.HIGH {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.risk-chip.MOD {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.risk-chip.LOW {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.risk-chip.NA {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-quaternary);
+  border-color: var(--border-subtle);
+}
 .flag-alert {
-  margin-top: 24px;
-  background: rgba(255,107,107,0.05);
-  border: 1px solid rgba(255,107,107,0.15);
-  border-radius: 12px; padding: 16px 20px;
-  display: flex; gap: 16px; align-items: flex-start;
+  margin-top: 28px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 14px;
+  padding: 18px 22px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  
 }
-.flag-icon { font-size:20px; flex-shrink:0; }
-.flag-text { font-size:13px; line-height:1.6; color: var(--text); }
-.flag-text strong { color: var(--red); font-weight: 500; }
+
+.flag-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.flag-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.flag-text strong {
+  color: var(--danger);
+  font-weight: 600;
+}
 
 /* ── CYP PANEL ── */
-.cyp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:32px; }
+.cyp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 36px;
+}
+
 .cyp-card {
-  background: rgba(255,255,255,0.02); border-radius: 12px;
-  padding: 20px; border: 1px solid var(--border);
+  background: var(--surface-base);
+  border-radius: 14px;
+  padding: 22px;
+  border: 1px solid var(--border-default);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
 }
+
+.cyp-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--bg-elevated);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.cyp-card:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-elevated);
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+
+.cyp-card:hover::before {
+  opacity: 1;
+}
+
 .cyp-name {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  color: var(--text2); letter-spacing: 0.5px; margin-bottom: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-quaternary);
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  font-weight: 500;
 }
+
 .cyp-phenotype {
-  font-family: 'Outfit', sans-serif; font-size: 18px;
-  font-weight: 500; color: var(--white); margin-bottom: 6px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
 }
-.cyp-phenotype.poor { color: var(--red); }
-.cyp-phenotype.inter { color: var(--amber); }
-.cyp-phenotype.normal { color: var(--green); }
-.cyp-effect { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+.cyp-phenotype.poor {
+  color: var(--danger);
+}
+
+.cyp-phenotype.inter {
+  color: var(--warning);
+}
+
+.cyp-phenotype.normal {
+/* ── PROFESSIONAL BUTTON SYSTEM ── */
+button, .btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-base);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+button:hover, .btn:hover {
+  background: var(--surface-elevated);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+
+button:active, .btn:active {
+  transform: translateY(0);
+}
+
+button:disabled, .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Primary Button */
+.btn-primary, button.primary {
+  background: var(--bg-elevated);
+  border-color: transparent;
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.btn-primary:hover, button.primary:hover {
+  box-shadow: none;
+  transform: translateY(-3px);
+}
+
+/* Success Button */
+.btn-success {
+  background: var(--bg-elevated);
+  border-color: transparent;
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.btn-success:hover {
+  box-shadow: none;
+}
+
+/* Danger Button */
+.btn-danger {
+  background: var(--bg-elevated);
+  border-color: transparent;
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.btn-danger:hover {
+  box-shadow: none;
+}
+
+/* Ghost Button */
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+  background: var(--surface-base);
+  color: var(--text-primary);
+}
+
+/* Icon Button */
+.btn-icon {
+  padding: 10px;
+  border-radius: 8px;
+  aspect-ratio: 1;
+}
+
+/* Button Sizes */
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+.btn-lg {
+  padding: 16px 32px;
+  font-size: 16px;
+}
+
+  color: var(--success);
+}
+
+.cyp-effect {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  line-height: 1.6;
+}
 .pk-display {
   background: rgba(255,255,255,0.01); border-radius: 12px;
   border: 1px solid var(--border); padding: 24px;
@@ -347,12 +1062,12 @@ canvas.chart-canvas { width:100%!important; }
 }
 .pk-row:last-child { border-bottom: none; }
 .pk-drug {
-  font-family: 'Outfit', sans-serif; font-weight: 500;
+  font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;
   font-size: 14px; color: var(--white); width: 140px;
 }
-.pk-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text2); flex: 1; }
+.pk-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text2); flex: 1; }
 .pk-value {
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px;
   color: var(--text); text-align: right; font-weight: 500;
 }
 .pk-value.warn { color: var(--amber); }
@@ -367,7 +1082,7 @@ canvas.chart-canvas { width:100%!important; }
   margin-top: 24px;
 }
 .rl-verdict-title {
-  font-family: 'Outfit', sans-serif; font-size: 15px;
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 15px;
   font-weight: 600; color: var(--green); letter-spacing: 0.5px;
   margin-bottom: 12px;
 }
@@ -377,7 +1092,7 @@ canvas.chart-canvas { width:100%!important; }
   background: rgba(255,255,255,0.02); border-radius: 10px;
   padding: 14px 16px; border: 1px solid var(--border);
 }
-.state-name { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; }
+.state-name { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; }
 .state-bar-wrap { background: rgba(255,255,255,0.05); border-radius: 4px; height: 6px; overflow: hidden; }
 .state-bar { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
 
@@ -385,12 +1100,12 @@ canvas.chart-canvas { width:100%!important; }
 .comparison-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .comparison-table th {
   background: rgba(255,255,255,0.02);
-  font-family: 'Outfit', sans-serif; font-weight: 500;
+  font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;
   font-size: 13px; color: var(--text);
   padding: 16px; letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border);
 }
-.comparison-table th:first-child { border-radius: 12px 0 0 0; color: var(--text2); font-size: 11px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+.comparison-table th:first-child { border-radius: 12px 0 0 0; color: var(--text2); font-size: 11px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; }
 .comparison-table th.recommended { color: var(--cyan); position: relative; }
 .comparison-table th.recommended::after {
   content: 'RECOMMENDED';
@@ -406,23 +1121,23 @@ canvas.chart-canvas { width:100%!important; }
 }
 .comparison-table td:first-child {
   text-align: left; color: var(--text2);
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
 }
 .comparison-table tr:last-child td { border-bottom: none; border-radius: 0 0 12px 12px; }
 .comparison-table tr:hover td { background: rgba(255,255,255,0.01); }
-.score-cell { font-family: 'Outfit', sans-serif; font-weight: 500; font-size: 16px; }
+.score-cell { font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; font-size: 16px; }
 .score-best { color: var(--green); }
 .score-ok { color: var(--cyan); }
 .score-warn { color: var(--amber); }
 .score-bad { color: var(--red); }
 .compare-total-row td {
   background: rgba(255,255,255,0.02) !important;
-  font-family: 'Outfit', sans-serif; font-weight: 600;
+  font-family: 'IBM Plex Sans', sans-serif; font-weight: 600;
   font-size: 18px; border-top: 1px solid var(--border);
 }
 .badge-rec, .badge-no, .badge-ok {
   display: inline-block; border-radius: 6px; padding: 4px 10px;
-  font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500;
 }
 .badge-rec { background: rgba(32,201,151,0.1); color: var(--green); }
 .badge-no { background: rgba(255,107,107,0.1); color: var(--red); }
@@ -433,18 +1148,18 @@ canvas.chart-canvas { width:100%!important; }
 .tribe-card { border-radius:16px; overflow:hidden; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
 .tribe-header {
   padding: 16px 24px;
-  font-family: 'Outfit', sans-serif; font-weight: 500;
+  font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;
   font-size: 14px; letter-spacing: 0.5px;
 }
 .tribe-card.before .tribe-header { background: rgba(255,107,107,0.05); color: var(--red); border-bottom: 1px solid rgba(255,107,107,0.1); }
 .tribe-card.after .tribe-header { background: rgba(32,201,151,0.05); color: var(--green); border-bottom: 1px solid rgba(32,201,151,0.1); }
 .tribe-brain { padding: 24px; background: transparent; }
 .tribe-label {
-  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
   color: var(--text2); margin-top: 16px; text-align: center; text-transform: uppercase;
 }
 .tribe-state-label {
-  font-family: 'Outfit', sans-serif; font-size: 14px;
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 14px;
   font-weight: 500; text-align: center; margin-top: 4px; color: var(--text);
 }
 
@@ -456,9 +1171,9 @@ canvas.chart-canvas { width:100%!important; }
   font-size: 14px; font-weight: 500;
   padding: 14px 32px; cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+  box-shadow: none;
 }
-.run-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(255,255,255,0.15); }
+.run-btn:hover { transform: translateY(-1px); box-shadow: none; }
 .run-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 /* ── METRIC TILES ── */
@@ -466,9 +1181,9 @@ canvas.chart-canvas { width:100%!important; }
   background: rgba(255,255,255,0.02); border-radius: 12px;
   padding: 20px; border: 1px solid var(--border);
 }
-.metric-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text2); margin-bottom: 10px; text-transform: uppercase; }
+.metric-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text2); margin-bottom: 10px; text-transform: uppercase; }
 .metric-value {
-  font-family: 'Outfit', sans-serif; font-size: 26px;
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 26px;
   font-weight: 600; color: var(--white); line-height: 1;
 }
 .metric-sub { font-size: 12px; color: var(--text2); margin-top: 6px; }
@@ -481,11 +1196,11 @@ canvas.chart-canvas { width:100%!important; }
   margin-top: 40px; text-align: center;
 }
 .final-rec-title {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
   letter-spacing: 1px; color: var(--green); margin-bottom: 16px; text-transform: uppercase;
 }
 .final-drug {
-  font-family: 'Outfit', sans-serif; font-size: 36px;
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 36px;
   font-weight: 600; color: var(--white); letter-spacing: -0.5px;
 }
 .final-drug span { color: var(--green); }
@@ -495,7 +1210,7 @@ canvas.chart-canvas { width:100%!important; }
 }
 .final-stat-item { text-align: center; }
 .final-stat-num {
-  font-family: 'JetBrains Mono', monospace; font-size: 20px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 20px;
   font-weight: 500; color: var(--cyan);
 }
 .final-stat-lbl { font-size: 12px; color: var(--text2); margin-top: 6px; }
@@ -503,7 +1218,7 @@ canvas.chart-canvas { width:100%!important; }
 /* ── MISC ── */
 .tag {
   display: inline-block; padding: 4px 10px;
-  border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+  border-radius: 6px; font-family: 'IBM Plex Mono', monospace;
   font-size: 10px; font-weight: 500;
 }
 .tag.quantum { background: rgba(132,94,247,0.1); color: var(--purple); }
@@ -517,7 +1232,7 @@ canvas.chart-canvas { width:100%!important; }
 .mb-20 { margin-bottom: 24px; }
 .mb-30 { margin-bottom: 32px; }
 .text-sm { font-size: 13px; }
-.mono { font-family: 'JetBrains Mono', monospace; }
+.mono { font-family: 'IBM Plex Mono', monospace; }
 .text-cyan { color: var(--cyan); }
 .text-green { color: var(--green); }
 .text-red { color: var(--red); }
@@ -532,7 +1247,7 @@ canvas.chart-canvas { width:100%!important; }
 /* ── LOADING ── */
 .loading-overlay {
   position: fixed; inset: 0; background: rgba(9,10,15,0.8);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+   -webkit-
   z-index: 999; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 24px;
 }
@@ -544,7 +1259,7 @@ canvas.chart-canvas { width:100%!important; }
 }
 @keyframes spin { to{transform:rotate(360deg)} }
 .loading-text {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
   color: var(--text); letter-spacing: 1px;
 }
 
@@ -552,28 +1267,28 @@ canvas.chart-canvas { width:100%!important; }
 .protein-panel { display:grid; grid-template-columns:320px 1fr; gap:0; min-height:680px; border-radius:16px; overflow:hidden; border:1px solid var(--border); background:rgba(255,255,255,0.01); }
 .protein-sidebar { background:rgba(255,255,255,0.02); border-right:1px solid var(--border); overflow-y:auto; max-height:680px; }
 .protein-sidebar-header { padding:20px; border-bottom:1px solid var(--border); }
-.protein-sidebar-header h3 { font-family:'Outfit',sans-serif; font-size:15px; font-weight:600; color:var(--white); margin-bottom:4px; }
-.protein-sidebar-header .psh-sub { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text2); }
+.protein-sidebar-header h3 { font-family: 'IBM Plex Sans', sans-serif; font-size:15px; font-weight:600; color:var(--white); margin-bottom:4px; }
+.protein-sidebar-header .psh-sub { font-family: 'IBM Plex Mono', monospace; font-size:10px; color:var(--text2); }
 .protein-sidebar-section { padding:16px 20px; border-bottom:1px solid var(--border); }
-.protein-sidebar-section .pss-title { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text2); margin-bottom:12px; text-transform:uppercase; }
+.protein-sidebar-section .pss-title { font-family: 'IBM Plex Mono', monospace; font-size:10px; color:var(--text2); margin-bottom:12px; text-transform:uppercase; }
 
 .protein-input-area { padding:20px; border-bottom:1px solid var(--border); }
-.protein-input-area label { display:block; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text2); margin-bottom:10px; text-transform:uppercase; }
-.fasta-input { width:100%; min-height:100px; max-height:180px; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.5; padding:12px; resize:vertical; outline:none; transition:border-color 0.2s; }
+.protein-input-area label { display:block; font-family: 'IBM Plex Mono', monospace; font-size:10px; color:var(--text2); margin-bottom:10px; text-transform:uppercase; }
+.fasta-input { width:100%; min-height:100px; max-height:180px; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family: 'IBM Plex Mono', monospace; font-size:11px; line-height:1.5; padding:12px; resize:vertical; outline:none; transition:border-color 0.2s; }
 .fasta-input:focus { border-color:var(--cyan); }
 .fasta-input::placeholder { color:rgba(255,255,255,0.2); }
 .protein-examples { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-.protein-example-btn { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text2); cursor:pointer; transition:all 0.2s; }
+.protein-example-btn { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-family: 'IBM Plex Mono', monospace; font-size:10px; color:var(--text2); cursor:pointer; transition:all 0.2s; }
 .protein-example-btn:hover { border-color:rgba(255,255,255,0.15); color:var(--text); background:rgba(255,255,255,0.06); }
 .model-btn { width:100%; margin-top:16px; background:var(--white); border:none; border-radius:8px; color:var(--bg); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; padding:12px; cursor:pointer; transition:all 0.2s; }
-.model-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(255,255,255,0.1); }
+.model-btn:hover { transform:translateY(-1px); box-shadow: none; }
 .model-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
 .model-btn.running { background:var(--amber); color:var(--bg); animation:pulse 1.5s infinite; }
 
 .protein-viewer-area { position:relative; background:transparent; display:flex; flex-direction:column; }
 .protein-toolbar { display:flex; align-items:center; gap:12px; padding:12px 20px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
 .protein-toolbar .pt-group { display:flex; gap:6px; align-items:center; }
-.protein-toolbar .pt-label { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text2); margin-right:6px; }
+.protein-toolbar .pt-label { font-family: 'IBM Plex Mono', monospace; font-size:10px; color:var(--text2); margin-right:6px; }
 .pt-btn { background:transparent; border:1px solid var(--border); border-radius:6px; padding:6px 12px; font-family:'Inter',sans-serif; font-size:11px; font-weight:500; color:var(--text2); cursor:pointer; transition:all 0.15s; }
 .pt-btn:hover { background:rgba(255,255,255,0.05); color:var(--text); }
 .pt-btn.active { background:var(--white); border-color:var(--white); color:var(--bg); }
@@ -581,53 +1296,53 @@ canvas.chart-canvas { width:100%!important; }
 .protein-viewport { flex:1; position:relative; min-height:450px; }
 .protein-viewport canvas { width:100%!important; height:100%!important; display:block; }
 .protein-overlay-info { position:absolute; bottom:16px; left:20px; z-index:10; }
-.protein-overlay-info .poi-label { font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(255,255,255,0.4); }
+.protein-overlay-info .poi-label { font-family: 'IBM Plex Mono', monospace; font-size:10px; color:rgba(255,255,255,0.4); }
 
 .model-progress { padding:16px 20px; background:rgba(77,184,255,0.05); border-bottom:1px solid rgba(77,184,255,0.1); }
 .model-progress .mp-bar { width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; margin:8px 0 6px; }
 .model-progress .mp-fill { height:100%; border-radius:2px; background:var(--cyan); transition:width 0.4s ease; }
-.model-progress .mp-text { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text); }
+.model-progress .mp-text { font-family: 'IBM Plex Mono', monospace; font-size:10px; color:var(--text); }
 
 .quality-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .quality-item { background:rgba(255,255,255,0.02); border-radius:8px; padding:12px; border:1px solid var(--border); }
-.quality-item .qi-label { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--text2); margin-bottom:6px; }
-.quality-item .qi-value { font-family:'Outfit',sans-serif; font-size:18px; font-weight:500; color:var(--white); }
+.quality-item .qi-label { font-family: 'IBM Plex Mono', monospace; font-size:9px; color:var(--text2); margin-bottom:6px; }
+.quality-item .qi-value { font-family: 'IBM Plex Sans', sans-serif; font-size:18px; font-weight:500; color:var(--white); }
 .quality-item .qi-value.good { color:var(--green); }
 .quality-item .qi-value.ok { color:var(--cyan); }
 .quality-item .qi-value.warn { color:var(--amber); }
 .quality-item .qi-value.bad { color:var(--red); }
 .quality-item .qi-sub { font-size:11px; color:var(--text2); margin-top:4px; }
 
-.sequence-viewer { font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.6; word-break:break-all; background:rgba(0,0,0,0.2); border-radius:8px; padding:12px; border:1px solid var(--border); max-height:140px; overflow-y:auto; }
+.sequence-viewer { font-family: 'IBM Plex Mono', monospace; font-size:11px; line-height:1.6; word-break:break-all; background:rgba(0,0,0,0.2); border-radius:8px; padding:12px; border:1px solid var(--border); max-height:140px; overflow-y:auto; }
 .sequence-viewer .sv-h { color:var(--red); font-weight:500; }
 .sequence-viewer .sv-e { color:var(--green); font-weight:500; }
 .sequence-viewer .sv-c { color:var(--text2); }
 
 .template-card { background:rgba(255,255,255,0.02); border-radius:10px; padding:14px; border:1px solid var(--border); }
-.template-card .tc-pdb { font-family:'Outfit',sans-serif; font-size:14px; font-weight:500; color:var(--white); }
+.template-card .tc-pdb { font-family: 'IBM Plex Sans', sans-serif; font-size:14px; font-weight:500; color:var(--white); }
 .template-card .tc-name { font-size:12px; color:var(--text2); margin-top:4px; }
-.template-card .tc-meta { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text2); margin-top:8px; line-height:1.6; }
+.template-card .tc-meta { font-family: 'IBM Plex Mono', monospace; font-size:10px; color:var(--text2); margin-top:8px; line-height:1.6; }
 .coverage-bar { width:100%; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden; margin-top:8px; position:relative; }
 .coverage-bar .cb-fill { height:100%; border-radius:3px; transition:width 0.8s ease; }
 .coverage-bar .cb-fill.identity { background:var(--cyan); }
 .coverage-bar .cb-fill.coverage { background:var(--green); }
 
 .docking-card { background:rgba(255,255,255,0.02); border-radius:10px; padding:14px; border:1px solid var(--border); margin-top:12px; }
-.docking-card .dc-name { font-family:'Outfit',sans-serif; font-size:13px; font-weight:500; margin-bottom:6px; color:var(--white); }
-.docking-card .dc-energy { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text); }
+.docking-card .dc-name { font-family: 'IBM Plex Sans', sans-serif; font-size:13px; font-weight:500; margin-bottom:6px; color:var(--white); }
+.docking-card .dc-energy { font-family: 'IBM Plex Mono', monospace; font-size:11px; color:var(--text); }
 .docking-card .dc-contacts { font-size:11px; color:var(--text2); margin-top:6px; }
 
 .ss-composition { display:flex; gap:12px; margin-top:12px; }
-.ss-chip { display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text); }
-.ss-chip .ss-dot { width:6px; height:6px; border-radius:50%; }
+.ss-chip { display:flex; align-items:center; gap:6px; font-family: 'IBM Plex Mono', monospace; font-size:10px; color:var(--text); }
+.ss-chip .ss-dot { width:6px; height:6px; border-radius: 50%; }
 .ss-chip .ss-dot.helix { background:var(--red); }
 .ss-chip .ss-dot.sheet { background:var(--green); }
 .ss-chip .ss-dot.coil { background:var(--text2); }
 
 .rama-mini { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:12px; }
 .rama-mini .rm-item { text-align:center; background:rgba(255,255,255,0.02); padding:8px; border-radius:6px; }
-.rama-mini .rm-val { font-family:'Outfit',sans-serif; font-size:14px; font-weight:500; color:var(--white); }
-.rama-mini .rm-lbl { font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--text2); margin-top:2px; text-transform:uppercase; }
+.rama-mini .rm-val { font-family: 'IBM Plex Sans', sans-serif; font-size:14px; font-weight:500; color:var(--white); }
+.rama-mini .rm-lbl { font-family: 'IBM Plex Mono', monospace; font-size:9px; color:var(--text2); margin-top:2px; text-transform:uppercase; }
 
 @media (max-width:900px) {
   .protein-panel { grid-template-columns:1fr; }
@@ -638,10 +1353,192 @@ canvas.chart-canvas { width:100%!important; }
 .mode-tabs { display:flex; gap:4px; margin-bottom: 32px; padding: 4px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border); }
 .mode-tab { flex:1; background:transparent; border:none; padding:14px 20px; font-family:'Inter',sans-serif; font-size:14px; font-weight:500; color:var(--text2); cursor:pointer; transition:all 0.2s ease; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:10px; }
 .mode-tab:hover { color:var(--white); background:rgba(255,255,255,0.04); }
-.mode-tab.active { background:var(--panel); color:var(--white); box-shadow:0 4px 12px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+.mode-tab.active { background:var(--panel); color:var(--white); box-shadow: none; border: 1px solid var(--border); }
 .mode-view { display:none; animation: slideFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
 .mode-view.active { display:block; }
 
+
+/* STRICT NOIR OVERRIDES */
+body {
+    background-color: #03060f !important;
+    background-image: radial-gradient(circle at center, rgba(255,255,255,0.03) 1px, transparent 1px) !important;
+    background-size: 24px 24px !important;
+    font-family: 'IBM Plex Sans', sans-serif !important;
+    color: #e8f0fe !important;
+}
+
+header {
+    background: rgba(3,6,15,0.92) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    box-shadow: none !important;
+}
+
+.mode-tabs {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 0 !important;
+    margin-bottom: 40px !important;
+}
+
+.mode-tab {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 11px !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    color: #3a5070 !important;
+}
+
+.mode-tab.active {
+    color: #00d4e6 !important;
+    border-bottom: 2px solid #00d4e6 !important;
+}
+
+.step-nav {
+    gap: 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    padding-bottom: 0 !important;
+}
+
+.step-btn {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    border-right: 1px solid rgba(255,255,255,0.05) !important;
+    border-top: 1px solid rgba(255,255,255,0.05) !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 10px !important;
+    color: #3a5070 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    box-shadow: none !important;
+    transform: none !important;
+    padding: 12px 16px !important;
+}
+
+.step-btn:first-child {
+    border-left: 1px solid rgba(255,255,255,0.05) !important;
+}
+
+.step-btn.active {
+    background: rgba(0, 212, 230, 0.05) !important;
+    color: #00d4e6 !important;
+    border-top: 1px solid #00d4e6 !important;
+}
+
+.step-btn:hover {
+    transform: none !important;
+    background: rgba(255,255,255,0.02) !important;
+}
+
+.panel {
+    background: transparent !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+}
+
+.section-title {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 9px !important;
+    letter-spacing: 0.15em !important;
+    color: #3a5070 !important;
+    text-transform: uppercase !important;
+}
+
+.main-title {
+    font-family: 'IBM Plex Sans', sans-serif !important;
+    font-weight: 600 !important;
+    color: #e8f0fe !important;
+    font-size: 24px !important;
+}
+
+.main-title span {
+    color: #00d4e6 !important;
+}
+
+.stat-card {
+    background: rgba(255,255,255,0.02) !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+}
+
+.stat-label {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 9px !important;
+    letter-spacing: 0.1em !important;
+    color: #3a5070 !important;
+    text-transform: uppercase !important;
+}
+
+.stat-value {
+    font-family: 'IBM Plex Sans', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+}
+
+button {
+    border-radius: 3px !important;
+}
+
+.run-btn {
+    background: #00d4e6 !important;
+    color: #03060f !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    border-radius: 3px !important;
+    box-shadow: none !important;
+}
+
+/* Fix missing tabs visually if they are hidden behind header */
+.app {
+    margin-top: 80px !important;
+}
+
+/* UI FIXES FOR MOL BINDING AND CARDS */
+#mol-bind-wrap {
+    border-radius: 4px !important;
+    background: transparent !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+}
+#mol-overlay-left, #mol-overlay-right {
+    background: transparent !important;
+    border-top: none !important;
+    backdrop-filter: none !important;
+}
+.docking-card, .cyp-card, .card {
+    border-radius: 4px !important;
+    background: transparent !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    box-shadow: none !important;
+}
+select, .form-select {
+    border-radius: 3px !important;
+    background: rgba(255,255,255,0.02) !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+}
+@font-face {
+    font-family: 'Dirty Enough';
+    src: url('/quantamed/static/DirtyEnough-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+.badge-rec, .badge-ok, .badge-warn, .badge-no, .badge-danger {
+    border-radius: 2px !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+}
 </style>
   <link rel="stylesheet" href="/quantamed/static/intake.css">
 </head>
@@ -649,7 +1546,7 @@ canvas.chart-canvas { width:100%!important; }
 <!-- PROFESSIONAL LOADING SCREEN -->
 <div id="app-loading-screen" class="loading-overlay">
   <div class="loading-content">
-    <img src="/quantamed/static/logo.png" alt="Foldables Logo" class="loading-logo">
+    <img src="/quantamed/static/foldables-logo.svg" alt="Foldables Logo" class="loading-logo" style="width: 120px; height: auto;">
     <div class="loading-text">FOLDABLES</div>
     <div class="loading-subtext">INITIALIZING QUANTUM ENGINES...</div>
     <div class="loading-bar-container">
@@ -661,9 +1558,18 @@ canvas.chart-canvas { width:100%!important; }
   
   <div id="entry-choice-screen" class="entry-overlay">
     <div class="entry-card-container">
-      <h2 class="entry-title">Patient Data Entry</h2>
-      <p class="entry-subtitle">Choose how you want to initialize the simulation</p>
-      
+      <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem;">
+        <svg width="80" height="100" viewBox="0 0 120 150" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.9; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); margin-bottom: -10px;">
+          <polygon points="15,65 95,45 105,65 25,85" fill="#fef08a" stroke="white" stroke-width="4" stroke-linejoin="round" />
+          <path d="M 25 70 L 90 53 M 30 75 L 85 60 M 40 80 L 80 67" stroke="#fde047" stroke-width="2" stroke-linecap="round" />
+          <polygon points="10,25 100,5 95,45 15,65" fill="#bfdbfe" stroke="white" stroke-width="4" stroke-linejoin="round" />
+          <path d="M 15 35 L 90 15 M 20 45 L 85 25 M 25 55 L 80 35 M 12 45 L 60 20 M 30 60 L 95 35 M 40 25 L 80 15" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" />
+          <polygon points="25,85 105,65 100,105 20,125" fill="#bbf7d0" stroke="white" stroke-width="4" stroke-linejoin="round" />
+          <path d="M 30 95 L 95 75 M 35 105 L 90 85 M 40 115 L 85 95 M 25 105 L 70 80 M 40 120 L 95 100 M 70 115 L 100 95" stroke="#86efac" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <h2 class="entry-title" style="font-family: 'Dirty Enough', cursive; font-size: 4rem; letter-spacing: 2px; margin-bottom: 0.5rem; color: #ffffff !important; text-shadow: 0 0 20px rgba(255,255,255,0.6), 0 0 10px rgba(255,255,255,0.9); line-height: 1;">Foldables</h2>
+        <p class="entry-subtitle" style="font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.2em; text-transform: uppercase; font-size: 0.75rem; color: #4db8ff; text-shadow: 0 0 10px rgba(77,184,255,0.6);">INITIALIZE PATIENT SIMULATION</p>
+      </div>
       <div class="entry-options">
         <div class="entry-option-card" onclick="document.getElementById('json-upload').click()">
           <div class="option-icon"><i data-lucide="file-up"></i></div>
@@ -705,7 +1611,10 @@ function startManualIntake() {
 <!-- HEADER -->
 <header>
   <div>
-    <div class="logo" style="display: flex; align-items: center;"><img src="/quantamed/static/logo.png" style="height: 32px; margin-right: 12px;" onerror="this.style.display='none'">FOLD<span>ABLES</span></div>
+    <div class="logo" style="display: flex; align-items: center;">
+      <img src="/quantamed/static/foldables-logo.svg" style="height: 40px; margin-right: 12px;" alt="Foldables Logo">
+      <span style="font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 20px; color: var(--white); letter-spacing: 0.5px;">Foldables</span>
+    </div>
     <div class="logo-sub">QUANTUM-ENHANCED PRECISION DRUG DISCOVERY</div>
   </div>
   <div class="status-bar">
@@ -1011,7 +1920,7 @@ function startManualIntake() {
       <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
         <div style="flex:1;min-width:220px;">
           <div class="mono" style="font-size:10px;color:var(--text2);margin-bottom:6px;letter-spacing:1px;">DRUG</div>
-          <select id="pkDrug" style="width:100%;background:rgba(17,30,56,0.7);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font-family:'Space Mono',monospace;font-size:12px;">
+          <select id="pkDrug" style="width:100%;background:rgba(17,30,56,0.7);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font-family: 'IBM Plex Mono', monospace;font-size:12px;">
             <option value="vpa" selected>Valproic Acid (VPA)</option>
             <option value="ltg">Lamotrigine (LTG)</option>
             <option value="lev">Levetiracetam (LEV)</option>
@@ -1025,7 +1934,7 @@ function startManualIntake() {
         </div>
         <div style="flex:1;min-width:220px;">
           <div class="mono" style="font-size:10px;color:var(--text2);margin-bottom:6px;letter-spacing:1px;">CYP2C9</div>
-          <select id="pkCyp2c9" style="width:100%;background:rgba(17,30,56,0.7);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font-family:'Space Mono',monospace;font-size:12px;">
+          <select id="pkCyp2c9" style="width:100%;background:rgba(17,30,56,0.7);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font-family: 'IBM Plex Mono', monospace;font-size:12px;">
             <option value="normal">Normal</option>
             <option value="intermediate" selected>Intermediate (<span class="dyn-patient-name">Gabi</span>)</option>
             <option value="poor">Poor</option>
@@ -1033,7 +1942,7 @@ function startManualIntake() {
         </div>
         <div style="flex:1;min-width:260px;">
           <div class="mono" style="font-size:10px;color:var(--text2);margin-bottom:6px;letter-spacing:1px;">CO-MED (DDI)</div>
-          <select id="pkCoMed" style="width:100%;background:rgba(17,30,56,0.7);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font-family:'Space Mono',monospace;font-size:12px;">
+          <select id="pkCoMed" style="width:100%;background:rgba(17,30,56,0.7);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font-family: 'IBM Plex Mono', monospace;font-size:12px;">
             <option value="none" selected>None</option>
             <option value="vpa">Valproic Acid co-therapy</option>
             <option value="ocp">Estrogen OCP</option>
@@ -1072,24 +1981,24 @@ function startManualIntake() {
       <table style="width:100%;border-collapse:collapse;">
         <thead>
           <tr>
-            <th style="text-align:left;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">DRUG</th>
-            <th style="text-align:center;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">PREDICTED Css</th>
-            <th style="text-align:center;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">THERAPEUTIC RANGE</th>
-            <th style="text-align:center;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">CYP ADJUSTMENT</th>
-            <th style="text-align:center;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">STATUS</th>
+            <th style="text-align:left;padding:10px 14px;font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">DRUG</th>
+            <th style="text-align:center;padding:10px 14px;font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">PREDICTED Css</th>
+            <th style="text-align:center;padding:10px 14px;font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">THERAPEUTIC RANGE</th>
+            <th style="text-align:center;padding:10px 14px;font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">CYP ADJUSTMENT</th>
+            <th style="text-align:center;padding:10px 14px;font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">STATUS</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style="padding:12px 14px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:15px;color:var(--amber);border-bottom:1px solid rgba(30,51,86,0.4)">Valproic Acid</td>
-            <td style="text-align:center;padding:12px 14px;font-family:'Space Mono',monospace;font-size:13px;color:var(--red);border-bottom:1px solid rgba(30,51,86,0.4)">78.4 µg/mL</td>
+            <td style="padding:12px 14px;font-family: 'IBM Plex Sans', sans-serif;font-weight:600;font-size:15px;color:var(--amber);border-bottom:1px solid rgba(30,51,86,0.4)">Valproic Acid</td>
+            <td style="text-align:center;padding:12px 14px;font-family: 'IBM Plex Mono', monospace;font-size:13px;color:var(--red);border-bottom:1px solid rgba(30,51,86,0.4)">78.4 µg/mL</td>
             <td style="text-align:center;padding:12px 14px;font-size:13px;color:var(--text2);border-bottom:1px solid rgba(30,51,86,0.4)">50–100 µg/mL</td>
             <td style="text-align:center;padding:12px 14px;font-size:13px;color:var(--amber);border-bottom:1px solid rgba(30,51,86,0.4)">CYP2C9 IM → ke ↓30%</td>
             <td style="text-align:center;padding:12px 14px;border-bottom:1px solid rgba(30,51,86,0.4)"><span class="risk-chip MOD">ELEVATED — CAUTION</span></td>
           </tr>
           <tr>
-            <td style="padding:12px 14px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:15px;color:var(--green)">Lamotrigine</td>
-            <td style="text-align:center;padding:12px 14px;font-family:'Space Mono',monospace;font-size:13px;color:var(--green)">4.2 µg/mL</td>
+            <td style="padding:12px 14px;font-family: 'IBM Plex Sans', sans-serif;font-weight:600;font-size:15px;color:var(--green)">Lamotrigine</td>
+            <td style="text-align:center;padding:12px 14px;font-family: 'IBM Plex Mono', monospace;font-size:13px;color:var(--green)">4.2 µg/mL</td>
             <td style="text-align:center;padding:12px 14px;font-size:13px;color:var(--text2)">3–7 µg/mL</td>
             <td style="text-align:center;padding:12px 14px;font-size:13px;color:var(--green)">Non-CYP metabolized (UGT)</td>
             <td style="text-align:center;padding:12px 14px;"><span class="risk-chip LOW">OPTIMAL</span></td>
@@ -1132,53 +2041,53 @@ function startManualIntake() {
       <table style="width:100%;border-collapse:collapse;">
         <thead>
           <tr>
-            <th style="text-align:left;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">PROPERTY</th>
-            <th style="text-align:center;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">THRESHOLD</th>
-            <th style="text-align:center;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">Valproic Acid</th>
-            <th style="text-align:center;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">Lamotrigine</th>
+            <th style="text-align:left;padding:10px 14px;font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">PROPERTY</th>
+            <th style="text-align:center;padding:10px 14px;font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">THRESHOLD</th>
+            <th style="text-align:center;padding:10px 14px;font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">Valproic Acid</th>
+            <th style="text-align:center;padding:10px 14px;font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border)">Lamotrigine</th>
           </tr>
         </thead>
         <tbody id="lipinskiTable">
           <tr>
             <td style="padding:11px 14px;color:var(--text);border-bottom:1px solid rgba(30,51,86,0.4)">Molecular Weight</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--text2);border-bottom:1px solid rgba(30,51,86,0.4)">≤ 500 Da</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">144 Da ✓</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">256 Da ✓</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--text2);border-bottom:1px solid rgba(30,51,86,0.4)">≤ 500 Da</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">144 Da ✓</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">256 Da ✓</td>
           </tr>
           <tr>
             <td style="padding:11px 14px;color:var(--text);border-bottom:1px solid rgba(30,51,86,0.4)">logP (Lipophilicity)</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--text2);border-bottom:1px solid rgba(30,51,86,0.4)">≤ 5</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">2.75 ✓</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">0.89 ✓</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--text2);border-bottom:1px solid rgba(30,51,86,0.4)">≤ 5</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">2.75 ✓</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">0.89 ✓</td>
           </tr>
           <tr>
             <td style="padding:11px 14px;color:var(--text);border-bottom:1px solid rgba(30,51,86,0.4)">H-Bond Donors</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--text2);border-bottom:1px solid rgba(30,51,86,0.4)">≤ 5</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">1 ✓</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">3 ✓</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--text2);border-bottom:1px solid rgba(30,51,86,0.4)">≤ 5</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">1 ✓</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--green);border-bottom:1px solid rgba(30,51,86,0.4)">3 ✓</td>
           </tr>
           <tr>
             <td style="padding:11px 14px;color:var(--text);">H-Bond Acceptors</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--text2);">≤ 10</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--green);">2 ✓</td>
-            <td style="text-align:center;padding:11px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--green);">4 ✓</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--text2);">≤ 10</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--green);">2 ✓</td>
+            <td style="text-align:center;padding:11px 14px;font-family: 'IBM Plex Mono', monospace;font-size:12px;color:var(--green);">4 ✓</td>
           </tr>
         </tbody>
       </table>
       <div style="display:flex;gap:20px;margin-top:16px;flex-wrap:wrap;">
-        <div style="background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.25);border-radius:8px;padding:12px 20px;flex:1;">
-          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);margin-bottom:6px;">VALPROIC ACID MANUFACTURABILITY</div>
-          <div style="font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--green);">EXCELLENT</div>
+        <div style="background:rgba(0,230,118,0.1);border: 1px solid var(--border-default);border-radius:8px;padding:12px 20px;flex:1;">
+          <div style="font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);margin-bottom:6px;">VALPROIC ACID MANUFACTURABILITY</div>
+          <div style="font-family: 'IBM Plex Sans', sans-serif;font-size:22px;font-weight:700;color:var(--green);">EXCELLENT</div>
           <div style="font-size:12px;color:var(--text2)">0 Ro5 violations — score 100/100</div>
         </div>
-        <div style="background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.25);border-radius:8px;padding:12px 20px;flex:1;">
-          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);margin-bottom:6px;">LAMOTRIGINE MANUFACTURABILITY</div>
-          <div style="font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--green);">EXCELLENT</div>
+        <div style="background:rgba(0,230,118,0.1);border: 1px solid var(--border-default);border-radius:8px;padding:12px 20px;flex:1;">
+          <div style="font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);margin-bottom:6px;">LAMOTRIGINE MANUFACTURABILITY</div>
+          <div style="font-family: 'IBM Plex Sans', sans-serif;font-size:22px;font-weight:700;color:var(--green);">EXCELLENT</div>
           <div style="font-size:12px;color:var(--text2)">0 Ro5 violations — score 100/100</div>
         </div>
-        <div style="background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.2);border-radius:8px;padding:12px 20px;flex:1;">
-          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);margin-bottom:6px;">LTG BBB PENETRATION (DeepChem)</div>
-          <div style="font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--cyan);">91%</div>
+        <div style="background:rgba(0,212,255,0.07);border: 1px solid var(--border-default);border-radius:8px;padding:12px 20px;flex:1;">
+          <div style="font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);margin-bottom:6px;">LTG BBB PENETRATION (DeepChem)</div>
+          <div style="font-family: 'IBM Plex Sans', sans-serif;font-size:22px;font-weight:700;color:var(--cyan);">91%</div>
           <div style="font-size:12px;color:var(--text2)">High CNS penetration — excellent for JME</div>
         </div>
       </div>
@@ -1255,7 +2164,7 @@ function startManualIntake() {
         </div>
         <div class="card">
           <div class="circuit-label mb-20">REWARD FUNCTION WEIGHTS</div>
-          <div style="font-size:13px;line-height:2;font-family:'Space Mono',monospace;color:var(--text2);">
+          <div style="font-size:13px;line-height:2;font-family: 'IBM Plex Mono', monospace;color:var(--text2);">
             <span style="color:var(--cyan)">w1</span> = 0.40 × efficacy_improvement<br/>
             <span style="color:var(--red)">w2</span> = 0.30 × side_effect_burden<br/>
             <span style="color:var(--amber)">w3</span> = 0.15 × adherence_penalty<br/>
@@ -1344,7 +2253,7 @@ function startManualIntake() {
             <td style="color:var(--amber)">71 / 100</td>
           </tr>
           <tr>
-            <td style="color:var(--text2);font-family:'Space Mono',monospace;font-size:10px;">VERDICT FOR <span class="dyn-patient-name-upper">GABI</span></td>
+            <td style="color:var(--text2);font-family: 'IBM Plex Mono', monospace;font-size:10px;">VERDICT FOR <span class="dyn-patient-name-upper">GABI</span></td>
             <td><span class="badge-rec">RECOMMENDED</span></td>
             <td><span class="badge-no">NOT FOR <span class="dyn-patient-name-upper">GABI</span></span></td>
             <td><span class="badge-ok">ACCEPTABLE</span></td>
@@ -1476,36 +2385,72 @@ function startManualIntake() {
         </div>
       </div>
     </div>
-    <!-- TRIBE v2 3D Brain Twin -->
-    <div class="card" style="margin-top:24px;padding:0;overflow:hidden;border:1px solid rgba(0,212,255,0.2);border-radius:16px;">
+    <!-- TRIBE v2 3D Brain Twin - THREE VIEWS -->
+    <div class="card" style="margin-top:24px;padding:0;overflow:hidden;border: 1px solid var(--border-default);border-radius:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:rgba(0,10,30,0.6);border-bottom:1px solid rgba(0,212,255,0.12);">
-        <div style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--white);letter-spacing:2px;">🧠 TRIBE v2 — 3D Neural Activation Brain Twin</div>
+        <div style="font-family: 'IBM Plex Sans', sans-serif;font-size:16px;font-weight:700;color:var(--white);letter-spacing:2px;">🧠 TRIBE v2 — 3D Neural Activation Brain Twin (Multi-View)</div>
         <div style="display:flex;gap:10px;align-items:center;">
-          <button id="brainStateVPA" onclick="setBrainState('vpa')" style="background:rgba(255,82,82,0.2);border:1px solid rgba(255,82,82,0.5);color:#ff5252;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">⚡ VPA STATE</button>
-          <button id="brainStateLTG" onclick="setBrainState('ltg')" style="background:rgba(0,230,118,0.2);border:1px solid rgba(0,230,118,0.5);color:#00e676;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">🌿 LTG STATE</button>
-          <button id="brainStateCompare" onclick="setBrainState('compare')" style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.4);color:#00d4ff;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">⚖ COMPARE</button>
+          <button id="brainStateVPA" onclick="setBrainState('vpa')" style="background:rgba(255,82,82,0.2);border: 1px solid var(--border-default);color:#ff5252;font-family: 'IBM Plex Mono', monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">⚡ VPA STATE</button>
+          <button id="brainStateLTG" onclick="setBrainState('ltg')" style="background:rgba(0,230,118,0.2);border: 1px solid var(--border-default);color:#00e676;font-family: 'IBM Plex Mono', monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">🌿 LTG STATE</button>
+          <button id="brainStateCompare" onclick="setBrainState('compare')" style="background:rgba(0,212,255,0.15);border: 1px solid var(--border-default);color:#00d4ff;font-family: 'IBM Plex Mono', monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">⚖ COMPARE</button>
         </div>
       </div>
-      <div id="brain3dMount" style="width:100%;height:520px;background:#020810;position:relative;">
-        <canvas id="brain3dCanvas" style="display:none;"></canvas>
-        <!-- Three.js mounts here -->
-        <div id="brain3dOverlay" style="position:absolute;top:16px;left:20px;z-index:10;">
-          <div id="brainStateLabel" style="font-family:'Space Mono',monospace;font-size:11px;color:#ff5252;letter-spacing:1px;text-shadow:0 0 12px #ff5252;">⚡ VALPROIC ACID — CHAOTIC OVER-ACTIVATION</div>
-          <div id="brainActivPct" style="font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;color:#ff5252;text-shadow:0 0 20px rgba(255,82,82,0.6);">87%</div>
-          <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(200,216,240,0.5);">AVG CORTICAL ACTIVATION</div>
+      <!-- Three Brain Views Container -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#020810;">
+        <!-- LEFT HEMISPHERE VIEW -->
+        <div style="position:relative;background:#020810;">
+          <div id="brain3dMountLeft" style="width:100%;height:420px;position:relative;">
+            <!-- Three.js mounts here -->
+            <div style="position:absolute;top:12px;left:12px;z-index:10;">
+              <div style="font-family: 'IBM Plex Mono', monospace;font-size:10px;color:#4DB8FF;letter-spacing:1px;text-shadow: none;">◀ LEFT HEMISPHERE</div>
+              <div id="brainActivPctLeft" style="font-family: 'IBM Plex Sans', sans-serif;font-size:24px;font-weight:700;color:#ff5252;text-shadow: none;margin-top:4px;">87%</div>
+              <div style="font-family: 'IBM Plex Mono', monospace;font-size:8px;color:rgba(200,216,240,0.4);">ACTIVATION</div>
+            </div>
+            <div style="position:absolute;bottom:12px;left:12px;right:12px;z-index:10;">
+              <div style="font-family: 'IBM Plex Mono', monospace;font-size:8px;color:rgba(120,160,200,0.4);letter-spacing:0.5px;">AMG · HPC · PFC · INSULA</div>
+            </div>
+          </div>
         </div>
-        <div style="position:absolute;bottom:16px;left:20px;z-index:10;">
-          <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(120,160,200,0.5);letter-spacing:1px;">TRIBE v2 · SENSORY SIMULATION MODE · fsaverage5 CORTICAL SURFACE</div>
-          <div style="font-family:'Space Mono',monospace;font-size:8px;color:rgba(100,140,180,0.35);margin-top:3px;letter-spacing:0.5px;">Model: Meta TRIBE v2 Foundation (Visuo-Auditory-Linguistic fMRI Prediction) · Khosla et al. 2024</div>
+        <!-- RIGHT HEMISPHERE VIEW -->
+        <div style="position:relative;background:#020810;border-left:1px solid rgba(0,212,255,0.1);border-right:1px solid rgba(0,212,255,0.1);">
+          <div id="brain3dMountRight" style="width:100%;height:420px;position:relative;">
+            <!-- Three.js mounts here -->
+            <div style="position:absolute;top:12px;left:12px;z-index:10;">
+              <div style="font-family: 'IBM Plex Mono', monospace;font-size:10px;color:#4DB8FF;letter-spacing:1px;text-shadow: none;">▶ RIGHT HEMISPHERE</div>
+              <div id="brainActivPctRight" style="font-family: 'IBM Plex Sans', sans-serif;font-size:24px;font-weight:700;color:#ff5252;text-shadow: none;margin-top:4px;">85%</div>
+              <div style="font-family: 'IBM Plex Mono', monospace;font-size:8px;color:rgba(200,216,240,0.4);">ACTIVATION</div>
+            </div>
+            <div style="position:absolute;bottom:12px;left:12px;right:12px;z-index:10;">
+              <div style="font-family: 'IBM Plex Mono', monospace;font-size:8px;color:rgba(120,160,200,0.4);letter-spacing:0.5px;">AMG · HPC · TEMPORAL · MOTOR</div>
+            </div>
+          </div>
         </div>
-        <div style="position:absolute;bottom:16px;right:20px;z-index:10;display:flex;align-items:center;gap:8px;">
-          <div style="width:80px;height:6px;border-radius:3px;background:linear-gradient(90deg,#1e50dc,#00b4dc,#00c864,#b4c800,#ff8c00,#ff281e);"></div>
-          <div style="font-family:'Space Mono',monospace;font-size:8px;color:rgba(150,170,200,0.6);">LOW → HIGH</div>
+        <!-- BOTH HEMISPHERES VIEW -->
+        <div style="position:relative;background:#020810;">
+          <div id="brain3dMountBoth" style="width:100%;height:420px;position:relative;">
+            <!-- Three.js mounts here -->
+            <div style="position:absolute;top:12px;left:12px;z-index:10;">
+              <div style="font-family: 'IBM Plex Mono', monospace;font-size:10px;color:#4DB8FF;letter-spacing:1px;text-shadow: none;">◆ BOTH HEMISPHERES</div>
+              <div id="brainActivPctBoth" style="font-family: 'IBM Plex Sans', sans-serif;font-size:24px;font-weight:700;color:#ff5252;text-shadow: none;margin-top:4px;">86%</div>
+              <div style="font-family: 'IBM Plex Mono', monospace;font-size:8px;color:rgba(200,216,240,0.4);">AVG ACTIVATION</div>
+            </div>
+            <div style="position:absolute;bottom:12px;left:12px;right:12px;z-index:10;">
+              <div style="font-family: 'IBM Plex Mono', monospace;font-size:8px;color:rgba(120,160,200,0.4);letter-spacing:0.5px;">FULL CORTICAL SURFACE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Shared Info Bar -->
+      <div style="padding:12px 20px;background:rgba(0,10,30,0.8);border-top:1px solid rgba(0,212,255,0.12);display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-family: 'IBM Plex Mono', monospace;font-size:9px;color:rgba(120,160,200,0.5);letter-spacing:1px;">TRIBE v2 · SENSORY SIMULATION MODE · fsaverage5 CORTICAL SURFACE</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:80px;height:6px;border-radius:3px;background: var(--bg-elevated);"></div>
+          <div style="font-family: 'IBM Plex Mono', monospace;font-size:8px;color:rgba(150,170,200,0.6);">LOW → HIGH</div>
         </div>
       </div>
       <!-- EEG Strip below 3D brain -->
       <div style="padding:12px 20px 16px;background:rgba(5,12,24,0.95);border-top:1px solid rgba(30,51,86,0.4);">
-        <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(120,160,200,0.5);letter-spacing:2px;margin-bottom:8px;">BRAIN REGION ACTIVATION TIME SERIES — EEG TRACE</div>
+        <div style="font-family: 'IBM Plex Mono', monospace;font-size:9px;color:rgba(120,160,200,0.5);letter-spacing:2px;margin-bottom:8px;">BRAIN REGION ACTIVATION TIME SERIES — EEG TRACE</div>
         <canvas id="eegStrip" style="width:100%;height:80px;display:block;"></canvas>
       </div>
     </div>
@@ -1521,9 +2466,9 @@ function startManualIntake() {
   <!-- PANEL 6.5: MOLECULAR BINDING COLLISION SIMULATOR            -->
   <!-- ═══════════════════════════════════════════════════════════ -->
   <div class="panel" id="panel6_5">
-    <div class="section-title">MOLECULAR BINDING SIMULATION — DRUG COLLISION VISUALIZER</div>
+    <div class="section-title">PROTEIN-LIGAND DOCKING DYNAMICS — MOLECULAR RECOGNITION VISUALIZER</div>
     <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center;flex-wrap:wrap;">
-      <label style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);">CURRENT DRUG</label>
+      <label style="font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);">CURRENT DRUG</label>
       <select id="mol-drug-left" class="form-select" style="width:180px;padding:8px 12px;font-size:12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:var(--white);">
         <option value="vpa" selected>Valproic Acid</option>
         <option value="ltg">Lamotrigine</option>
@@ -1531,7 +2476,7 @@ function startManualIntake() {
         <option value="tpm">Topiramate</option>
         <option value="zns">Zonisamide</option>
       </select>
-      <label style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);margin-left:16px;">COMPARE AGAINST</label>
+      <label style="font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);margin-left:16px;">COMPARE AGAINST</label>
       <select id="mol-drug-right" class="form-select" style="width:180px;padding:8px 12px;font-size:12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:var(--white);">
         <option value="vpa">Valproic Acid</option>
         <option value="ltg" selected>Lamotrigine</option>
@@ -1544,18 +2489,18 @@ function startManualIntake() {
       <!-- Left Canvas -->
       <div style="position:relative;">
         <div id="mol-canvas-left" style="width:100%;height:450px;"></div>
-        <div id="mol-overlay-left" style="position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.85));pointer-events:none;"></div>
+        <div id="mol-overlay-left" style="position:absolute;bottom:0;left:0;right:0;padding:16px;background: var(--bg-elevated);pointer-events:none;"></div>
       </div>
       <!-- VS Divider -->
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(0,0,0,0.5);border-left:1px solid var(--border);border-right:1px solid var(--border);">
-        <span style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;color:rgba(255,255,255,0.3);writing-mode:vertical-rl;">VS</span>
-        <div style="background:rgba(255,107,107,0.2);border:1px solid rgba(255,107,107,0.3);border-radius:4px;padding:4px 6px;font-size:8px;font-family:'JetBrains Mono',monospace;color:#ff6b6b;writing-mode:vertical-rl;">PCOS RISK</div>
-        <div style="background:rgba(32,201,151,0.2);border:1px solid rgba(32,201,151,0.3);border-radius:4px;padding:4px 6px;font-size:8px;font-family:'JetBrains Mono',monospace;color:#20c997;writing-mode:vertical-rl;">SAFE</div>
+        <span style="font-family: 'IBM Plex Sans', sans-serif;font-size:18px;font-weight:700;color:rgba(255,255,255,0.3);writing-mode:vertical-rl;">VS</span>
+        <div style="background:rgba(255,107,107,0.2);border:1px solid rgba(255,107,107,0.3);border-radius:4px;padding:4px 6px;font-size:8px;font-family: 'IBM Plex Mono', monospace;color:#ff6b6b;writing-mode:vertical-rl;">PCOS RISK</div>
+        <div style="background:rgba(32,201,151,0.2);border:1px solid rgba(32,201,151,0.3);border-radius:4px;padding:4px 6px;font-size:8px;font-family: 'IBM Plex Mono', monospace;color:#20c997;writing-mode:vertical-rl;">SAFE</div>
       </div>
       <!-- Right Canvas -->
       <div style="position:relative;">
         <div id="mol-canvas-right" style="width:100%;height:450px;"></div>
-        <div id="mol-overlay-right" style="position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.85));pointer-events:none;"></div>
+        <div id="mol-overlay-right" style="position:absolute;bottom:0;left:0;right:0;padding:16px;background: var(--bg-elevated);pointer-events:none;"></div>
       </div>
     </div>
     <div class="info-box" style="margin-top:16px;font-size:12px;">
@@ -1565,7 +2510,7 @@ function startManualIntake() {
 
   <!-- PANEL 8: LIVE BIOMARKER TIMELINE -->
   <div class="panel" id="panel8">
-    <div class="section-title">LIVE PATIENT BIOMARKER TIMELINE <span id="bio-live-indicator" style="display:inline-block;width:8px;height:8px;background:#20c997;border-radius:50%;margin-left:8px;vertical-align:middle;"></span></div>
+    <div class="section-title">LIVE PATIENT BIOMARKER TIMELINE <span id="bio-live-indicator" style="display:inline-block;width:8px;height:8px;background:#20c997;border-radius: 50%;margin-left:8px;vertical-align:middle;"></span></div>
     <div id="biomarker-timeline-wrap">
       <div class="card" style="padding:24px;margin-bottom:20px;">
         <div class="circuit-label mb-20">DRUG RESPONSE TRAJECTORY — 90 DAY PROJECTION</div>
@@ -1611,7 +2556,7 @@ function startManualIntake() {
     <div class="section-title">PERSONALIZED DOSE OPTIMIZATION ENGINE</div>
     <div id="dose-opt-content">
       <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center;">
-        <label style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);">SELECT DRUG</label>
+        <label style="font-family: 'IBM Plex Mono', monospace;font-size:10px;color:var(--text2);">SELECT DRUG</label>
         <select id="dose-drug-select" style="padding:8px 12px;font-size:12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'Inter',sans-serif;">
           <option value="ltg" selected>Lamotrigine</option>
           <option value="vpa">Valproic Acid</option>
@@ -1677,18 +2622,18 @@ function startManualIntake() {
 
     <div class="card" style="margin-top:24px;text-align:center;padding:24px;">
       <div class="circuit-label" style="justify-content:center;margin-bottom:12px;">HYBRID WORKFLOW EXPLAINED — THE "WHY QUANTUM" ANSWER</div>
-      <div style="display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:11px;">
+      <div style="display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;font-family: 'IBM Plex Mono', monospace;font-size:11px;">
         <div style="background:rgba(179,136,255,0.1);border:1px solid rgba(179,136,255,0.3);border-radius:8px;padding:12px 16px;text-align:center;">
           <div style="color:var(--purple);font-weight:700;font-size:13px;margin-bottom:4px;">QUANTUM (Qiskit VQE)</div>
           <div style="color:var(--text2)">Molecular precision<br/>Binding energy ground state<br/>Exponential state space</div>
         </div>
         <div style="font-size:20px;color:var(--border)">→</div>
-        <div style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);border-radius:8px;padding:12px 16px;text-align:center;">
+        <div style="background:rgba(0,212,255,0.08);border: 1px solid var(--border-default);border-radius:8px;padding:12px 16px;text-align:center;">
           <div style="color:var(--cyan);font-weight:700;font-size:13px;margin-bottom:4px;">CLASSICAL AI (RL + ADMET)</div>
           <div style="color:var(--text2)">Clinical practicality<br/>Patient-specific risk scoring<br/>12-month trajectory</div>
         </div>
         <div style="font-size:20px;color:var(--border)">→</div>
-        <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:8px;padding:12px 16px;text-align:center;">
+        <div style="background:rgba(0,230,118,0.08);border: 1px solid var(--border-default);border-radius:8px;padding:12px 16px;text-align:center;">
           <div style="color:var(--green);font-weight:700;font-size:13px;margin-bottom:4px;">TRIBE v2 (Visualization)</div>
           <div style="color:var(--text2)">Human interpretability<br/>Emotional communication<br/>Clinical handoff</div>
         </div>
@@ -1768,9 +2713,9 @@ LQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN" rows="6"></textarea>
       <div class="card" style="margin-top:20px;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
         <div>
           <span class="mono" style="font-size:10px;color:var(--text2);letter-spacing:1px;">PROJECT</span>
-          <span id="proteinProjectId" style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--white);margin-left:8px;">—</span>
+          <span id="proteinProjectId" style="font-family: 'IBM Plex Sans', sans-serif;font-size:18px;font-weight:700;color:var(--white);margin-left:8px;">—</span>
           <span class="mono" style="font-size:10px;color:var(--text2);margin-left:16px;">LENGTH</span>
-          <span id="proteinLength" style="font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;color:var(--cyan);margin-left:4px;">—</span>
+          <span id="proteinLength" style="font-family: 'IBM Plex Sans', sans-serif;font-size:16px;font-weight:600;color:var(--cyan);margin-left:4px;">—</span>
           <span class="mono" style="font-size:10px;color:var(--text2);margin-left:4px;">aa</span>
         </div>
         <div style="display:flex;gap:10px;">
@@ -1815,7 +2760,7 @@ LQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN" rows="6"></textarea>
               </div>
             </div>
             <div style="margin-top:10px;">
-              <div class="qi-label" style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text2);letter-spacing:1px;margin-bottom:6px;">RAMACHANDRAN</div>
+              <div class="qi-label" style="font-family: 'IBM Plex Mono', monospace;font-size:9px;color:var(--text2);letter-spacing:1px;margin-bottom:6px;">RAMACHANDRAN</div>
               <div class="rama-mini">
                 <div class="rm-item"><div class="rm-val good" id="qRamaFav">—</div><div class="rm-lbl">FAVORED %</div></div>
                 <div class="rm-item"><div class="rm-val ok" id="qRamaAll">—</div><div class="rm-lbl">ALLOWED %</div></div>
@@ -1832,9 +2777,9 @@ LQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN" rows="6"></textarea>
               <div class="tc-name" id="tmplName">—</div>
               <div class="tc-meta" id="tmplMeta">—</div>
               <div style="margin-top:8px;">
-                <div class="qi-label" style="font-family:'Space Mono',monospace;font-size:8px;color:var(--text2);">SEQ IDENTITY</div>
+                <div class="qi-label" style="font-family: 'IBM Plex Mono', monospace;font-size:8px;color:var(--text2);">SEQ IDENTITY</div>
                 <div class="coverage-bar"><div class="cb-fill identity" id="tmplIdentityBar" style="width:0%"></div></div>
-                <div class="qi-label" style="font-family:'Space Mono',monospace;font-size:8px;color:var(--text2);margin-top:4px;">COVERAGE</div>
+                <div class="qi-label" style="font-family: 'IBM Plex Mono', monospace;font-size:8px;color:var(--text2);margin-top:4px;">COVERAGE</div>
                 <div class="coverage-bar"><div class="cb-fill coverage" id="tmplCoverageBar" style="width:0%"></div></div>
               </div>
             </div>
@@ -1948,8 +2893,8 @@ function switchMode(mode) {
       triageView = document.createElement('div');
       triageView.id = 'view-triage';
       triageView.className = 'mode-view active';
-      // Load the root triage interface (server/index.html)
-      triageView.innerHTML = '<iframe src="/?v=' + Date.now() + '" style="width:100%;height:1000px;border:none;border-radius:12px;background:var(--panel);"></iframe>';
+      // Load the root triage interface (now at /dashboard)
+      triageView.innerHTML = '<iframe src="/dashboard?v=' + Date.now() + '" style="width:100%;height:1000px;border:none;border-radius:12px;background:var(--panel);"></iframe>';
       document.querySelector('.app').appendChild(triageView);
     }
     triageView.style.display = 'block';
@@ -2915,7 +3860,7 @@ function initRL(){
 }
 
 // ══════════════════════════════════════════════════════════
-// TRIBE v2 — THREE.JS 3D BRAIN VISUALIZATION
+// TRIBE v2 — THREE.JS 3D BRAIN VISUALIZATION (ENHANCED MULTI-VIEW)
 // ══════════════════════════════════════════════════════════
 let _tribe3D = null;
 let _currentBrainState = 'vpa'; // 'vpa' | 'ltg' | 'compare'
@@ -2928,55 +3873,173 @@ function setBrainState(state) {
   document.getElementById('brainStateLTG').style.opacity = state === 'ltg' ? '1' : '0.5';
   document.getElementById('brainStateCompare').style.opacity = state === 'compare' ? '1' : '0.5';
 
-  const lbl = document.getElementById('brainStateLabel');
-  const pct = document.getElementById('brainActivPct');
+  // Update all three views
+  const pctLeft = document.getElementById('brainActivPctLeft');
+  const pctRight = document.getElementById('brainActivPctRight');
+  const pctBoth = document.getElementById('brainActivPctBoth');
+  
   if (state === 'vpa') {
-    lbl.textContent = '⚡ VALPROIC ACID — CHAOTIC OVER-ACTIVATION';
-    lbl.style.color = '#ff5252'; lbl.style.textShadow = '0 0 12px #ff5252';
-    pct.style.color = '#ff5252'; pct.style.textShadow = '0 0 20px rgba(255,82,82,0.6)';
-    pct.textContent = '87%';
+    if (pctLeft) { pctLeft.textContent = '87%'; pctLeft.style.color = '#ff5252'; pctLeft.style.textShadow = '0 0 16px rgba(255,82,82,0.6)'; }
+    if (pctRight) { pctRight.textContent = '85%'; pctRight.style.color = '#ff5252'; pctRight.style.textShadow = '0 0 16px rgba(255,82,82,0.6)'; }
+    if (pctBoth) { pctBoth.textContent = '86%'; pctBoth.style.color = '#ff5252'; pctBoth.style.textShadow = '0 0 16px rgba(255,82,82,0.6)'; }
   } else if (state === 'ltg') {
-    lbl.textContent = '🌿 LAMOTRIGINE — CALM INTEGRATED STATE';
-    lbl.style.color = '#00e676'; lbl.style.textShadow = '0 0 12px #00e676';
-    pct.style.color = '#00e676'; pct.style.textShadow = '0 0 20px rgba(0,230,118,0.6)';
-    pct.textContent = '22%';
+    if (pctLeft) { pctLeft.textContent = '22%'; pctLeft.style.color = '#00e676'; pctLeft.style.textShadow = '0 0 16px rgba(0,230,118,0.6)'; }
+    if (pctRight) { pctRight.textContent = '20%'; pctRight.style.color = '#00e676'; pctRight.style.textShadow = '0 0 16px rgba(0,230,118,0.6)'; }
+    if (pctBoth) { pctBoth.textContent = '21%'; pctBoth.style.color = '#00e676'; pctBoth.style.textShadow = '0 0 16px rgba(0,230,118,0.6)'; }
   } else {
-    lbl.textContent = '⚖ VPA vs LTG — SPLIT BRAIN COMPARISON';
-    lbl.style.color = '#00d4ff'; lbl.style.textShadow = '0 0 12px #00d4ff';
-    pct.style.color = '#00d4ff'; pct.style.textShadow = '0 0 20px rgba(0,212,255,0.6)';
-    pct.textContent = '—';
+    if (pctLeft) { pctLeft.textContent = '87%→22%'; pctLeft.style.color = '#00d4ff'; pctLeft.style.textShadow = '0 0 16px rgba(0,212,255,0.6)'; }
+    if (pctRight) { pctRight.textContent = '85%→20%'; pctRight.style.color = '#00d4ff'; pctRight.style.textShadow = '0 0 16px rgba(0,212,255,0.6)'; }
+    if (pctBoth) { pctBoth.textContent = '86%→21%'; pctBoth.style.color = '#00d4ff'; pctBoth.style.textShadow = '0 0 16px rgba(0,212,255,0.6)'; }
   }
 }
 
 function initThreeBrain() {
-  const mount = document.getElementById('brain3dMount');
-  if (!mount) return;
+  const mountLeft = document.getElementById('brain3dMountLeft');
+  const mountRight = document.getElementById('brain3dMountRight');
+  const mountBoth = document.getElementById('brain3dMountBoth');
+  
+  if (!mountLeft || !mountRight || !mountBoth) return;
   if (!window.THREE) { setTimeout(initThreeBrain, 500); return; }
   if (_tribe3D) return;
 
-  const W = mount.clientWidth || window.innerWidth || 900;
-  const H = mount.clientHeight || 520;
+  // Create three separate brain views
+  const brainViews = [];
+  
+  // Helper function to create a single brain view
+  function createBrainView(mount, viewType) {
+    const W = mount.clientWidth || 400;
+    const H = mount.clientHeight || 420;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(W, H);
-  renderer.setClearColor(0x000000, 1);
-  mount.appendChild(renderer.domElement);
-  Object.assign(renderer.domElement.style, { position:'absolute', top:'0', left:'0', width:'100%', height:'100%' });
+    // Enhanced renderer with PBR support
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false,
+      powerPreference: 'high-performance'
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(W, H);
+    renderer.setClearColor(0x020810, 1);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.physicallyCorrectLights = true;
+    mount.appendChild(renderer.domElement);
+    Object.assign(renderer.domElement.style, { position:'absolute', top:'0', left:'0', width:'100%', height:'100%' });
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 100);
-  camera.position.set(3.4, 0.2, 0); // Position to look at the sagittal (side) profile
-  camera.lookAt(0, 0, 0);
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x020810, 0.015);
+    
+    const camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 100);
+    
+    // Set camera position based on view type
+    if (viewType === 'left') {
+      camera.position.set(-3.2, 0.3, 0.5); // View from left side
+    } else if (viewType === 'right') {
+      camera.position.set(3.2, 0.3, 0.5); // View from right side
+    } else {
+      camera.position.set(0, 0.4, 3.8); // Front view for both hemispheres
+    }
+    camera.lookAt(0, 0, 0);
 
-  // Neutral white lighting — like a clinical MRI renderer
-  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-  const keyL = new THREE.DirectionalLight(0xffffff, 1.1);
-  keyL.position.set(2, 3, 4); scene.add(keyL);
-  const fillL = new THREE.DirectionalLight(0xd0e8ff, 0.4);
-  fillL.position.set(-3, 1, 2); scene.add(fillL);
-  const backL = new THREE.DirectionalLight(0x8899bb, 0.25);
-  backL.position.set(0, -2, -3); scene.add(backL);
+    // Enhanced lighting system for photorealistic rendering
+    const ambientLight = new THREE.AmbientLight(0x1a2332, 0.35);
+    scene.add(ambientLight);
+    
+    const hemiLight = new THREE.HemisphereLight(0x4488ff, 0x1a0a2e, 0.5);
+    hemiLight.position.set(0, 20, 0);
+    scene.add(hemiLight);
+    
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    keyLight.position.set(5, 8, 6);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 2048;
+    keyLight.shadow.mapSize.height = 2048;
+    keyLight.shadow.camera.near = 0.5;
+    keyLight.shadow.camera.far = 50;
+    keyLight.shadow.bias = -0.0001;
+    scene.add(keyLight);
+    
+    const fillLight = new THREE.DirectionalLight(0x6699ff, 0.6);
+    fillLight.position.set(-4, 3, 4);
+    scene.add(fillLight);
+    
+    const rimLight = new THREE.DirectionalLight(0x8844ff, 0.4);
+    rimLight.position.set(0, -3, -5);
+    scene.add(rimLight);
+    
+    const accentLight = new THREE.PointLight(0x4488ff, 0.8, 20);
+    accentLight.position.set(3, 4, 3);
+    scene.add(accentLight);
+
+    // Custom orbit controls
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let cameraRotation = { theta: 0, phi: 0 };
+    let cameraDistance = camera.position.length();
+    
+    // Initialize rotation based on view type
+    if (viewType === 'left') {
+      cameraRotation.theta = Math.PI / 2; // 90 degrees
+      cameraRotation.phi = 0;
+    } else if (viewType === 'right') {
+      cameraRotation.theta = -Math.PI / 2; // -90 degrees
+      cameraRotation.phi = 0;
+    } else {
+      cameraRotation.theta = 0;
+      cameraRotation.phi = 0;
+    }
+    
+    renderer.domElement.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      previousMousePosition = { x: e.clientX, y: e.clientY };
+    });
+    
+    renderer.domElement.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const deltaX = e.clientX - previousMousePosition.x;
+        const deltaY = e.clientY - previousMousePosition.y;
+        
+        cameraRotation.theta += deltaX * 0.01;
+        cameraRotation.phi += deltaY * 0.01;
+        
+        // Clamp phi to prevent flipping
+        cameraRotation.phi = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, cameraRotation.phi));
+        
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      }
+    });
+    
+    renderer.domElement.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+    
+    renderer.domElement.addEventListener('mouseleave', () => {
+      isDragging = false;
+    });
+    
+    renderer.domElement.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      cameraDistance += e.deltaY * 0.01;
+      cameraDistance = Math.max(1.5, Math.min(8.0, cameraDistance));
+    });
+    
+    const updateCamera = () => {
+      const x = cameraDistance * Math.cos(cameraRotation.phi) * Math.sin(cameraRotation.theta);
+      const y = cameraDistance * Math.sin(cameraRotation.phi);
+      const z = cameraDistance * Math.cos(cameraRotation.phi) * Math.cos(cameraRotation.theta);
+      camera.position.set(x, y, z);
+      camera.lookAt(0, 0, 0);
+    };
+
+    return { renderer, scene, camera, mount, viewType, updateCamera };
+  }
+
+  // Create all three views
+  brainViews.push(createBrainView(mountLeft, 'left'));
+  brainViews.push(createBrainView(mountRight, 'right'));
+  brainViews.push(createBrainView(mountBoth, 'both'));
 
   // ── High-res anatomical brain mesh (True fsaverage cortical surface map)
   async function loadBrainGeometry() {
@@ -2996,16 +4059,33 @@ function initThreeBrain() {
         const vx = parseFloat(parts[1]);
         const vy = parseFloat(parts[2]);
         const vz = parseFloat(parts[3]);
-        // Map to Three: X=vx, Y=vz, Z=vy
-        vertices.push((vx - cx)*scale, (vz - cz)*scale, (vy - cy)*scale);
+        // Map to Three: X=vx, Y=vz, Z=vy. Do not subtract cx so mirroring puts them on opposite sides!
+        vertices.push((vx)*scale, (vz - cz)*scale, (vy - cy)*scale);
       } else if (parts[0] === 'f') {
         indices.push(parseInt(parts[1])-1, parseInt(parts[2])-1, parseInt(parts[3])-1);
       }
     });
 
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
-    geo.setIndex(indices);
+    const fullVertices = [];
+    const fullIndices = [];
+    
+    // Add original (Right) hemisphere
+    for (let i = 0; i < vertices.length; i++) fullVertices.push(vertices[i]);
+    for (let i = 0; i < indices.length; i++) fullIndices.push(indices[i]);
+    
+    // Add mirrored (Left) hemisphere
+    const offset = vertices.length / 3;
+    for (let i = 0; i < vertices.length; i += 3) {
+      fullVertices.push(-vertices[i], vertices[i+1], vertices[i+2]);
+    }
+    // Reverse winding order for the mirrored geometry to preserve outward normals
+    for (let i = 0; i < indices.length; i += 3) {
+      fullIndices.push(indices[i]+offset, indices[i+2]+offset, indices[i+1]+offset);
+    }
+    
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(fullVertices), 3));
+    geo.setIndex(fullIndices);
     geo.computeVertexNormals();
     return geo;
   }
@@ -3071,8 +4151,9 @@ function initThreeBrain() {
         let maxVPA=0, maxLTG=0;
         for (let ri=0; ri<REGIONS.length; ri++) {
           const reg=REGIONS[ri], rd=regDirs[ri];
-          // use absolute X so right hemisphere lights up for left-side regions too
-          const dot=Math.abs(vnx)*Math.abs(rd[0])+vny*rd[1]+vnz*rd[2];
+          // Signed dot product: left regions (positive nx) match positive-X vertices,
+          // right regions (negative nx) match negative-X vertices — true lateralization
+          const dot=vnx*rd[0]+vny*rd[1]+vnz*rd[2];
           const s=reg[6]*0.15; // Tighter localized patches
           const g=Math.exp(-Math.pow(1-dot,2)/(2*s*s));
           // VPA: strong chaotic flicker
@@ -3108,7 +4189,7 @@ function initThreeBrain() {
 
     const brainMat = new THREE.ShaderMaterial({
       uniforms: {
-        uBlend: {value:0.0}, uTime: {value:0.0}, uSplit: {value:0.0}
+        uBlend: {value:0.0}, uTime: {value:0.0}, uSplit: {value:0.0}, uClipHemisphere: {value:0.0}
       },
       vertexShader: `
         attribute vec3 colorA; attribute vec3 colorB;
@@ -3124,8 +4205,10 @@ function initThreeBrain() {
       `,
       fragmentShader: `
         varying vec3 vColor; varying vec3 vNormal; varying vec3 vWorldPos;
-        uniform float uTime;
+        uniform float uTime; uniform float uClipHemisphere;
         void main() {
+          if (uClipHemisphere == 1.0 && vWorldPos.x > 0.05) discard;
+          if (uClipHemisphere == -1.0 && vWorldPos.x < -0.05) discard;
           vec3 N = normalize(vNormal);
           vec3 L1=normalize(vec3(2.0, 3.0, 4.0));
           vec3 L2=normalize(vec3(-3.0, 1.0, 2.0));
@@ -3147,18 +4230,169 @@ function initThreeBrain() {
       `,
     });
 
-    const brainMesh = new THREE.Mesh(geo, brainMat);
-    brainMesh.rotation.set(0.0, 0.0, 0.0); // Reset rotation for pure sagittal alignment
-    scene.add(brainMesh);
+    // Create brain meshes for all three views with hemisphere clipping
+    const brainMeshes = [];
+    brainViews.forEach((view, idx) => {
+      const mat = brainMat.clone();
+      
+      if (view.viewType === 'left') {
+        mat.uniforms.uClipHemisphere.value = 1.0;
+      } else if (view.viewType === 'right') {
+        mat.uniforms.uClipHemisphere.value = -1.0;
+      } else {
+        mat.uniforms.uClipHemisphere.value = 0.0;
+        // Both view defaults to split mode: left=VPA, right=LTG
+        mat.uniforms.uSplit.value = 1.0;
+      }
+      
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.rotation.set(0.0, 0.0, 0.0);
+      view.scene.add(mesh);
+      brainMeshes.push(mesh);
+      view.renderer.localClippingEnabled = true;
+
+      // === BOTH VIEW: Cross-hemisphere fiber tracts + auto-orbit ===
+      if (view.viewType === 'both') {
+        // Fiber tract pairs connecting L↔R regions
+        const fiberPairs = [
+          {lx:0.55,ly:-0.60,lz:0.38, rx:-0.55,ry:-0.60,rz:0.38, color:0xff5252, label:'AMG'},
+          {lx:0.62,ly:-0.50,lz:0.05, rx:-0.62,ry:-0.50,rz:0.05, color:0xffab40, label:'HPC'},
+          {lx:0.88,ly:-0.05,lz:0.42, rx:-0.88,ry:-0.05,rz:0.42, color:0x4db8ff, label:'INS'},
+          {lx:0.92,ly:-0.28,lz:0.22, rx:-0.92,ry:-0.28,rz:0.22, color:0xb388ff, label:'TMP'},
+        ];
+        view._fiberTracts = [];
+        fiberPairs.forEach(fp => {
+          const s = 0.015, cx = 35, cy = -17, cz = 15;
+          const start = new THREE.Vector3((fp.lx*70)*s, (fp.lz*70)*s, (fp.ly*70)*s);
+          const end = new THREE.Vector3((fp.rx*70)*s, (fp.rz*70)*s, (fp.ry*70)*s);
+          const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+          mid.y += 0.15;
+          const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
+          const tubeGeo = new THREE.TubeGeometry(curve, 24, 0.008, 6, false);
+          const tubeMat = new THREE.MeshBasicMaterial({
+            color: fp.color, transparent: true, opacity: 0.6,
+            blending: THREE.AdditiveBlending
+          });
+          const tube = new THREE.Mesh(tubeGeo, tubeMat);
+          view.scene.add(tube);
+          view._fiberTracts.push({mesh: tube, mat: tubeMat, curve, fp});
+
+          // Traveling pulse particle along each tract
+          const pulseGeo = new THREE.SphereGeometry(0.015, 8, 8);
+          const pulseMat = new THREE.MeshBasicMaterial({
+            color: fp.color, transparent: true, opacity: 0.9
+          });
+          const pulse = new THREE.Mesh(pulseGeo, pulseMat);
+          view.scene.add(pulse);
+          tube.userData.pulse = pulse;
+          tube.userData.pulseT = Math.random();
+        });
+
+        // Corpus callosum glow bridge
+        const ccCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0.4, 0.05, 0), new THREE.Vector3(0.15, 0.12, 0),
+          new THREE.Vector3(0, 0.14, 0), new THREE.Vector3(-0.15, 0.12, 0),
+          new THREE.Vector3(-0.4, 0.05, 0)
+        ]);
+        const ccGeo = new THREE.TubeGeometry(ccCurve, 32, 0.025, 8, false);
+        const ccMat = new THREE.MeshBasicMaterial({
+          color: 0x00d4ff, transparent: true, opacity: 0.3,
+          blending: THREE.AdditiveBlending
+        });
+        view.scene.add(new THREE.Mesh(ccGeo, ccMat));
+        view._ccMat = ccMat;
+
+        // Auto-orbiting camera for both view
+        view._autoOrbit = true;
+        view._orbitSpeed = 0.15;
+      }
+    });
 
     bakeColors(0);
 
     _tribe3D = {
       setState: setState,
-      mesh: brainMesh,
+      meshes: brainMeshes,
       mat: brainMat,
-      bake: bakeColors
+      bake: bakeColors,
+      views: brainViews,
+      REGIONS: REGIONS
     };
+    
+    let brainClock = 0;
+    function animateBrainViews() {
+      requestAnimationFrame(animateBrainViews);
+      brainClock += 0.016;
+      
+      if (_tribe3D) {
+        _tribe3D.bake(brainClock);
+        _blendCurrent += (_blendTarget - _blendCurrent) * 0.08;
+        // Update all material clones
+        brainMeshes.forEach(m => {
+          m.material.uniforms.uBlend.value = _blendCurrent;
+          m.material.uniforms.uTime.value = brainClock;
+        });
+      }
+      
+      brainViews.forEach(view => {
+        // Auto-orbit for "both" view
+        if (view._autoOrbit && view.viewType === 'both') {
+          view._orbitAngle = (view._orbitAngle || 0) + view._orbitSpeed * 0.016;
+          const r = 3.8;
+          const phi = Math.sin(brainClock * 0.1) * 0.25;
+          view.camera.position.set(
+            r * Math.cos(phi) * Math.sin(view._orbitAngle),
+            r * Math.sin(phi) + 0.3,
+            r * Math.cos(phi) * Math.cos(view._orbitAngle)
+          );
+          view.camera.lookAt(0, 0, 0);
+        } else {
+          if (view.updateCamera) view.updateCamera();
+        }
+
+        // Animate fiber tracts pulses
+        if (view._fiberTracts) {
+          view._fiberTracts.forEach(ft => {
+            const p = ft.mesh.userData.pulse;
+            if (p) {
+              ft.mesh.userData.pulseT = (ft.mesh.userData.pulseT + 0.008) % 1;
+              const pt = ft.curve.getPoint(ft.mesh.userData.pulseT);
+              p.position.copy(pt);
+              p.material.opacity = 0.5 + Math.sin(brainClock * 4) * 0.4;
+            }
+            ft.mat.opacity = 0.3 + Math.sin(brainClock * 2) * 0.2;
+          });
+        }
+        // Corpus callosum pulse
+        if (view._ccMat) {
+          view._ccMat.opacity = 0.2 + Math.sin(brainClock * 1.5) * 0.15;
+        }
+
+        view.renderer.render(view.scene, view.camera);
+      });
+      
+      drawEEG(brainClock);
+
+      // Update activation percentages
+      const leftPct = document.getElementById('brainActivPctLeft');
+      const rightPct = document.getElementById('brainActivPctRight');
+      const bothPct = document.getElementById('brainActivPctBoth');
+      if (_stateTarget === 'vpa' || _stateTarget === 'compare') {
+        const lv = Math.round(82 + Math.sin(brainClock * 2) * 5);
+        const rv = Math.round(79 + Math.sin(brainClock * 2.3) * 4);
+        if (leftPct) { leftPct.textContent = lv + '%'; leftPct.style.color = '#ff5252'; }
+        if (rightPct) { rightPct.textContent = rv + '%'; rightPct.style.color = '#ff5252'; }
+        if (bothPct) { bothPct.textContent = Math.round((lv+rv)/2) + '%'; bothPct.style.color = '#ffab40'; }
+      } else {
+        const lv = Math.round(28 + Math.sin(brainClock * 1.2) * 3);
+        const rv = Math.round(26 + Math.sin(brainClock * 1.5) * 3);
+        if (leftPct) { leftPct.textContent = lv + '%'; leftPct.style.color = '#00e676'; }
+        if (rightPct) { rightPct.textContent = rv + '%'; rightPct.style.color = '#00e676'; }
+        if (bothPct) { bothPct.textContent = Math.round((lv+rv)/2) + '%'; bothPct.style.color = '#00e676'; }
+      }
+    }
+    
+    animateBrainViews();
   }).catch(console.error);
 
   // ── State
@@ -3166,8 +4400,95 @@ function initThreeBrain() {
   function setState(s) {
     _stateTarget=s;
     _blendTarget=s==='vpa'?0.0:s==='ltg'?1.0:0.5;
-    if(_tribe3D) _tribe3D.mat.uniforms.uSplit.value=s==='compare'?1.0:0.0;
+    if(_tribe3D) {
+      // Update split for both-view material and main material
+      _tribe3D.mat.uniforms.uSplit.value=s==='compare'?1.0:0.0;
+      _tribe3D.meshes.forEach(m => {
+        if (m.material !== _tribe3D.mat) {
+          // Only toggle split on the "both" view if in compare mode
+        }
+      });
+    }
   }
+
+  // ── Dynamic patient data binding for TRIBE brain ──
+  window.updateTRIBEWithPatientData = function(rankings, conditionType) {
+    if (!rankings || rankings.length < 2) return;
+    const worstDrug = rankings[rankings.length - 1];
+    const bestDrug = rankings[0];
+    
+    // Update brain state buttons with real drug names
+    const btnVPA = document.getElementById('brainStateVPA');
+    const btnLTG = document.getElementById('brainStateLTG');
+    if (btnVPA) btnVPA.innerHTML = '⚡ ' + (worstDrug.drug_name || worstDrug.drug_id).toUpperCase();
+    if (btnLTG) btnLTG.innerHTML = '🌿 ' + (bestDrug.drug_name || bestDrug.drug_id).toUpperCase();
+
+    // Remap REGIONS activation from real drug scores
+    if (_tribe3D && _tribe3D.REGIONS) {
+      const bestSafety = (bestDrug.breakdown?.safety?.score || 80) / 100;
+      const worstSafety = (worstDrug.breakdown?.safety?.score || 40) / 100;
+      const bestEfficacy = (bestDrug.breakdown?.efficacy?.score || 80) / 100;
+      const worstEfficacy = (worstDrug.breakdown?.efficacy?.score || 60) / 100;
+      
+      _tribe3D.REGIONS.forEach(reg => {
+        // VPA peak (col 4): higher when drug is unsafe (inverted safety)
+        reg[4] = Math.min(0.98, (1 - worstSafety) * 0.6 + reg[4] * 0.4);
+        // LTG peak (col 5): lower when drug is safe
+        reg[5] = Math.min(0.35, bestSafety * 0.15 + reg[5] * 0.3);
+      });
+    }
+
+    // Update SVG brain labels
+    const tribeBeforeHeader = document.querySelector('.tribe-card.before .tribe-header');
+    const tribeAfterHeader = document.querySelector('.tribe-card.after .tribe-header');
+    const pName = window.patientData?.basic_info?.name || window.patientData?.name || 'PATIENT';
+    if (tribeBeforeHeader) tribeBeforeHeader.innerHTML = '⚡ ' + pName.toUpperCase() + ' — ' + (worstDrug.drug_name || worstDrug.drug_id).toUpperCase() + ' (CURRENT STATE)';
+    if (tribeAfterHeader) tribeAfterHeader.innerHTML = '🌿 ' + pName.toUpperCase() + ' — ' + (bestDrug.drug_name || bestDrug.drug_id).toUpperCase() + ' (PREDICTED STATE)';
+
+    console.log('✅ TRIBE brain data updated dynamically from patient analysis');
+  };
+
+  // ── Dynamic patient data binding for Molecular Binding ──
+  window.updateMolBindingWithPatientData = function(rankings) {
+    if (!rankings || rankings.length < 2) return;
+    const worstDrug = rankings[rankings.length - 1];
+    const bestDrug = rankings[0];
+
+    // Update DRUG_DB entries dynamically from real scoring data
+    if (typeof DRUG_DB !== 'undefined') {
+      // Add dynamic entries for non-epilepsy drugs
+      rankings.forEach(r => {
+        const id = r.drug_id;
+        if (!DRUG_DB[id]) {
+          DRUG_DB[id] = {
+            name: r.drug_name || id,
+            formula: '',
+            energy: -((r.breakdown?.efficacy?.score || 50) / 30).toFixed(2),
+            safety: Math.round(r.breakdown?.safety?.score || 50),
+            offTarget: r.off_target?.targets?.length || (r.breakdown?.safety?.score < 70 ? 2 : 0),
+            atoms: DRUG_DB.ltg?.atoms || [],  // Fallback geometry
+            bonds: DRUG_DB.ltg?.bonds || []
+          };
+        }
+      });
+    }
+
+    // Update dropdowns with real drug names
+    const selLeft = document.getElementById('mol-drug-left');
+    const selRight = document.getElementById('mol-drug-right');
+    if (selLeft && rankings.length > 0) {
+      selLeft.innerHTML = rankings.map((r, i) =>
+        '<option value="' + r.drug_id + '"' + (i === rankings.length-1 ? ' selected' : '') + '>' + (r.drug_name || r.drug_id) + '</option>'
+      ).join('');
+    }
+    if (selRight && rankings.length > 0) {
+      selRight.innerHTML = rankings.map((r, i) =>
+        '<option value="' + r.drug_id + '"' + (i === 0 ? ' selected' : '') + '>' + (r.drug_name || r.drug_id) + '</option>'
+      ).join('');
+    }
+
+    console.log('✅ Molecular binding data updated dynamically from patient analysis');
+  };
 
   // ── EEG
   const eegCanvas=document.getElementById('eegStrip');
@@ -3273,6 +4594,37 @@ showPanel = function(idx, btn){
   }
 };
 
+// ── LOADING SCREEN HELPERS ────────────────────────────────────
+function showLoading(message = 'PROCESSING...') {
+  const overlay = document.getElementById('loadingOverlay');
+  const text = document.getElementById('loadingText');
+  if (overlay) {
+    overlay.classList.remove('hidden');
+    overlay.style.display = 'flex';
+  }
+  if (text) {
+    text.textContent = message;
+  }
+}
+
+function hideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    setTimeout(() => {
+      overlay.style.display = 'none';
+    }, 500);
+  }
+}
+
+function updateLoadingMessage(message) {
+  const text = document.getElementById('loadingText');
+  if (text) {
+    text.textContent = message;
+  }
+}
+
+
 // ── AUTO-ADVANCE DEMO ─────────────────────────────────────────
 function autoAdvance(){
   const btn = document.getElementById('btnAutoAdvance');
@@ -3316,20 +4668,154 @@ function triggerJsonUpload() {
     input.click();
 }
 
+function updateDrugComparisonTable(rankings) {
+    console.log("Updating drug comparison table with rankings:", rankings);
+    
+    // Get the comparison table
+    const table = document.querySelector('.comparison-table tbody');
+    if (!table) {
+        console.error("Drug comparison table not found");
+        return;
+    }
+    
+    // Take top 5 drugs
+    const topDrugs = rankings.slice(0, 5);
+    
+    // Update table headers with drug names
+    const headers = document.querySelectorAll('.comparison-table thead th');
+    topDrugs.forEach((drug, idx) => {
+        if (headers[idx + 1]) {
+            headers[idx + 1].textContent = drug.drug_name || drug.label || `Drug ${idx + 1}`;
+            // Mark the top drug as recommended
+            if (idx === 0) {
+                headers[idx + 1].classList.add('recommended');
+            } else {
+                headers[idx + 1].classList.remove('recommended');
+            }
+        }
+    });
+    
+    // Helper function to get score class
+    function getScoreClass(score) {
+        if (score >= 90) return 'score-best';
+        if (score >= 80) return 'score-ok';
+        if (score >= 60) return 'score-warn';
+        return 'score-bad';
+    }
+    
+    // Update table rows
+    const rows = table.querySelectorAll('tr');
+    
+    // Row 0: Composite Score
+    if (rows[0]) {
+        const cells = rows[0].querySelectorAll('td');
+        topDrugs.forEach((drug, idx) => {
+            if (cells[idx + 1]) {
+                const score = Math.round(drug.composite_score || 0);
+                cells[idx + 1].textContent = score;
+                cells[idx + 1].className = 'score-cell ' + getScoreClass(score);
+            }
+        });
+    }
+    
+    // Helper to extract score from either breakdown or scores format
+    function getScore(drug, key) {
+        // Try new breakdown format first: drug.breakdown.{key}.score
+        if (drug.breakdown && drug.breakdown[key] && drug.breakdown[key].score != null) {
+            return drug.breakdown[key].score;
+        }
+        // Try old scores format: drug.scores.{key}
+        if (drug.scores && drug.scores[key] != null) {
+            return drug.scores[key];
+        }
+        return 0;
+    }
+    
+    // Row 1: Efficacy
+    if (rows[1]) {
+        const cells = rows[1].querySelectorAll('td');
+        topDrugs.forEach((drug, idx) => {
+            if (cells[idx + 1]) {
+                const score = Math.round(getScore(drug, 'efficacy'));
+                cells[idx + 1].textContent = score;
+                cells[idx + 1].className = 'score-cell ' + getScoreClass(score);
+            }
+        });
+    }
+    
+    // Row 2: Safety
+    if (rows[2]) {
+        const cells = rows[2].querySelectorAll('td');
+        topDrugs.forEach((drug, idx) => {
+            if (cells[idx + 1]) {
+                const score = Math.round(getScore(drug, 'safety'));
+                cells[idx + 1].textContent = score;
+                cells[idx + 1].className = 'score-cell ' + getScoreClass(score);
+            }
+        });
+    }
+    
+    // Row 3: Genomic Compatibility
+    if (rows[3]) {
+        const cells = rows[3].querySelectorAll('td');
+        topDrugs.forEach((drug, idx) => {
+            if (cells[idx + 1]) {
+                const score = Math.round(getScore(drug, 'genomic'));
+                cells[idx + 1].textContent = score;
+                cells[idx + 1].className = 'score-cell ' + getScoreClass(score);
+            }
+        });
+    }
+    
+    // Row 4: ADMET
+    if (rows[4]) {
+        const cells = rows[4].querySelectorAll('td');
+        topDrugs.forEach((drug, idx) => {
+            if (cells[idx + 1]) {
+                const score = Math.round(getScore(drug, 'admet'));
+                cells[idx + 1].textContent = score;
+                cells[idx + 1].className = 'score-cell ' + getScoreClass(score);
+            }
+        });
+    }
+    
+    // Row 5: Recommendation
+    if (rows[5]) {
+        const cells = rows[5].querySelectorAll('td');
+        topDrugs.forEach((drug, idx) => {
+            if (cells[idx + 1]) {
+                const rec = drug.recommendation || "CONDITIONAL";
+                cells[idx + 1].textContent = rec;
+                cells[idx + 1].className = 'score-cell ' + (rec === "RECOMMENDED" ? 'score-best' : rec === "CONDITIONAL" ? 'score-ok' : 'score-warn');
+            }
+        });
+    }
+    
+    console.log("✅ Drug comparison table updated");
+}
+
 async function handleJsonUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
+    
+    // Show loading screen
+    showLoading('PARSING PATIENT DATA...');
     
     const reader = new FileReader();
     reader.onload = async function(e) {
         try {
             const data = JSON.parse(e.target.result);
+            
+            // Store raw patient data
             window.patientData = data;
             console.log("Loaded Patient JSON:", data);
             
-            // Call backend API to create patient session
+            // Update loading message
+            updateLoadingMessage('ANALYZING PATIENT PROFILE...');
+            
+            // Call NEW backend API endpoint that handles any schema
             try {
-                const response = await fetch('/api/patients/sessions', {
+                const response = await fetch('/api/quantamed/analyze-uploaded', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -3338,12 +4824,57 @@ async function handleJsonUpload(event) {
                 });
                 
                 if (response.ok) {
-                    const sessionData = await response.json();
-                    window.patientSessionId = sessionData.session_id;
-                    console.log("Patient session created:", sessionData.session_id);
+                    const analysisResult = await response.json();
+                    console.log("Analysis result:", analysisResult);
                     
-                    // Update all UI elements with patient data
-                    updatePatientUI(data);
+                    // Extract patient info from response
+                    const patientName = analysisResult.patient_name || "Unknown Patient";
+                    const patientDiagnosis = analysisResult.patient_diagnosis || "Unknown Diagnosis";
+                    const conditionType = analysisResult.condition_type || "Unknown";
+                    const rankings = analysisResult.rankings || [];
+                    
+                    updateLoadingMessage('INITIALIZING QUANTUM ENGINES...');
+                    
+                    // Update UI with patient name and diagnosis
+                    document.querySelectorAll('.dyn-patient-name').forEach(el => el.innerText = patientName);
+                    document.querySelectorAll('.dyn-patient-name-upper').forEach(el => el.innerText = patientName.toUpperCase());
+                    
+                    const dxEl = document.querySelector('.patient-dx');
+                    if (dxEl) {
+                        const age = data.age || data.basic_info?.age || "N/A";
+                        const sex = data.sex || data.gender || data.basic_info?.gender || "N/A";
+                        dxEl.innerHTML = `${patientDiagnosis}<br/>${sex} · ${age}y`;
+                    }
+                    
+                    // Store analysis results globally
+                    window.analysisResult = analysisResult;
+                    window.drugRankings = rankings;
+                    
+                    // Update drug comparison table with rankings
+                    updateDrugComparisonTable(rankings);
+                    
+                    // Update main drug matrix (Panel 7)
+                    if (typeof updateDrugMatrix === 'function') {
+                        updateDrugMatrix(rankings);
+                    }
+                    
+                    // Update patient demographic panels
+                    if (typeof updatePatientUI_NEW === 'function') {
+                        updatePatientUI_NEW(data);
+                    }
+                    
+                    // Update TRIBE brain with real scoring data
+                    if (typeof updateTRIBEWithPatientData === 'function') {
+                        updateTRIBEWithPatientData(rankings, conditionType);
+                    }
+                    
+                    // Update molecular binding with real drug data
+                    if (typeof updateMolBindingWithPatientData === 'function') {
+                        updateMolBindingWithPatientData(rankings);
+                    }
+                    
+                    // Hide loading screen
+                    hideLoading();
                     
                     // Hide selection screen
                     const screen = document.getElementById('entry-choice-screen');
@@ -3353,27 +4884,128 @@ async function handleJsonUpload(event) {
                     const firstBtn = document.querySelector('.step-btn');
                     showPanel(0, firstBtn);
                     
-                    alert(`✅ Patient data loaded successfully!\nSession ID: ${sessionData.session_id}`);
+                    // Show success message with patient details
+                    alert(`✅ Patient Analysis Complete!\n\nPatient: ${patientName}\nDiagnosis: ${patientDiagnosis}\nCondition Type: ${conditionType}\nDrugs Analyzed: ${rankings.length}`);
                 } else {
-                    throw new Error('Failed to create patient session');
+                    const errorData = await response.json();
+                    console.error("API Error Response:", errorData);
+                    hideLoading();
+                    throw new Error(`Failed to analyze patient: ${errorData.detail || 'Unknown error'}`);
                 }
             } catch (apiError) {
                 console.error("API Error:", apiError);
-                // Fallback: Update UI without backend
-                updatePatientUI(data);
-                const screen = document.getElementById('entry-choice-screen');
-                if (screen) screen.style.display = 'none';
-                const firstBtn = document.querySelector('.step-btn');
-                showPanel(0, firstBtn);
-                alert("⚠️ Patient data loaded (offline mode)");
+                hideLoading();
+                alert(`⚠️ Error analyzing patient data:\n${apiError.message}\n\nCheck browser console for details.`);
             }
         } catch (err) {
-            alert("Error parsing JSON file. Please ensure it follows the correct schema.");
-            console.error(err);
+            hideLoading();
+            console.error("JSON Upload Error:", err);
+            console.error("Error stack:", err.stack);
+            alert(`Error parsing JSON file: ${err.message}\n\nCheck browser console for details.`);
         }
     };
     reader.readAsText(file);
 }
+
+// FIXED VERSION - Matches actual JSON structure
+function updatePatientUI_NEW(data) {
+    console.log("🔄 Updating UI with patient data:", data);
+    
+    // Extract patient information - FIXED to match actual JSON structure
+    const basic = data.basic_info || {};
+    const condition = data.condition || {};
+    const genetics = data.genetics || {};
+    const labs = data.labs || {};
+    const currentMeds = data.current_meds || [];
+    
+    // Generate patient name from condition
+    const diagnosis = condition.primary_diagnosis || "Unknown";
+    const subtype = condition.subtype || "";
+    const pName = subtype || (diagnosis.charAt(0).toUpperCase() + diagnosis.slice(1) + " Patient");
+    
+    const age = basic.age || "N/A";
+    const gender = basic.gender || "N/A";
+    const weight = basic.weight_kg || "N/A";
+    
+    // Update patient name everywhere
+    document.querySelectorAll('.dyn-patient-name').forEach(el => {
+        el.innerText = pName;
+        console.log("✅ Updated patient name element:", el);
+    });
+    document.querySelectorAll('.dyn-patient-name-upper').forEach(el => {
+        el.innerText = pName.toUpperCase();
+    });
+    
+    // Update patient diagnosis
+    const dxEl = document.querySelector('.patient-dx');
+    if (dxEl) {
+        const diagnosisText = subtype || diagnosis;
+        dxEl.innerHTML = `${diagnosisText}<br/>${gender} · ${age}y`;
+        console.log("✅ Updated diagnosis:", diagnosisText);
+    }
+    
+    // Update risk badge
+    const riskEl = document.querySelector('.risk-badge');
+    if (riskEl && currentMeds.length > 0) {
+        const currentDrug = currentMeds[0];
+        const drugName = currentDrug.drug_name || currentDrug.name || "Unknown Drug";
+        const duration = currentDrug.duration_months || 0;
+        riskEl.innerHTML = `⚠ PCOS DETECTED<br/>Month ${duration} on ${drugName}`;
+        console.log("✅ Updated risk badge:", drugName);
+    }
+    
+    // Update stat grid items
+    const statGrid = document.querySelector('.stat-grid');
+    if (statGrid) {
+        // Current Drug
+        if (currentMeds.length > 0) {
+            const drug = currentMeds[0];
+            const drugName = drug.drug_name || drug.name || "Unknown";
+            const doseMg = drug.dose_mg || drug.dosage_mg || 0;
+            const duration = drug.duration_months || 0;
+            updateStatItem(statGrid, 0, 'CURRENT DRUG', drugName, `${doseMg}mg/day · ${duration} months`, 'warn');
+            console.log("✅ Updated current drug:", drugName);
+        }
+        
+        // Condition Status
+        const severity = (condition.severity || 'moderate').toLowerCase();
+        const severityDisplay = severity.charAt(0).toUpperCase() + severity.slice(1);
+        updateStatItem(statGrid, 1, 'CONDITION STATUS', severityDisplay, 'Under monitoring', 'warn');
+        
+        // CYP2D6 Status
+        const cyp2d6 = (genetics.CYP2D6 || genetics.cyp2d6 || 'Normal').toLowerCase();
+        const cyp2d6Class = cyp2d6.includes('poor') ? 'danger' : (cyp2d6.includes('intermediate') ? 'warn' : 'good');
+        updateStatItem(statGrid, 2, 'CYP2D6 STATUS', cyp2d6.toUpperCase(), 'Metabolizer status', cyp2d6Class);
+        
+        // CYP2C9 Status
+        const cyp2c9 = (genetics.CYP2C9 || genetics.cyp2c9 || 'Normal').toLowerCase();
+        const cyp2c9Class = cyp2c9.includes('poor') ? 'danger' : (cyp2c9.includes('intermediate') ? 'warn' : 'good');
+        updateStatItem(statGrid, 3, 'CYP2C9 STATUS', cyp2c9.toUpperCase(), 'Metabolizer status', cyp2c9Class);
+        
+        // Hepatic Function
+        const alt = labs.ALT || labs.alt_u_l || 'N/A';
+        const altClass = (typeof alt === 'number' && alt > 40) ? 'warn' : 'good';
+        updateStatItem(statGrid, 4, 'HEPATIC FUNCTION', `ALT ${alt} U/L`, 'Liver enzyme level', altClass);
+        
+        // Weight
+        const bmi = basic.bmi || (weight && basic.height_cm ? (weight / ((basic.height_cm/100)**2)).toFixed(1) : 'N/A');
+        updateStatItem(statGrid, 5, 'WEIGHT', `${weight} kg`, `BMI: ${bmi}`, 'good');
+        
+        // Target Protein
+        const targetProtein = condition.target_protein || data.target_expression?.primary_target || 'Unknown';
+        updateStatItem(statGrid, 6, 'TARGET PROTEIN', targetProtein, 'Primary drug target', 'good');
+        
+        // Candidate Drugs
+        const candidateDrugs = data.candidate_drugs || ['Lamotrigine', 'Levetiracetam', 'Topiramate'];
+        updateStatItem(statGrid, 7, 'CANDIDATE DRUGS', `${candidateDrugs.length} Analyzed`, candidateDrugs.join(' · '), 'cyan');
+    }
+    
+    console.log("✅ Patient UI fully updated for:", pName);
+}
+
+// Replace old function with new one
+updatePatientUI = updatePatientUI_NEW;
+
 
 function updatePatientUI(data) {
     // Extract patient information
@@ -3464,6 +5096,28 @@ function updateStatItem(grid, index, label, value, detail, valueClass = '') {
 }
 
 window.addEventListener('load', () => {
+  // Check if loaded inside iframe
+  if (window.self !== window.top) {
+    const header = document.querySelector('header');
+    if (header) header.style.display = 'none';
+    const tabs = document.querySelector('.mode-tabs');
+    if (tabs) tabs.style.display = 'none';
+    const appContainer = document.querySelector('.app');
+    if (appContainer) appContainer.style.setProperty('margin-top', '20px', 'important');
+    
+    // Switch to requested mode
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    if (mode) switchMode(mode);
+    const step = params.get('step');
+    if (step) {
+      setTimeout(() => {
+        const stepNum = step === 'FINAL' ? 'FINAL' : (step === '6.5' ? 6.5 : parseInt(step));
+        showPanel(stepNum);
+      }, 500);
+    }
+  }
+
   // Minimum 1.5s delay to ensure the loading screen is visible
   setTimeout(() => {
     const loader = document.getElementById('app-loading-screen');
@@ -3474,6 +5128,222 @@ window.addEventListener('load', () => {
       }, 800); // Wait for transition
     }
   }, 1500);
+
+// ═══════════════════════════════════════════════════════════
+// DYNAMIC DRUG MATRIX UPDATE
+// ═══════════════════════════════════════════════════════════
+function updateDrugMatrix(recommendations) {
+  if (!recommendations || recommendations.length === 0) {
+    console.warn("No recommendations to display");
+    return;
+  }
+  
+  console.log("Updating drug matrix with recommendations:", recommendations);
+  
+  // Get the comparison table
+  const table = document.querySelector('.comparison-table tbody');
+  if (!table) {
+    console.error("Drug comparison table not found");
+    return;
+  }
+  
+  // Sort recommendations by composite score (already sorted from backend)
+  const topDrugs = recommendations.slice(0, 5);
+  
+  // Map drug IDs to display names (fallback for epilepsy drugs)
+  const drugMap = {
+    'ltg': 'Lamotrigine',
+    'vpa': 'Valproic Acid',
+    'tpm': 'Topiramate',
+    'lev': 'Levetiracetam',
+    'zns': 'Zonisamide'
+  };
+  
+  // Update table headers
+  const headers = document.querySelectorAll('.comparison-table thead th');
+  topDrugs.forEach((drug, idx) => {
+    if (headers[idx + 1]) {
+      headers[idx + 1].textContent = drug.drug_name || drugMap[drug.drug_id] || drug.label || drug.drug_id;
+      // Mark the top drug as recommended
+      if (idx === 0) {
+        headers[idx + 1].classList.add('recommended');
+      } else {
+        headers[idx + 1].classList.remove('recommended');
+      }
+    }
+  });
+  
+  // Helper function to get score class
+  function getScoreClass(score) {
+    if (score >= 90) return 'score-best';
+    if (score >= 80) return 'score-ok';
+    if (score >= 60) return 'score-warn';
+    return 'score-bad';
+  }
+  
+  // Update table rows
+  const rows = table.querySelectorAll('tr');
+  
+  // Helper to extract score from breakdown or scores format
+  function getBreakdownScore(drug, key) {
+    if (drug.breakdown && drug.breakdown[key] && drug.breakdown[key].score != null) {
+      return drug.breakdown[key].score;
+    }
+    if (drug.scores && drug.scores[key] != null) {
+      return drug.scores[key];
+    }
+    return 0;
+  }
+
+  // Row 0: Quantum Binding / Efficacy
+  if (rows[0]) {
+    const cells = rows[0].querySelectorAll('td');
+    topDrugs.forEach((drug, idx) => {
+      if (cells[idx + 1]) {
+        const score = Math.round(getBreakdownScore(drug, 'efficacy'));
+        cells[idx + 1].textContent = score;
+        cells[idx + 1].className = 'score-cell ' + getScoreClass(score);
+      }
+    });
+  }
+  
+  // Row 1: Safety / Off-Target
+  if (rows[1]) {
+    const cells = rows[1].querySelectorAll('td');
+    topDrugs.forEach((drug, idx) => {
+      if (cells[idx + 1]) {
+        const score = Math.round(getBreakdownScore(drug, 'safety'));
+        cells[idx + 1].textContent = score;
+        cells[idx + 1].className = 'score-cell ' + getScoreClass(score);
+      }
+    });
+  }
+  
+  // Row 2: Genomic Compatibility
+  if (rows[2]) {
+    const cells = rows[2].querySelectorAll('td');
+    topDrugs.forEach((drug, idx) => {
+      if (cells[idx + 1]) {
+        const score = Math.round(getBreakdownScore(drug, 'genomic'));
+        cells[idx + 1].textContent = score;
+        cells[idx + 1].className = 'score-cell ' + getScoreClass(score);
+      }
+    });
+  }
+  
+  // Row 3: ADMET Profile
+  if (rows[3]) {
+    const cells = rows[3].querySelectorAll('td');
+    topDrugs.forEach((drug, idx) => {
+      if (cells[idx + 1]) {
+        const score = Math.round(getBreakdownScore(drug, 'admet'));
+        cells[idx + 1].textContent = score;
+        cells[idx + 1].className = 'score-cell ' + getScoreClass(score);
+      }
+    });
+  }
+  
+  // Row 4: DDI Burden
+  if (rows[4]) {
+    const cells = rows[4].querySelectorAll('td');
+    topDrugs.forEach((drug, idx) => {
+      if (cells[idx + 1]) {
+        const score = Math.round(getBreakdownScore(drug, 'ddi'));
+        cells[idx + 1].textContent = score;
+        cells[idx + 1].className = 'score-cell ' + getScoreClass(score);
+      }
+    });
+  }
+  
+  // Row 5: Data Sources
+  if (rows[5]) {
+    const cells = rows[5].querySelectorAll('td');
+    topDrugs.forEach((drug, idx) => {
+      if (cells[idx + 1]) {
+        const sources = (drug.data_sources || []).length;
+        cells[idx + 1].textContent = sources + ' sources';
+        cells[idx + 1].className = 'score-cell score-ok';
+      }
+    });
+  }
+  
+  // Row 6: Composite Score (already 0-100 scale from backend)
+  if (rows[6]) {
+    const cells = rows[6].querySelectorAll('td');
+    topDrugs.forEach((drug, idx) => {
+      if (cells[idx + 1]) {
+        const score = Math.round(drug.composite_score || 0);
+        cells[idx + 1].textContent = `${score} / 100`;
+        cells[idx + 1].style.color = idx === 0 ? 'var(--green)' : (score >= 70 ? 'var(--cyan)' : 'var(--red)');
+      }
+    });
+  }
+  
+  // Row 7: Verdict
+  if (rows[7]) {
+    const cells = rows[7].querySelectorAll('td');
+    const patientName = (window.patientData?.basic_info?.name || 'PATIENT').toUpperCase();
+    
+    topDrugs.forEach((drug, idx) => {
+      if (cells[idx + 1]) {
+        const score = drug.composite_score * 100;
+        let badge = '';
+        
+        if (idx === 0 && score >= 75) {
+          badge = '<span class="badge-rec">RECOMMENDED</span>';
+        } else if (score >= 70) {
+          badge = '<span class="badge-ok">ACCEPTABLE</span>';
+        } else if (score >= 50) {
+          badge = '<span class="badge-no">CAUTION</span>';
+        } else {
+          badge = `<span class="badge-no">NOT FOR ${patientName}</span>`;
+        }
+        
+        cells[idx + 1].innerHTML = badge;
+      }
+    });
+  }
+  
+  console.log("✅ Drug matrix updated successfully");
+}
+
+// Also update when file is uploaded
+function handlePatientFileUpload(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const patientData = JSON.parse(e.target.result);
+      window.patientData = patientData;
+      
+      // Update UI
+      if (typeof updatePatientUI === 'function') {
+        updatePatientUI(patientData);
+      }
+      
+      // Fetch and update recommendations
+      if (typeof fetchDynamicRecommendations === 'function') {
+          fetchDynamicRecommendations(patientData);
+      }
+      
+      // Hide entry screen and show dashboard
+      const entryScreen = document.getElementById('entry-choice-screen');
+      if (entryScreen) entryScreen.style.display = 'none';
+      
+      // Show first panel
+      const firstBtn = document.querySelector('.step-btn');
+      if (typeof showPanel === 'function') {
+        showPanel(0, firstBtn);
+      }
+      
+      console.log("✅ Patient file uploaded and processed");
+    } catch (err) {
+      console.error("Failed to parse patient file:", err);
+      alert("Error: Invalid patient JSON file");
+    }
+  };
+  reader.readAsText(file);
+}
+
 });
 </script>
 </body>

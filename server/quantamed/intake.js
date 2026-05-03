@@ -309,6 +309,9 @@ function finishIntake() {
   document.querySelectorAll('.dyn-patient-name').forEach(el => el.innerText = pName);
   document.querySelectorAll('.dyn-patient-name-upper').forEach(el => el.innerText = pName.toUpperCase());
 
+  // Fetch personalized drug recommendations
+  fetchDynamicRecommendations(patientData);
+
   // Automatically jump to the first panel of the simulation
   if (typeof showPanel === 'function') {
       const firstBtn = document.querySelector('.step-btn');
@@ -320,6 +323,39 @@ function finishIntake() {
   if (entryScreen) entryScreen.style.display = 'none';
 
   console.log("Intake finished for", pName);
+}
+
+function fetchDynamicRecommendations(patientData) {
+  // Call the backend API to get personalized recommendations
+  fetch('/api/quantamed/recommendations/dynamic', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patientData)
+  })
+  .then(r => r.json())
+  .then(data => {
+    console.log("Received dynamic recommendations:", data);
+    window.drugRecommendations = data.recommendations;
+    window.patientCondition = data.condition;
+    
+    // Update the drug matrix panel with personalized data
+    if (typeof updateDrugMatrix === 'function') {
+      updateDrugMatrix(data.recommendations);
+    }
+    // Update TRIBE brain with real data
+    if (typeof updateTRIBEWithPatientData === 'function') {
+      updateTRIBEWithPatientData(data.recommendations, data.condition);
+    }
+    // Update molecular binding with real data
+    if (typeof updateMolBindingWithPatientData === 'function') {
+      updateMolBindingWithPatientData(data.recommendations);
+    }
+  })
+  .catch(err => {
+    console.error("Failed to fetch recommendations:", err);
+    // Fallback to default recommendations
+    window.drugRecommendations = null;
+  });
 }
 
 window.addEventListener('DOMContentLoaded', () => {

@@ -35,7 +35,7 @@ from pydantic import BaseModel
 from environment.env import DrugTriageEnv
 from environment.models import DrugAction
 from environment.tasks import TASKS
-from .quantamed_sim import (
+from server.quantamed_sim import (
     compute_pk_curve,
     get_quantamed_candidates,
     get_quantamed_patient_profiles,
@@ -45,23 +45,23 @@ from .quantamed_sim import (
     quantum_protein_folding_payload,
     vqe_demo_payload,
 )
-from .pdf_report import generate_quantamed_pdf
-from .protein_structure import (
+from server.pdf_report import generate_quantamed_pdf
+from server.protein_structure import (
     model_protein_from_fasta,
     get_example_sequences,
 )
-from .protein_dynamics import (
+from server.protein_dynamics import (
     analyze_protein_dynamics,
 )
-from .patient_schema import (
+from server.patient_schema import (
     build_patient_from_dict,
     GABI_PRESET,
 )
-from .scoring_engine import (
+from server.scoring_engine import (
     run_full_analysis,
     pipeline_pk,
 )
-from .kaggle_data import (
+from server.kaggle_data import (
     get_drug_properties,
     get_all_drug_ids,
     get_tox21_profile,
@@ -345,9 +345,15 @@ async def protein_dynamics_page() -> FileResponse:
     return FileResponse("server/quantamed/protein_dynamics.html", media_type="text/html")
 
 @app.get("/quantamed", response_class=FileResponse)
+@app.get("/quantamed/", response_class=FileResponse)
 async def quantamed_dashboard() -> FileResponse:
     """Serve the Foldables interactive demo page."""
-    return FileResponse("server/quantamed/index.html", media_type="text/html")
+    response = FileResponse("server/quantamed/index.html", media_type="text/html")
+    # Force browser to reload HTML (no caching)
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 # Serve static assets inside the quantamed folder (three.min.js, brain.obj, etc.)
@@ -423,6 +429,57 @@ async def quantamed_recommendations(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return JSONResponse(payload)
+
+
+@app.post("/api/quantamed/recommendations/dynamic")
+async def quantamed_recommendations_dynamic(patient_data: dict) -> JSONResponse:
+    """Generate personalized drug recommendations from uploaded patient data."""
+    try:
+        from server.quantamed_sim import recommend_for_dynamic_patient
+        payload = recommend_for_dynamic_patient(patient_data)
+        return JSONResponse(payload)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/quantamed/analyze-uploaded")
+async def quantamed_analyze_uploaded(patient_data: dict) -> JSONResponse:
+    """
+    Analyze uploaded patient JSON file with full scoring engine.
+    Accepts any schema (flat or nested) and returns comprehensive drug rankings.
+    """
+    try:
+        # Build PatientProfile from uploaded data (handles both flat and nested schemas)
+        profile = build_patient_from_dict(patient_data)
+        
+        # Run full analysis with condition-specific drug candidates
+        analysis_result = run_full_analysis(profile)
+        
+        # Extract patient name and diagnosis for frontend display
+        patient_name = patient_data.get("name", patient_data.get("patientId", "Unknown Patient"))
+        
+        # Get diagnosis from either flat or nested schema
+        if patient_data.get("conditions"):
+            patient_diagnosis = patient_data["conditions"][0].get("name", "Unknown Diagnosis")
+        elif patient_data.get("condition"):
+            patient_diagnosis = patient_data["condition"].get("primary_diagnosis", "Unknown Diagnosis")
+        else:
+            patient_diagnosis = analysis_result.get("diagnosis", "Unknown Diagnosis")
+        
+        # Add patient identification to response
+        analysis_result["patient_name"] = patient_name
+        analysis_result["patient_diagnosis"] = patient_diagnosis
+        analysis_result["patient_id"] = patient_data.get("patientId", "")
+        
+        return JSONResponse(analysis_result)
+    except Exception as exc:
+        import traceback
+        error_detail = {
+            "error": str(exc),
+            "type": type(exc).__name__,
+            "traceback": traceback.format_exc()
+        }
+        raise HTTPException(status_code=400, detail=error_detail) from exc
 
 
 class OllamaRequest(BaseModel):
@@ -680,12 +737,12 @@ async def protein_examples() -> JSONResponse:
     return JSONResponse(get_example_sequences())
 
 
-frontend_dir = os.path.join(os.path.dirname(__file__), "quantamed")
-if os.path.exists(frontend_dir):
+frontend_out_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "out")
+if os.path.exists(frontend_out_dir):
     app.mount(
         "/",
         StaticFiles(
-            directory=frontend_dir,
+            directory=frontend_out_dir,
             html=True),
         name="frontend")
 

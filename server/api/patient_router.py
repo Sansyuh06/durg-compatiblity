@@ -66,6 +66,20 @@ async def create_patient_session(patient_data: Dict[str, Any]):
     try:
         result = create_patient_use_case.execute(patient_data)
         logger.info(f"Created patient session: {result['session_id']}")
+        
+        # Run full analysis pipeline automatically
+        from server.patient_schema import build_patient_from_dict
+        from server.scoring_engine import run_full_analysis
+        
+        try:
+            profile = build_patient_from_dict(patient_data)
+            analysis = run_full_analysis(profile)
+            result["analysis"] = analysis
+            logger.info(f"Completed analysis for session {result['session_id']}")
+        except Exception as e:
+            logger.error(f"Analysis failed: {e}")
+            result["analysis"] = {"error": str(e), "rankings": []}
+        
         return result
     except ValueError as e:
         logger.error(f"Validation error: {e}")
@@ -86,6 +100,33 @@ async def upload_patient_json(file: UploadFile = File(...)):
         
         result = create_patient_use_case.execute(patient_data)
         logger.info(f"Created patient session from upload: {result['session_id']}")
+        
+        # Run full analysis pipeline automatically
+        from server.patient_schema import build_patient_from_dict
+        from server.scoring_engine import run_full_analysis
+        
+        try:
+            profile = build_patient_from_dict(patient_data)
+            analysis = run_full_analysis(profile)
+            result["analysis"] = analysis
+            result["rankings"] = analysis.get("rankings", [])
+            logger.info(f"Completed analysis for uploaded session {result['session_id']}")
+        except Exception as e:
+            logger.error(f"Analysis failed: {e}")
+            result["analysis"] = {"error": str(e), "rankings": []}
+            result["rankings"] = []
+        
+        # Add patient name and diagnosis to response for frontend display
+        result["patient_name"] = patient_data.get("name",
+            patient_data.get("patientId", "Unknown Patient"))
+        
+        if patient_data.get("conditions"):
+            result["patient_diagnosis"] = patient_data["conditions"][0].get("name", "Unknown Diagnosis")
+        elif patient_data.get("condition"):
+            result["patient_diagnosis"] = patient_data["condition"].get("primary_diagnosis", "Unknown Diagnosis")
+        else:
+            result["patient_diagnosis"] = analysis.get("diagnosis", "Unknown Diagnosis") if 'analysis' in result and isinstance(result.get("analysis"), dict) else "Unknown Diagnosis"
+        
         return result
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=400, detail=f"Invalid JSON: {str(e)}")
@@ -201,14 +242,14 @@ async def list_patient_sessions():
     List all patient sessions
     """
     try:
-        patients = patient_repository.find_all()
+        patients = list(patient_repository.find_all())  # Ensure it's a list
         return {
             "total": len(patients),
             "sessions": [
                 {
                     "session_id": p.session_id,
                     "age": p.basic_info.age,
-                    "gender": p.basic_info.gender.value,
+                    "gender": getattr(p.basic_info.gender, 'value', str(p.basic_info.gender)),
                     "condition": p.condition.primary_diagnosis,
                     "created_at": p.created_at
                 }

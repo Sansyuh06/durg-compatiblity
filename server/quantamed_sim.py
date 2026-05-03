@@ -449,7 +449,10 @@ def _off_target_penalty(
     penalty = 0.0
 
     patient_sex = patient_profile.get("sex", "unknown").lower()
-    patient_age = patient_profile.get("age", 50)
+    try:
+        patient_age = int(patient_profile.get("age", 50))
+    except (ValueError, TypeError):
+        patient_age = 50
     patient_condition = patient_profile.get("condition", "").lower()
 
     for protein, value in off_target.items():
@@ -639,6 +642,88 @@ def recommend_quantamed_candidates(patient_id: str) -> dict[str, Any]:
         "condition": patient["condition"],
         "recommendations": ranked,
     }
+
+
+def create_dynamic_patient_profile(patient_data: dict[str, Any]) -> str:
+    """Create a dynamic patient profile from uploaded JSON data and return patient_id."""
+    # Extract key information from patient data
+    basic_info = patient_data.get("basic_info", {})
+    condition = patient_data.get("condition", {})
+    genetics = patient_data.get("genetics", {})
+    labs = patient_data.get("labs", {})
+    medications = patient_data.get("medications", {})
+    
+    # Generate a unique patient ID based on condition
+    primary_dx = condition.get("primary_diagnosis", "unknown").lower().replace(" ", "_")
+    patient_id = f"dynamic_{primary_dx}"
+    
+    # Map genetics to CYP phenotypes
+    cyp2c9 = genetics.get("cyp2c9", "normal").lower()
+    cyp2d6 = genetics.get("cyp2d6", "normal").lower()
+    
+    # Determine liver function from labs
+    try:
+        alt = float(labs.get("alt_u_l", labs.get("ALT", 0)) or 0)
+    except (ValueError, TypeError):
+        alt = 0.0
+    liver_function = "normal"
+    if alt > 40:
+        liver_function = "mildly_elevated" if alt < 100 else "severely_elevated"
+    
+    # Extract current medications (handles both string and array formats)
+    raw_meds = patient_data.get("current_meds", medications.get("current", []))
+    current_drug = None
+    current_dose = 0
+    if isinstance(raw_meds, str) and raw_meds:
+        # Intake wizard sends "Valproic Acid (1000mg)" as a string
+        med_lower = raw_meds.lower()
+        if "valpro" in med_lower:
+            current_drug = "valproic_acid"
+        elif "lamotrig" in med_lower:
+            current_drug = "lamotrigine"
+        elif "levetiracetam" in med_lower:
+            current_drug = "levetiracetam"
+        import re
+        dose_match = re.search(r'(\d+)\s*mg', raw_meds, re.I)
+        if dose_match:
+            current_dose = int(dose_match.group(1))
+    elif isinstance(raw_meds, list) and raw_meds:
+        first_med = raw_meds[0]
+        current_drug = first_med.get("name", "").lower().replace(" ", "_")
+        current_dose = first_med.get("dose_mg", 0)
+    
+    # Create patient profile
+    profile = {
+        "patient_id": patient_id,
+        "name": basic_info.get("name", "Patient"),
+        "condition": condition.get("primary_diagnosis", "Unknown"),
+        "sex": basic_info.get("gender", "unknown").lower(),
+        "age": int(basic_info.get("age", 30)) if str(basic_info.get("age", "30")).isdigit() else 30,
+        "weight_kg": basic_info.get("weight_kg", 70),
+        "cyp_genotype": cyp2c9,
+        "cyp_variant": f"CYP2C9 {cyp2c9} metabolizer",
+        "cyp2d6": cyp2d6,
+        "cyp2d6_variant": f"CYP2D6 {cyp2d6} metabolizer",
+        "co_med": "none",
+        "current_drug": current_drug,
+        "current_dose_mg": current_dose,
+        "months_on_therapy": 0,
+        "liver_function": liver_function,
+        "alt_u_l": alt,
+        "target_protein": "Nav1.2",  # Default, could be mapped from condition
+        "notes": f"Dynamic patient profile created from uploaded data. Condition: {condition.get('primary_diagnosis', 'Unknown')}"
+    }
+    
+    # Store in global profiles
+    _PATIENT_PROFILES[patient_id] = profile
+    
+    return patient_id
+
+
+def recommend_for_dynamic_patient(patient_data: dict[str, Any]) -> dict[str, Any]:
+    """Generate recommendations for a dynamically created patient profile."""
+    patient_id = create_dynamic_patient_profile(patient_data)
+    return recommend_quantamed_candidates(patient_id)
 
 
 def get_quantamed_drug_summary(

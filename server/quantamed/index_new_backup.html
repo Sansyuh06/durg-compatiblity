@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QuantaMed — Quantum Protein Folding & Drug Discovery Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="/quantamed/static/three.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Dark quantum theme */
+  --bg-primary: #0A0E1A;
+  --bg-secondary: #0F1420;
+  --bg-tertiary: #151B2B;
+  --bg-card: rgba(21, 27, 43, 0.6);
+  --bg-card-hover: rgba(21, 27, 43, 0.8);
+  
+  /* Borders & dividers */
+  --border-subtle: rgba(99, 179, 237, 0.08);
+  --border-medium: rgba(99, 179, 237, 0.15);
+  --border-strong: rgba(99, 179, 237, 0.25);
+  
+  /* Quantum colors */
+  --quantum-blue: #63B3ED;
+  --quantum-cyan: #4FD1C5;
+  --quantum-purple: #9F7AEA;
+  --quantum-pink: #F687B3;
+  --quantum-green: #48BB78;
+  --quantum-orange: #ED8936;
+  
+  /* Status colors */
+  --success: #48BB78;
+  --warning: #ECC94B;
+  --error: #F56565;
+  --info: #4299E1;
+  
+  /* Text */
+  --text-primary: #E2E8F0;
+  --text-secondary: #A0AEC0;
+  --text-tertiary: #718096;
+  --text-white: #FFFFFF;
+  
+  /* Glows */
+  --glow-blue: rgba(99, 179, 237, 0.2);
+  --glow-cyan: rgba(79, 209, 197, 0.2);
+  --glow-purple: rgba(159, 122, 234, 0.2);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Animated quantum background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 179, 237, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 60% at 0% 100%, rgba(159, 122, 234, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 60% at 100% 100%, rgba(79, 209, 197, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: bgPulse 20s ease-in-out infinite;
+}
+
+@keyframes bgPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Quantum grid pattern */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.3;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HEADER - Glassmorphic sticky navigation
+   ═══════════════════════════════════════════════════════════════ */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(10, 14, 26, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border-medium);
+  padding: 0 48px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--quantum-blue), var(--quantum-cyan));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--bg-primary);
+  box-shadow: 0 4px 12px var(--glow-blue);
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text-white);
+  letter-spacing: -0.5px;
+}
+
+.logo-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-secondary);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+}
+
+.nav-tab {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+}
+
+.nav-tab:hover {
+  color: var(--text-primary);
+  background: rgba(99, 179, 237, 0.1);
+}
+
+.nav-tab.active {
+  color: var(--text-white);
+  background: var(--quantum-blue);
+  box-shadow: 0 2px 8px var(--glow-blue);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 12px var(--success);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.status-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN CONTAINER
+   ═══════════════════════════════════════════════════════════════ */
+.main-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 48px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HERO SECTION - Patient Upload
+   ═══════════════════════════════════════════════════════════════ */
+.hero-section {
+  margin-bottom: 48px;
+}
+
+.hero-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-medium);
+  border-radius: 24px;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: radial-gradient(ellipse 100% 100% at 50% 0%, var(--glow-blue), transparent);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title {
+  font-size: 36px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--quantum-blue), var(--quantum-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+  letter-spacing: -1px;
+}
+
+.hero-description {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  max-width: 600px;
+}
+
+.upload-zone {
+  background: var(--bg-secondary);
+  border: 2px dashed var(--border-medium);
+  border-radius: 16px;
+  padding: 48px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-zone:hover {
+  border-color: var(--quantum-blue);
+  background: rgba(99, 179, 237, 0.05);
+}
+
+.upload-zone.dragover {
+  border-color: var(--quantum-cyan);
+  background: rgba(79, 209, 197, 0.1);
+  transform: scale(1.02);
+}
+
+.upload-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, var(--quantum-blue), var(--quantum-purple));
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: 0 8px 24px var(--glow-blue);
+}
+
+.upload-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.upload-subtitle {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  margin-bottom: 24px;
+}
+
+.upload-button {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, var(--quantum-blue), var(--quantum-cyan));
+  color: var(--text-white);
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px var(--glow-blue);
+}
+
+.upload-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--glow-blue);
+}
+
+.upload-button:active {
+  transform: translateY(0);
+}
+
+#fileInput {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PATIENT INFO CARD
+   ═══════════════════════════════════════════════════════════════ */
+.patient-info-section {
+  margin-bottom: 48px;
+  display: none;
+}
+
+.patient-info-section.active {
+  display: block;
+  animation: fadeInUp 0.6s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.patient-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-medium);
+  border-radius: 20px;
+  padding: 32px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.patient-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--quantum-purple), var(--quantum-pink));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--text-white);
+  box-shadow: 0 8px 24px var(--glow-purple);
+}
+
+.patient-details {
+  flex: 1;
+}
+
+.patient-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 24px;
+}
+
+.patient-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-white);
+  margin-bottom: 8px;
+}
+
+.patient-diagnosis {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(159, 122, 234, 0.15);
+  border: 1px solid rgba(159, 122, 234, 0.3);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--quantum-purple);
+}
+
+.patient-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.stat-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DRUG RECOMMENDATIONS SECTION
+   ═══════════════════════════════════════════════════════════════ */
+.recommendations-section {
+  margin-bottom: 48px;
+  display: none;
+}
+
+.recommendations-section.active {
+  display: block;
+  animation: fadeInUp 0.6s ease 0.2s both;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-white);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--quantum-cyan), var(--quantum-green));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.drug-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+.drug-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-medium);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.drug-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--quantum-blue), var(--quantum-cyan));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.drug-card:hover {
+  border-color: var(--quantum-blue);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(99, 179, 237, 0.2);
+}
+
+.drug-card:hover::before {
+  opacity: 1;
+}
+
+.drug-rank {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--quantum-blue), var(--quantum-purple));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-white);
+  box-shadow: 0 4px 12px var(--glow-blue);
+}
+
+.drug-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-white);
+  margin-bottom: 12px;
+  padding-right: 50px;
+}
+
+.drug-score-container {
+  margin-bottom: 16px;
+}
+
+.drug-score-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.score-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--quantum-cyan);
+}
+
+.drug-score-bar {
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.drug-score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--quantum-blue), var(--quantum-cyan));
+  border-radius: 4px;
+  transition: width 1s ease;
+  box-shadow: 0 0 12px var(--glow-cyan);
+}
+
+.drug-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.metric-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.metric-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROTEIN FOLDING VISUALIZATION
+   ═══════════════════════════════════════════════════════════════ */
+.protein-section {
+  margin-bottom: 48px;
+  display: none;
+}
+
+.protein-section.active {
+  display: block;
+  animation: fadeInUp 0.6s ease 0.4s both;
+}
+
+.protein-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-medium);
+  border-radius: 20px;
+  padding: 32px;
+}
+
+.protein-viewer {
+  width: 100%;
+  height: 600px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+#proteinCanvas {
+  width: 100%;
+  height: 100%;
+}
+
+.protein-controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.control-button {
+  padding: 10px 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-button:hover {
+  border-color: var(--quantum-blue);
+  background: rgba(99, 179, 237, 0.1);
+  color: var(--text-white);
+}
+
+.control-button.active {
+  background: var(--quantum-blue);
+  border-color: var(--quantum-blue);
+  color: var(--text-white);
+  box-shadow: 0 4px 12px var(--glow-blue);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOADING STATES
+   ═══════════════════════════════════════════════════════════════ */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 26, 0.9);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-overlay.active {
+  display: flex;
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  border: 4px solid var(--border-medium);
+  border-top-color: var(--quantum-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.loading-subtext {
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════════════ */
+.hidden {
+  display: none !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* Selection */
+::selection {
+  background: var(--glow-blue);
+  color: var(--text-white);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     HEADER
+     ═══════════════════════════════════════════════════════════════ -->
+<header>
+  <div class="header-left">
+    <div class="logo-container">
+      <div class="logo-icon">Q</div>
+      <div class="logo-text">
+        <div class="logo-title">QuantaMed</div>
+        <div class="logo-subtitle">Quantum Drug Discovery</div>
+      </div>
+    </div>
+    
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="analysis">Analysis</button>
+      <button class="nav-tab" data-tab="protein">Protein Folding</button>
+      <button class="nav-tab" data-tab="quantum">Quantum Sim</button>
+    </div>
+  </div>
+  
+  <div class="header-right">
+    <div class="status-indicator">
+      <div class="status-dot"></div>
+      <span class="status-text">Quantum Backend Online</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MAIN CONTAINER
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="main-container">
+  
+  <!-- HERO SECTION - Patient Upload -->
+  <section class="hero-section">
+    <div class="hero-card">
+      <div class="hero-content">
+        <h1 class="hero-title">Quantum-Enhanced Drug Discovery</h1>
+        <p class="hero-description">
+          Upload patient data to analyze drug compatibility using quantum protein folding simulations and AI-powered pharmacogenomics.
+        </p>
+        
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-icon">📄</div>
+          <div class="upload-title">Upload Patient Data</div>
+          <div class="upload-subtitle">Drag & drop JSON file or click to browse</div>
+          <button class="upload-button" onclick="document.getElementById('fileInput').click()">
+            Select File
+          </button>
+          <input type="file" id="fileInput" accept=".json" />
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- PATIENT INFO SECTION -->
+  <section class="patient-info-section" id="patientInfoSection">
+    <div class="patient-card">
+      <div class="patient-avatar" id="patientAvatar">?</div>
+      <div class="patient-details">
+        <div class="patient-header">
+          <div>
+            <h2 class="patient-name" id="patientName">Loading...</h2>
+            <div class="patient-diagnosis" id="patientDiagnosis">
+              <span>🔬</span>
+              <span id="diagnosisText">Analyzing...</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="patient-stats">
+          <div class="stat-item">
+            <div class="stat-label">Age</div>
+            <div class="stat-value" id="patientAge">--</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Sex</div>
+            <div class="stat-value" id="patientSex">--</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Condition Type</div>
+            <div class="stat-value" id="conditionType">--</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Analysis Status</div>
+            <div class="stat-value" style="color: var(--success);">✓ Complete</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- DRUG RECOMMENDATIONS SECTION -->
+  <section class="recommendations-section" id="recommendationsSection">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="section-icon">💊</span>
+        Drug Recommendations
+      </h2>
+    </div>
+    
+    <div class="drug-grid" id="drugGrid">
+      <!-- Drug cards will be dynamically inserted here -->
+    </div>
+  </section>
+  
+  <!-- PROTEIN FOLDING SECTION -->
+  <section class="protein-section" id="proteinSection">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="section-icon">🧬</span>
+        Protein Folding Simulation
+      </h2>
+    </div>
+    
+    <div class="protein-card">
+      <div class="protein-viewer">
+        <canvas id="proteinCanvas"></canvas>
+      </div>
+      
+      <div class="protein-controls">
+        <button class="control-button active">Ribbon View</button>
+        <button class="control-button">Surface View</button>
+        <button class="control-button">Cartoon View</button>
+        <button class="control-button">Ball & Stick</button>
+        <button class="control-button">RMSD Analysis</button>
+        <button class="control-button">RMSF Analysis</button>
+        <button class="control-button">PCA Clustering</button>
+      </div>
+    </div>
+  </section>
+  
+</div>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-content">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Analyzing Patient Data</div>
+    <div class="loading-subtext">Running quantum simulations...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+// ═══════════════════════════════════════════════════════════════
+// FILE UPLOAD HANDLING
+// ═══════════════════════════════════════════════════════════════
+const fileInput = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+const loadingOverlay = document.getElementById('loadingOverlay');
+
+// File input change handler
+fileInput.addEventListener('change', handleFileSelect);
+
+// Drag and drop handlers
+uploadZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+  uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    handleFile(files[0]);
+  }
+});
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) {
+    handleFile(file);
+  }
+}
+
+async function handleFile(file) {
+  if (!file.name.endsWith('.json')) {
+    alert('Please upload a JSON file');
+    return;
+  }
+  
+  try {
+    // Show loading overlay
+    loadingOverlay.classList.add('active');
+    
+    // Read file content
+    const fileContent = await file.text();
+    const patientData = JSON.parse(fileContent);
+    
+    // Send to backend API
+    const response = await fetch('/api/quantamed/analyze-uploaded', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: fileContent
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    // Hide loading overlay
+    loadingOverlay.classList.remove('active');
+    
+    // Display results
+    displayPatientInfo(result);
+    displayDrugRecommendations(result.rankings);
+    
+  } catch (error) {
+    console.error('Error processing file:', error);
+    loadingOverlay.classList.remove('active');
+    alert('Error processing patient data: ' + error.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DISPLAY PATIENT INFORMATION
+// ═══════════════════════════════════════════════════════════════
+function displayPatientInfo(data) {
+  const patientInfoSection = document.getElementById('patientInfoSection');
+  const patientName = document.getElementById('patientName');
+  const patientAvatar = document.getElementById('patientAvatar');
+  const diagnosisText = document.getElementById('diagnosisText');
+  const patientAge = document.getElementById('patientAge');
+  const patientSex = document.getElementById('patientSex');
+  const conditionType = document.getElementById('conditionType');
+  
+  // Extract patient info
+  const name = data.patient_name || 'Unknown Patient';
+  const diagnosis = data.patient_diagnosis || 'No diagnosis available';
+  const condition = data.condition_type || 'Unknown';
+  
+  // Update UI
+  patientName.textContent = name;
+  diagnosisText.textContent = diagnosis;
+  conditionType.textContent = condition;
+  
+  // Set avatar initial
+  const initial = name.charAt(0).toUpperCase();
+  patientAvatar.textContent = initial;
+  
+  // Try to extract age and sex from patient data
+  // This would need to be passed from the backend
+  patientAge.textContent = '--';
+  patientSex.textContent = '--';
+  
+  // Show patient info section
+  patientInfoSection.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DISPLAY DRUG RECOMMENDATIONS
+// ═══════════════════════════════════════════════════════════════
+function displayDrugRecommendations(rankings) {
+  const recommendationsSection = document.getElementById('recommendationsSection');
+  const drugGrid = document.getElementById('drugGrid');
+  
+  // Clear existing cards
+  drugGrid.innerHTML = '';
+  
+  // Create drug cards
+  rankings.forEach((drug, index) => {
+    const card = createDrugCard(drug, index + 1);
+    drugGrid.appendChild(card);
+  });
+  
+  // Show recommendations section
+  recommendationsSection.classList.add('active');
+  
+  // Show protein section
+  document.getElementById('proteinSection').classList.add('active');
+}
+
+function createDrugCard(drug, rank) {
+  const card = document.createElement('div');
+  card.className = 'drug-card';
+  
+  const score = Math.round(drug.total_score * 100);
+  const efficacy = Math.round((drug.efficacy_score || 0.8) * 100);
+  const safety = Math.round((drug.safety_score || 0.85) * 100);
+  
+  card.innerHTML = `
+    <div class="drug-rank">#${rank}</div>
+    <h3 class="drug-name">${drug.drug_name}</h3>
+    
+    <div class="drug-score-container">
+      <div class="drug-score-label">
+        <span class="score-text">Overall Score</span>
+        <span class="score-value">${score}%</span>
+      </div>
+      <div class="drug-score-bar">
+        <div class="drug-score-fill" style="width: ${score}%"></div>
+      </div>
+    </div>
+    
+    <div class="drug-metrics">
+      <div class="metric-item">
+        <div class="metric-label">Efficacy</div>
+        <div class="metric-value">${efficacy}%</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-label">Safety</div>
+        <div class="metric-value">${safety}%</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-label">Genetic Match</div>
+        <div class="metric-value">${Math.round((drug.genetic_score || 0.9) * 100)}%</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-label">Interactions</div>
+        <div class="metric-value">${drug.interaction_count || 0}</div>
+      </div>
+    </div>
+  `;
+  
+  return card;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NAVIGATION TABS
+// ═══════════════════════════════════════════════════════════════
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    // Remove active class from all tabs
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    
+    // Add active class to clicked tab
+    tab.classList.add('active');
+    
+    // Handle tab switching logic here
+    const tabName = tab.dataset.tab;
+    console.log('Switched to tab:', tabName);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// PROTEIN VISUALIZATION (Placeholder)
+// ═══════════════════════════════════════════════════════════════
+function initProteinVisualization() {
+  const canvas = document.getElementById('proteinCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Set canvas size
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  
+  // Draw placeholder
+  ctx.fillStyle = '#0F1420';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.fillStyle = '#63B3ED';
+  ctx.font = '16px Inter';
+  ctx.textAlign = 'center';
+  ctx.fillText('Protein visualization will appear here', canvas.width / 2, canvas.height / 2);
+}
+
+// Initialize on load
+window.addEventListener('load', () => {
+  initProteinVisualization();
+});
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  initProteinVisualization();
+});
+
+console.log('QuantaMed Platform Initialized');
+</script>
+
+</body>
+</html>

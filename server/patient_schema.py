@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict
 from typing import Any
+import re
 
 
 # ── Clinical Thresholds ────────────────────────────────────────────────
@@ -357,8 +358,189 @@ class PatientProfile:
 
 # ── Factory: Build from raw JSON ──────────────────────────────────────
 
+def _extract_phenotype_status(genetics_string: str) -> str:
+    """Extract metabolizer phenotype from genetics string like '*1/*4 (Intermediate Metabolizer)'"""
+    if not genetics_string or not isinstance(genetics_string, str):
+        return "normal"
+    
+    genetics_lower = genetics_string.lower()
+    
+    if "poor" in genetics_lower:
+        return "poor"
+    elif "intermediate" in genetics_lower:
+        return "intermediate"
+    elif "rapid" in genetics_lower and "ultra" not in genetics_lower:
+        return "rapid"
+    elif "ultrarapid" in genetics_lower or "ultra" in genetics_lower:
+        return "ultrarapid"
+    elif "normal" in genetics_lower or "wild" in genetics_lower:
+        return "normal"
+    
+    return "normal"
+
+
+def _normalize_flat_patient_schema(data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Convert flat patient JSON schema to nested schema expected by build_patient_from_dict()
+    Handles uploaded JSON files with structure: {age, sex, conditions[], currentMedications[], etc.}
+    """
+    # If already nested, return as-is
+    if data.get("basic_info") is not None:
+        return data
+    
+    normalized = {}
+    
+    # Basic info normalization
+    age = data.get("age", 0)
+    sex = data.get("sex", data.get("gender", "other"))
+    # Normalize gender: M->male, F->female
+    if sex.upper() == "M":
+        sex = "male"
+    elif sex.upper() == "F":
+        sex = "female"
+    else:
+        sex = sex.lower()
+    
+    weight = data.get("weight", data.get("weight_kg", 70.0))
+    height = data.get("height", data.get("height_cm", 170.0))
+    bmi = data.get("bmi")
+    if bmi is None and weight and height:
+        bmi = round(weight / ((height / 100) ** 2), 1)
+    
+    normalized["basic_info"] = {
+        "age": age,
+        "gender": sex,
+        "weight_kg": weight,
+        "height_cm": height,
+        "bmi": bmi or 22.0,
+        "ethnicity": data.get("ethnicity", "unknown"),
+        "pregnancy_status": data.get("pregnancy_status", "not_pregnant"),
+    }
+    
+    # Condition normalization
+    conditions_list = data.get("conditions", [])
+    if not conditions_list and data.get("condition"):
+        conditions_list = [data["condition"]]
+    
+    if conditions_list:
+        primary_condition = conditions_list[0]
+        primary_diagnosis = primary_condition.get("name",
+                                                  primary_condition.get("primary_diagnosis",
+                                                                       data.get("primary_diagnosis", "Unknown")))
+        
+        # Extract severity/stage
+        severity = primary_condition.get("severity", primary_condition.get("stage", "moderate"))
+        
+        # Normalize stage strings to severity levels
+        if "stage" in severity.lower():
+            stage_match = re.search(r'stage\s*([iv]+|[1-4])', severity.lower())
+            if stage_match:
+                stage = stage_match.group(1)
+                if stage in ['i', '1']:
+                    severity = "mild"
+                elif stage in ['ii', '2']:
+                    severity = "moderate"
+                elif stage in ['iii', '3']:
+                    severity = "severe"
+                elif stage in ['iv', '4']:
+                    severity = "severe"
+        
+        # Ensure severity is valid
+        if severity.lower() not in ["mild", "moderate", "severe"]:
+            severity = "moderate"
+        
+        # Extract comorbidities from remaining conditions
+        comorbidities = [c.get("name", "") for c in conditions_list[1:] if c.get("name")]
+        
+        normalized["condition"] = {
+            "primary_diagnosis": primary_diagnosis,
+            "subtype": primary_condition.get("subtype", primary_condition.get("stage")),
+            "severity": severity.lower(),
+            "duration_months": int(primary_condition.get("duration_years", 0.5) * 12),
+            "comorbidities": comorbidities,
+            "family_history": [],
+        }
+    else:
+        normalized["condition"] = {
+            "primary_diagnosis": "Unknown",
+            "subtype": None,
+            "severity": "moderate",
+            "duration_months": 0,
+            "comorbidities": [],
+            "family_history": [],
+        }
+    
+    # Genetics normalization
+    genetics_raw = data.get("genetics", {})
+    normalized["genetics"] = {
+        "CYP2D6": _extract_phenotype_status(genetics_raw.get("CYP2D6", genetics_raw.get("cyp2d6", "normal"))),
+        "CYP2C9": _extract_phenotype_status(genetics_raw.get("CYP2C9", genetics_raw.get("cyp2c9", "normal"))),
+        "CYP2C19": _extract_phenotype_status(genetics_raw.get("CYP2C19", genetics_raw.get("cyp2c19", "normal"))),
+        "CYP3A4": _extract_phenotype_status(genetics_raw.get("CYP3A4", genetics_raw.get("cyp3a4", "normal"))),
+        "CYP1A2": _extract_phenotype_status(genetics_raw.get("CYP1A2", genetics_raw.get("cyp1a2", "normal"))),
+    }
+    
+    # Labs normalization
+    lab_results = data.get("labResults", {})
+    liver_function = lab_results.get("liverFunction", {})
+    metabolic_panel = lab_results.get("metabolicPanel", {})
+    
+    normalized["labs"] = {
+        "ALT": liver_function.get("ALT", liver_function.get("alt", 25.0)),
+        "AST": liver_function.get("AST", liver_function.get("ast", 25.0)),
+        "bilirubin": liver_function.get("totalBilirubin", liver_function.get("bilirubin", 0.8)),
+        "albumin": liver_function.get("albumin", 4.0),
+        "eGFR": metabolic_panel.get("eGFR", metabolic_panel.get("egfr", 90.0)),
+        "creatinine": metabolic_panel.get("creatinine", 0.9),
+    }
+    
+    # Medications normalization
+    current_meds = data.get("currentMedications", [])
+    normalized_current = []
+    for med in current_meds:
+        # Extract dose as number (remove 'mg' suffix if present)
+        dose_str = str(med.get("dose", med.get("dose_mg", "100mg")))
+        dose_match = re.search(r'(\d+(?:\.\d+)?)', dose_str)
+        dose_mg = float(dose_match.group(1)) if dose_match else 100.0
+        
+        normalized_current.append({
+            "drug_name": med.get("name", ""),
+            "dose_mg": dose_mg,
+            "frequency": med.get("frequency", "daily"),
+            "duration_months": 0,
+        })
+    
+    normalized["current_meds"] = normalized_current
+    normalized["past_meds"] = []
+    
+    # Lifestyle normalization
+    social_history = data.get("socialHistory", data.get("lifestyle", {}))
+    normalized["lifestyle"] = {
+        "alcohol_use": social_history.get("alcohol", "none"),
+        "smoking": social_history.get("smoking") == "smoker" if isinstance(social_history.get("smoking"), str) else False,
+        "exercise_frequency": 3,  # default
+    }
+    
+    # Default empty sections
+    normalized["symptoms"] = {}
+    normalized["vitals"] = {}
+    normalized["biomarkers"] = {}
+    normalized["target_expression"] = {}
+    normalized["drug_response_profile"] = {}
+    normalized["side_effect_history"] = []
+    normalized["allergies"] = []
+    normalized["risk_profile"] = {}
+    normalized["treatment_goal"] = {}
+    
+    return normalized
+
+
 def build_patient_from_dict(data: dict[str, Any]) -> PatientProfile:
-    """Build a PatientProfile from a raw JSON dict (from frontend)."""
+    """Build a PatientProfile from a raw JSON dict (from frontend or uploaded file)."""
+    
+    # STEP 1: Detect and normalize flat schema if needed
+    data = _normalize_flat_patient_schema(data)
+    
     p = PatientProfile()
 
     # Basic info
@@ -394,15 +576,22 @@ def build_patient_from_dict(data: dict[str, Any]) -> PatientProfile:
         cognitive_impairment_score=s.get("cognitive_impairment_score"),
     )
 
-    # Genetics
+    # Genetics - normalize CYP keys to uppercase
     g = data.get("genetics", {})
+    g_normalized = {}
+    for key, value in g.items():
+        if key.lower().startswith("cyp"):
+            g_normalized[key.upper()] = value
+        else:
+            g_normalized[key] = value
+    
     p.genetics = Genetics(
-        CYP2D6=g.get("CYP2D6"),
-        CYP3A4=g.get("CYP3A4"),
-        CYP2C19=g.get("CYP2C19"),
-        CYP2C9=g.get("CYP2C9"),
-        UGT1A4=g.get("UGT1A4"),
-        HLA_variants=g.get("HLA_variants", []),
+        CYP2D6=g_normalized.get("CYP2D6"),
+        CYP3A4=g_normalized.get("CYP3A4"),
+        CYP2C19=g_normalized.get("CYP2C19"),
+        CYP2C9=g_normalized.get("CYP2C9"),
+        UGT1A4=g_normalized.get("UGT1A4"),
+        HLA_variants=g_normalized.get("HLA_variants", []),
     )
 
     # Labs

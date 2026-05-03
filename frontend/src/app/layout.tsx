@@ -1,21 +1,35 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Mono, Caveat, Permanent_Marker } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const ibmSans = IBM_Plex_Sans({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-ibm-sans",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const ibmMono = IBM_Plex_Mono({
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-ibm-mono",
 });
 
 export const metadata: Metadata = {
-  title: "Drug Adverse Event Triage — Pharmacovigilance AI",
-  description: "AI-powered FDA FAERS adverse event signal triage environment — Metformin, Rofecoxib (Vioxx), Isotretinoin across 3 difficulty levels. OpenEnv-compliant pharmacovigilance agent benchmark.",
+  title: "Foldables — Pharmacovigilance Signal Triage",
+  description: "AI-powered adverse event signal detection and regulatory assessment for FDA FAERS — Metformin, Rofecoxib, Isotretinoin.",
 };
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-caveat",
+});
+
+const marker = Permanent_Marker({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-marker",
+});
 
 export default function RootLayout({
   children,
@@ -23,11 +37,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${ibmSans.variable} ${ibmMono.variable} ${caveat.variable} ${marker.variable}`}>
+      <body className="min-h-full flex flex-col antialiased">
+        {children}
+      </body>
     </html>
   );
 }

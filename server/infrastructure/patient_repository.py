@@ -60,4 +60,7 @@ class InMemoryPatientRepository(IPatientRepository):
         self._patients.clear()
         logger.info(f"Cleared {count} patients from repository")
 
+# Alias for backward compatibility
+PatientRepository = InMemoryPatientRepository
+
 # Made with Bob
