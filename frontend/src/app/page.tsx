@@ -3,18 +3,18 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ShieldAlert, Activity, RefreshCw, Play, Shield, FolderOpen, 
-  Search, FileText, Microscope, BookOpen, ClipboardCheck, Hourglass,
-  AlertTriangle, Lightbulb
+  Activity, RefreshCw, Shield, 
+  Search, FileText, Microscope, BookOpen,
+  AlertTriangle
 } from "lucide-react";
 
 type TaskLevel = "easy" | "medium" | "hard";
 
 interface ActionResponse {
-  observation: { step_number: number; drug_name: string; episode_done: boolean; current_output?: any; };
+  observation: { step_number: number; drug_name: string; episode_done: boolean; current_output?: { message?: string; source?: string; error?: string; data?: Record<string, unknown>; hint?: string; }; };
   reward: { value: number; message: string; breakdown?: Record<string, number>; };
   info: { steps_remaining: number; max_steps: number; };
-  action_type?: string; parameters?: any; done?: boolean;
+  action_type?: string; parameters?: Record<string, unknown>; done?: boolean;
 }
 
 const AsciiProteinBackground = () => {
@@ -39,7 +39,16 @@ const AsciiProteinBackground = () => {
     
     // Generate an alpha helix folded protein path
     // Geometry: True Beta Barrel (GFP / Green Fluorescent Protein)
-    const points: any[] = [];
+    interface ProteinPoint {
+      baseX: number; baseY: number; baseZ: number;
+      x: number; y: number; z: number;
+      vx: number; vy: number; vz: number;
+      char: string;
+      isText: boolean;
+      isSparkle: boolean;
+      colorType: string;
+    }
+    const points: ProteinPoint[] = [];
     const numStrands = 11;
     const strandLength = 550; // Massively increased structure height
     const barrelRadius = 280; // Massively increased barrel radius
@@ -235,10 +244,10 @@ const AsciiProteinBackground = () => {
         p.z += p.vz;
 
         // Apply fast pre-calculated rotation
-        let x1 = p.x * cosY - p.z * sinY;
-        let z1 = p.z * cosY + p.x * sinY;
-        let y2 = p.y * cosX - z1 * sinX;
-        let z2 = z1 * cosX + p.y * sinX;
+        const x1 = p.x * cosY - p.z * sinY;
+        const z1 = p.z * cosY + p.x * sinY;
+        const y2 = p.y * cosX - z1 * sinX;
+        const z2 = z1 * cosX + p.y * sinX;
 
         const fov = 1000;
         const zScale = fov / (fov + z2 + 400); 
@@ -351,17 +360,16 @@ const AnimatedHandDrawnLogo = () => (
 export default function Home() {
   const [activeMainTab, setActiveMainTab] = useState<"home" | "discovery" | "simulation" | "pharmacovigilance" | "legacy_pv">("home");
   const [activeStep, setActiveStep] = useState<string>("1");
-  const [currentTask, setCurrentTask] = useState<TaskLevel>("easy");
+  const [currentTask] = useState<TaskLevel>("easy");
   const [episodeActive, setEpisodeActive] = useState(false);
   const [isDone, setIsDone] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusText, setStatusText] = useState("IDLE");
-  const [feed, setFeed] = useState<any[]>([]);
+  const [feed, setFeed] = useState<Record<string, unknown>[]>([]);
   
   const [stats, setStats] = useState({ episodes: 0, actions: 0, bestScore: null as null | number });
   const [currentScore, setCurrentScore] = useState<number | null>(null);
-  const [breakdown, setBreakdown] = useState<any>(null);
-  const [rewardMessage, setRewardMessage] = useState("");
+  const [breakdown, setBreakdown] = useState<Record<string, number> | null>(null);
   const [steps, setSteps] = useState({ current: 0, remaining: 0, max: 0 });
 
   const [submitFormOpen, setSubmitFormOpen] = useState(false);
@@ -374,14 +382,9 @@ export default function Home() {
     feedEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [feed]);
 
-  const addLog = (comp: any) => setFeed(f => [...f, comp]);
-  const clearFeed = () => setFeed([]);
+  const addLog = (comp: Record<string, unknown>) => setFeed(f => [...f, comp]);
 
-  const selectTask = (id: TaskLevel) => {
-    setCurrentTask(id); setStatusText("IDLE"); setEpisodeActive(false); setSubmitFormOpen(false);
-  };
-
-  const hitApi = async (url: string, body?: any) => {
+  const hitApi = async (url: string, body?: Record<string, unknown>) => {
     const res = await fetch(url, {
       method: body ? "POST" : "GET",
       headers: { "Content-Type": "application/json" },
@@ -401,8 +404,9 @@ export default function Home() {
       setStatusText(`ACTIVE`); setStats(s => ({ ...s, episodes: s.episodes + 1 }));
       setCaseDrug(obs.drug_name || "—");
       addLog({ type: 'reset', data: obs, id: Date.now() });
-    } catch (e: any) {
-      alert("Reset failed: " + e.message); setStatusText("ERROR");
+    } catch (e: unknown) {
+      const error = e as Error;
+      alert("Reset failed: " + error.message); setStatusText("ERROR");
     } finally { setLoading(false); }
   };
 
@@ -417,8 +421,9 @@ export default function Home() {
       if (obs.episode_done) handleDone(reward.value);
 
       addLog({ type: 'action', actionType, step: obs.step_number, output: obs.current_output, reward: reward.value, remaining: info.steps_remaining, id: Date.now() });
-    } catch (e: any) {
-      addLog({ type: 'error', message: e.message, id: Date.now() });
+    } catch (e: unknown) {
+      const error = e as Error;
+      addLog({ type: 'error', message: error.message, id: Date.now() });
     } finally { setLoading(false); }
   };
 
@@ -434,14 +439,18 @@ export default function Home() {
       const { observation: obs, reward, info } = data;
       setSteps({ current: obs.step_number, remaining: info.steps_remaining, max: info.max_steps });
       
-      setCurrentScore(reward.value); setBreakdown(reward.breakdown); setRewardMessage(reward.message);
+      setCurrentScore(reward.value); setBreakdown(reward.breakdown || null);
       if (stats.bestScore === null || reward.value > stats.bestScore) setStats(s => ({ ...s, bestScore: reward.value }));
       handleDone(reward.value);
 
       addLog({ type: 'submit', param: submitData, score: reward.value, message: reward.message, id: Date.now() });
-    } catch (e: any) { alert("Submit failed: " + e.message); } finally { setLoading(false); }
+    } catch (e: unknown) { 
+      const error = e as Error;
+      alert("Submit failed: " + error.message); 
+    } finally { setLoading(false); }
   };
 
+  /* 
   const handleDemo = async () => {
     setLoading(true); clearFeed(); setCurrentScore(null); setBreakdown(null); setIsDone(false);
     setStatusText("DEMO"); setEpisodeActive(false);
@@ -462,7 +471,7 @@ export default function Home() {
         if (action_type !== 'submit') {
           addLog({ type: 'action', actionType: action_type, step: obs.step_number, output: obs.current_output, reward: reward.value, remaining: info.steps_remaining, id: Date.now() + Math.random() });
         } else {
-          setCurrentScore(reward.value); setBreakdown(reward.breakdown); setRewardMessage(reward.message); finalSc = reward.value;
+          setCurrentScore(reward.value); setBreakdown(reward.breakdown); finalSc = reward.value;
           if (stats.bestScore === null || reward.value > stats.bestScore) setStats(s => ({ ...s, bestScore: reward.value }));
           addLog({ type: 'submit', param: step.parameters, score: reward.value, message: reward.message, id: Date.now() + Math.random() });
         }
@@ -470,6 +479,7 @@ export default function Home() {
       handleDone(finalSc);
     } catch (e: any) { alert("Demo failed: " + e.message); setStatusText("ERROR"); } finally { setLoading(false); }
   };
+  */
 
   const handleDone = (score: number) => { setIsDone(true); setEpisodeActive(false); setStatusText(`DONE • ${score >= 0.7 ? 'SUCCESS' : 'FAILED'}`); };
 
@@ -484,7 +494,7 @@ export default function Home() {
     }
   };
 
-  const renderRichData = (data: any) => {
+  const renderRichData = (data: Record<string, unknown>) => {
     if (!data || typeof data !== 'object') return <span className="text-secondary">{String(data)}</span>;
     const metrics = ['PRR', 'ROR', 'EB05', 'IC025', 'prr', 'ror'];
     const hasMetrics = Object.keys(data).some(k => metrics.includes(k) && typeof data[k] === 'number');
@@ -534,7 +544,13 @@ export default function Home() {
     );
   };
 
-  const ActionButton = ({ title, desc, type, onClick }: any) => {
+  interface ActionButtonProps {
+    title: string;
+    desc: string;
+    type: string;
+    onClick: () => void;
+  }
+  const ActionButton = ({ title, desc, type, onClick }: ActionButtonProps) => {
     const disabled = !episodeActive || loading || isDone;
     const isSubmit = type === 'submit';
     
@@ -723,10 +739,10 @@ export default function Home() {
                   { step: '10', title: 'GENETIC ANCESTRY', mode: 'legacy_pv', desc: 'Population-specific allele variations.' },
                   { step: '11', title: 'PERSONALIZED DOSE', mode: 'legacy_pv', desc: 'PK/PD modeling for exact dosing.' },
                   { step: 'FINAL', title: 'RL DOSING VERDICT', mode: 'legacy_pv', desc: 'AI-driven therapeutic recommendation.', colSpan: 'lg:col-span-2 xl:col-span-3' },
-                ].map((item, i) => (
+                ].map((item) => (
                     <div 
                       key={item.step}
-                      onClick={() => { setActiveMainTab(item.mode as any); setActiveStep(item.step); }}
+                      onClick={() => { setActiveMainTab(item.mode as "home" | "discovery" | "simulation" | "pharmacovigilance" | "legacy_pv"); setActiveStep(item.step); }}
                       className={`relative group cursor-pointer transition-all duration-500 rounded-[20px] border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.08] hover:border-white/[0.15] hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden ${item.colSpan || ''}`}
                     >
                       <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -1023,7 +1039,7 @@ export default function Home() {
 
                       <div className="mt-3 pt-3 border-t border-[#ffffff0d]">
                         <div className="font-sans text-[13px] text-[#7090b0] italic">
-                          "{item.message}"
+                          &quot;{item.message}&quot;
                         </div>
                       </div>
                     </div>
