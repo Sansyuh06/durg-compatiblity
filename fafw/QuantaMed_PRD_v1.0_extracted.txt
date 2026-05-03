@@ -1,0 +1,1852 @@
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+ 
+QUANTAMED 
+Quantum-Enhanced Precision Drug Discovery Platform 
+───────────────────────────────────────────── 
+PRODUCT REQUIREMENTS DOCUMENT 
+Project Name 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery 
+Version 
+1.0 — Hackathon Edition 
+Document Status 
+FINAL — Single Source of Truth 
+Primary Author 
+QuantaMed Team 
+Last Updated 
+April 2026 
+Hackathon Theme 
+Life Sciences — Drug Discovery: Propose & Prioritize Drug 
+Candidates via AI 
+Target Demo Patient 
+Gabi — Treatment-Resistant Epilepsy with Valproic Acid PCOS 
+Side Effects 
+Classification 
+Confidential — Internal Use Only 
+ 
+Built with: Qiskit VQE  |  TRIBE v2  |  Reinforcement Learning  |  DeepChem  |  RDKit  |  
+AutoDock Vina 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+1. Executive Summary 
+QuantaMed is a quantum-enhanced, AI-powered precision medicine platform designed to 
+radically compress the earliest and most expensive phase of pharmaceutical drug discovery: 
+candidate selection and prioritization. By combining quantum variational simulation, multi-agent 
+behavioral modeling, reinforcement learning, and pharmacogenomic profiling, QuantaMed 
+moves the question of "which drug is right for this patient?" from a trial-and-error clinical process 
+to a computationally grounded prediction engine. 
+The platform is anchored to a single, emotionally resonant case study: Gabi, a young woman 
+with treatment-resistant epilepsy who has been prescribed valproic acid. Over several months, 
+Gabi develops polycystic ovarian syndrome (PCOS) — a serious hormonal side effect caused 
+by valproic acid's unintended binding to androgen-related biological pathways. The system 
+asks: could we have predicted this? Could we have recommended lamotrigine, a safer 
+alternative, before Gabi ever experienced harm? 
+QuantaMed answers yes — and demonstrates how across six interconnected simulation layers 
+working in concert. 
+ 
+1.1 Value Proposition 
+"For neurologists, pharmacists, and drug discovery researchers, QuantaMed is a 
+quantum-hybrid simulation platform that identifies and prioritizes the safest, most 
+effective drug candidate for a specific patient's biology — before that patient takes a 
+single pill." 
+ 
+1.2 The Problem We Are Solving 
+The global pharmaceutical pipeline is broken along three distinct fault lines: 
+Fault Line 1 — Time: Bringing a drug from discovery to market takes an average of 12 to 15 
+years. The earliest phase — identifying and narrowing down candidates — alone can take 3 to 5 
+years, largely because predictions about efficacy and safety are poor until late-stage clinical 
+trials. 
+Fault Line 2 — Money: The average cost of developing a single approved drug exceeds $2.6 
+billion USD (including the cost of failures). Approximately 90% of candidates that enter Phase I 
+clinical trials will never reach patients. The primary driver of this failure rate is inadequate early-
+stage prediction. 
+Fault Line 3 — Personalization: Current drug discovery treats patients as population 
+averages. A drug approved for "depression" is prescribed to patients who may have wildly 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+different metabolic profiles, genetic variants, and co-medication interactions. The same 
+antidepressant that works for one patient causes cardiac arrhythmia in another — not because 
+the drug is bad, but because the patient's CYP2D6 enzyme makes them a poor metabolizer and 
+the drug accumulates to toxic levels. Nobody checked. 
+QuantaMed directly attacks all three fault lines: it compresses candidate selection using 
+quantum simulation (speed), it eliminates poor candidates before synthesis (cost), and it 
+personalizes predictions using pharmacogenomic profiling (personalization). 
+ 
+1.3 What Makes QuantaMed Unique 
+At least a dozen drug-drug interaction (DDI) checkers exist in the market today — Drugs.com, 
+Medscape Interactions, Epocrates, and others. None of them have the following capabilities that 
+QuantaMed introduces simultaneously: 
+• 
+Quantum-level binding energy estimation using VQE on peptide fragments of target 
+proteins 
+• 
+Patient-specific pharmacogenomic risk modifiers (CYP2D6, CYP3A4, CYP2C19 status) 
+• 
+Dose-adjusted DDI severity using one-compartment pharmacokinetic modeling 
+• 
+Off-target protein panel scanning to predict side effects before they occur 
+• 
+Blood-brain barrier penetration scoring for CNS drug candidates 
+• 
+Lipinski Rule-of-Five manufacturability scoring integrated into candidate ranking 
+• 
+TRIBE v2 multi-agent behavioral simulation for patient state visualization pre- and post-
+treatment 
+• 
+Reinforcement learning treatment decision engine that balances efficacy vs. risk 
+dynamically 
+• 
+End-to-end personalized output: one ranked candidate list tailored to one patient's 
+complete biological profile 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+2. Problem Deep Dive & Scientific Background 
+2.1 Why Protein Folding and Binding Energy Matter 
+Every drug works by interacting with a protein in the body. Proteins are the molecular machines 
+that regulate every biological function — cell signaling, neurotransmitter regulation, immune 
+response, hormone production. A drug molecule is essentially a key designed to fit into the 
+"lock" of a specific protein — its binding pocket — and either activate or inhibit that protein's 
+function. 
+The challenge is this: a protein's functional shape is determined by how it folds from a linear 
+chain of amino acids into a three-dimensional structure. Predicting that fold is one of the hardest 
+problems in computational biology. And predicting how a drug molecule will interact with a 
+folded protein — its binding energy — is even harder, because the interaction is governed by 
+quantum mechanical forces: van der Waals interactions, hydrogen bonding, electrostatic 
+coupling, and quantum tunneling of protons. 
+Classical computers simulate these interactions by approximating quantum behavior. The 
+approximation error grows exponentially with the number of electrons in the system. For a 
+molecule with N electrons, there are 2^N quantum states to consider. A 50-atom molecule has 
+roughly 200 electrons — meaning 2^200 states. This number exceeds the number of atoms in 
+the observable universe. Classical computers cannot handle this; they rely on density functional 
+theory (DFT) approximations that sacrifice accuracy for tractability. 
+Quantum computers don't approximate. They ARE quantum — they can represent and 
+manipulate the exponential state space naturally using superposition and entanglement. The 
+Variational Quantum Eigensolver (VQE) algorithm exploits this to find the minimum energy 
+ground state of a molecular system — the true, accurate binding energy — without exponential 
+classical approximation. 
+ 
+2.2 Why Existing DDI Checkers Are Insufficient 
+The current generation of drug-drug interaction checkers fails patients in five documented ways: 
+Failure 1 — No Dose Awareness: Every DDI checker flags an interaction as HIGH, 
+MODERATE, or LOW regardless of dose. In pharmacokinetics, dose is everything. Valproic acid 
+at 1500mg/day produces serum concentrations that saturate liver enzymes, dramatically raising 
+the interaction risk with other hepatically metabolized drugs. At 250mg/day, the risk profile is 
+entirely different. Existing apps ignore this completely. 
+Failure 2 — No Patient Specificity: A CYP2D6 poor metabolizer will accumulate certain drugs 
+to 5–10× the normal plasma concentration. A patient with hepatic impairment will metabolize 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+drugs entirely differently. Existing apps treat all patients identically — as if "the patient" is an 
+average 70kg adult male with normal organ function. 
+Failure 3 — No Temporal Dynamics: Some drug interactions are not immediate — they 
+accumulate over weeks or months. Valproic acid's association with PCOS develops over 3–6 
+months of chronic exposure, as androgen-stimulating effects compound. No existing app has a 
+temporal dimension — they all treat interactions as static, immediate events. 
+Failure 4 — No Mechanistic Transparency: When an app flags "HIGH interaction risk," it 
+doesn't explain the mechanism. Is it a CYP enzyme inhibition? An additive cardiac effect? A 
+displacement of protein-bound drug? Clinicians need mechanism to make intelligent decisions. 
+Existing apps provide none. 
+Failure 5 — No Manufacturability Signal: From a drug discovery perspective, a candidate 
+drug that's highly effective but cannot be synthesized at scale, or cannot be administered orally, 
+is useless. Existing tools never consider molecular properties that govern real-world 
+manufacturability. 
+ 
+2.3 The Pharmacogenomics Gap 
+Pharmacogenomics is the study of how genetic variation affects drug response. The science is 
+well-established. The CYP450 enzyme family — particularly CYP2D6, CYP3A4, CYP2C19, and 
+CYP2C9 — metabolizes approximately 75% of all marketed drugs. Genetic polymorphisms in 
+these genes create four phenotypes: poor metabolizers (PM), intermediate metabolizers (IM), 
+normal metabolizers (NM), and ultrarapid metabolizers (UM). 
+Poor metabolizers cannot break down certain drugs efficiently, leading to drug accumulation 
+and toxicity. Ultrarapid metabolizers break drugs down too quickly for them to be effective. 
+These phenotypes can mean the difference between therapeutic benefit and life-threatening 
+adverse reaction from the exact same dose of the exact same drug. 
+Genetic testing for CYP status is available (tests like GeneSight and Genomind are FDA-
+cleared), yet the vast majority of drug prescribing decisions are made without any knowledge of 
+a patient's CYP phenotype. QuantaMed integrates CYP status as a first-class input into every 
+drug ranking decision. 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+3. Anchor Case Study — Gabi 
+This case study is the emotional and scientific core of every QuantaMed 
+demonstration. All system outputs will be calibrated to Gabi's profile. 
+ 
+3.1 Patient Profile 
+Patient Name 
+Gabi (anonymized demo patient) 
+Age 
+24 years old 
+Gender 
+Female 
+Primary Diagnosis 
+Treatment-Resistant Epilepsy (Juvenile Myoclonic Epilepsy 
+subtype) 
+Current Medication 
+Valproic Acid (Depakote) — 1000mg/day, ongoing for 9 months 
+Emerging Side Effect 
+Polycystic Ovarian Syndrome (PCOS) — confirmed 6 months post-
+initiation 
+CYP2D6 Status 
+Poor Metabolizer (PM) — confirmed via genetic panel 
+CYP3A4 Status 
+Normal Metabolizer (NM) 
+CYP2C9 Status 
+Intermediate Metabolizer (IM) 
+Hepatic Function 
+Mildly elevated ALT (42 U/L) — borderline hepatic stress 
+Renal Function 
+Normal (eGFR 92 mL/min/1.73m²) 
+Co-medications 
+None currently (previously tried levetiracetam — discontinued due 
+to mood effects) 
+Weight Trend 
++7.2 kg over 9 months on valproic acid (predicted by RL model) 
+Seizure Control 
+Partial — breakthrough seizures remain 1–2× per month 
+Patient Goal 
+Complete seizure control with minimal hormonal and metabolic 
+side effects 
+ 
+3.2 What Went Wrong — The Biological Mechanism 
+Valproic acid is a broad-spectrum antiepileptic drug that works primarily by inhibiting voltage-
+gated sodium channels and enhancing GABA neurotransmission. However, it also has a 
+secondary and clinically significant interaction with androgenic signaling pathways. Valproic acid 
+increases the secretion of insulin and insulin-like growth factor (IGF-1), which stimulates 
+androgen production in the ovaries. Elevated androgens in women cause follicular arrest, 
+menstrual irregularity, and the characteristic polycystic ovarian morphology of PCOS. 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+This hormonal disruption occurs through a combination of direct hepatic enzyme induction 
+(affecting androgen-metabolizing enzymes), weight gain (which increases peripheral androgen 
+conversion), and direct ovarian stimulation. The effect is dose-dependent and time-dependent 
+— it typically manifests after 3 to 6 months of sustained use, not acutely. 
+Critically: none of this was flagged when Gabi was prescribed valproic acid. No system checked 
+her sex, her hormonal profile, her weight trajectory over time, or the temporal accumulation of 
+risk. QuantaMed would have flagged all of it at the moment of prescription. 
+ 
+3.3 What QuantaMed Would Have Done 
+Running Gabi's complete biological profile through QuantaMed at the time of initial prescription 
+would have produced the following outputs: 
+1. Quantum binding simulation of valproic acid against sodium channel target protein — 
+result: good efficacy signal (justifies use) 
+2. Off-target binding panel scan — result: moderate predicted binding to androgen receptor 
+complex and liver CYP2C9 enzyme. FLAG: "Hormonal pathway interference predicted. 
+Elevated PCOS risk for female patients under 30." 
+3. Dose-adjusted DDI severity — result: at 1000mg/day, serum valproic acid concentration 
+predicted at 78 µg/mL, within therapeutic range but at upper bound for hepatic tolerance 
+given Gabi's IM CYP2C9 status. 
+4. ADMET prediction — result: Valproic acid has poor selectivity index. Predicted weight 
+gain +6-8 kg over 12 months (FAERS population benchmark: 2.1× higher in females 
+under 30 vs. population average). 
+5. Lamotrigine comparison — result: equivalent seizure control efficacy for JME, 
+significantly cleaner off-target profile, no androgenic pathway binding, lower weight gain 
+prediction. RECOMMENDATION: Lamotrigine preferred for this patient profile. 
+6. TRIBE v2 simulation — result: Gabi's agent in "valproic acid state" shows progressive 
+reward pathway dysregulation correlated with weight gain and hormonal disruption. 
+Gabi's agent in "lamotrigine state" shows stable reward pathway and normalized social 
+engagement. 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+4. System Architecture — The Six-Layer Simulation 
+Stack 
+QuantaMed is architected as six distinct but interconnected simulation layers. Each layer 
+answers a specific scientific question, produces a structured output, and feeds into the next 
+layer. The architecture is designed so that every component has a clear scientific reason for 
+existing — nothing is decorative, and the quantum component drives real downstream 
+decisions. 
+ 
+Layer 
+Name 
+Core Technology 
+Primary Question 
+Answered 
+Output 
+L1 
+Patient 
+Modeling 
+TRIBE v2 + Patient 
+Profile Engine 
+Who is this patient and what 
+is their behavioral/biological 
+context? 
+Patient Agent + 
+Genomic Profile 
+L2 
+Quantum 
+Binding 
+Simulation 
+Qiskit Aer + VQE 
+Algorithm 
+How strongly does this drug 
+molecule bind to the target 
+protein? 
+Binding Energy 
+Score per 
+candidate 
+L3 
+Off-Target 
+Safety 
+Screening 
+DeepChem + 
+ChEMBL Database 
+What other proteins does this 
+drug accidentally bind to? 
+Off-Target Risk 
+Matrix 
+L4 
+Personalized 
+Compatibility 
+CYP Phenotype 
+Engine + PK 
+Modeling 
+How does this patient's 
+biology process this drug? 
+Patient-Adjusted 
+Risk Score 
+L5 
+RL Treatment 
+Decision Engine 
+Rule-Based RL 
+Environment 
+Should we continue, switch, 
+or adjust this treatment? 
+Treatment Action 
+Recommendation 
+L6 
+Visualization & 
+Reporting 
+TRIBE v2 + Plotly + 
+ReportLab 
+What does the result look like 
+for the clinician and patient? 
+Dashboard + 
+PDF Report 
+ 
+4.1 Data Flow Diagram (Narrative) 
+The system begins when a clinician or researcher inputs a patient profile. This profile includes 
+demographic data, diagnosis code, current medications, co-morbidities, and — critically — CYP 
+phenotype status from a genetic panel. This data populates a patient agent in TRIBE v2 and 
+simultaneously initializes the Pharmacogenomic Profile object in the Python backend. 
+The system then loads the candidate drug library for the specified diagnosis. For Gabi's case, 
+this library includes valproic acid, lamotrigine, levetiracetam, topiramate, and zonisamide — the 
+five most commonly prescribed antiepileptics for juvenile myoclonic epilepsy. For each 
+candidate, the system retrieves the canonical SMILES molecular string from PubChem. 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+Each candidate drug is then passed through Layer 2 (quantum binding simulation) against the 
+target protein. For epilepsy, this is the voltage-gated sodium channel Nav1.2 alpha subunit — a 
+5-10 amino acid peptide fragment of the binding domain is used for computational tractability in 
+the VQE simulation. The output is a normalized binding energy score between 0 and 1. 
+Simultaneously, Layer 3 passes each candidate through the off-target panel — a curated list of 
+8 clinically significant off-target proteins: the cardiac hERG potassium channel (QT prolongation 
+risk), androgen receptor (hormonal disruption), five CYP450 isoforms, and the liver enzyme 
+ALT. Any candidate with predicted off-target binding above the threshold receives a safety 
+penalty. 
+Layer 4 then applies patient-specific adjustments. Gabi's CYP2C9 intermediate metabolizer 
+status means valproic acid accumulates approximately 1.4× faster than normal. The dose-
+adjusted PK model predicts her actual serum concentration and adjusts the DDI severity 
+accordingly. 
+Layer 5 runs the RL environment. The state vector encodes current seizure frequency, side 
+effect burden, adherence estimate, and time on therapy. The RL policy — trained on synthetic 
+rule-based reward signals — evaluates whether to continue the current therapy or switch to the 
+top-ranked alternative. 
+Layer 6 renders all outputs: the drug comparison matrix, the TRIBE v2 before/after brain state 
+visualization, the risk timeline graph, and the exportable PDF report formatted for clinical use. 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+5. Detailed Feature Requirements 
+F-001 — Quantum Binding Simulation Engine 
+Feature ID 
+F-001 
+Priority 
+P0 — Critical Core Feature 
+Layer 
+Layer 2 — Quantum Simulation 
+Technology 
+Qiskit, Qiskit-Nature, Qiskit Aer (local simulator), VQE Algorithm 
+Framing 
+"Quantum-Ready Module" — simulated on classical hardware, 
+designed for real QPU deployment 
+ 
+5.1.1 Scientific Description 
+The quantum binding simulation engine uses the Variational Quantum Eigensolver (VQE) 
+algorithm to estimate the ground-state (minimum) energy of a peptide-drug interaction. VQE is a 
+hybrid quantum-classical algorithm: a parameterized quantum circuit (the ansatz) prepares a 
+trial quantum state on a quantum processor or simulator, and a classical optimizer iteratively 
+adjusts the circuit parameters to minimize the measured energy expectation value. The 
+minimum energy found corresponds to the most stable configuration — i.e., the real binding 
+energy of the drug-protein complex. 
+For hackathon execution, the quantum circuit is simulated using Qiskit Aer's statevector 
+simulator on a classical CPU. The peptide fragment is limited to 5–10 amino acids of the target 
+protein's binding pocket — specifically the HP (Hydrophobic-Polar) lattice model representation. 
+This is the standard approach used in peer-reviewed quantum drug discovery literature, 
+including IBM Research's published work on protein folding with quantum computers. The 
+framing is always "quantum-ready": the architecture is built for real QPU execution; the demo 
+runs on simulation. 
+5.1.2 Functional Requirements 
+• 
+The system SHALL accept a drug molecule SMILES string and a target protein PDB 
+sequence as input. 
+• 
+The system SHALL encode the target peptide fragment as an HP lattice model with up 
+to 10 residues. 
+• 
+The system SHALL map the HP model to a QUBO (Quadratic Unconstrained Binary 
+Optimization) problem. 
+• 
+The system SHALL construct a parameterized quantum circuit (RealAmplitudes or 
+EfficientSU2 ansatz, depth 2) for VQE optimization. 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+• 
+The system SHALL use COBYLA or SPSA classical optimizer with maximum 200 
+iterations. 
+• 
+The system SHALL return a normalized binding affinity score (0.0 to 1.0, where 1.0 = 
+strongest predicted binding). 
+• 
+The system SHALL complete VQE computation within 30 seconds on standard laptop 
+hardware using Aer simulator. 
+• 
+The system SHALL display the energy convergence plot as part of the output 
+dashboard. 
+5.1.3 Acceptance Criteria 
+7. Given a valproic acid SMILES input and Nav1.2 peptide fragment, when the VQE runs, 
+then it SHALL converge to a binding score between 0.65 and 0.90 (therapeutic range, 
+calibrated against published DFT values). 
+8. Given lamotrigine SMILES and same Nav1.2 fragment, when the VQE runs, then 
+lamotrigine SHALL produce a binding score within ±0.05 of valproic acid (both are 
+effective against Nav1.2 — the difference appears in off-target scanning). 
+9. Given any SMILES string, when VQE fails to converge in 200 iterations, then the system 
+SHALL flag "Low Confidence Score" and proceed with the last best estimate rather than 
+crashing. 
+ 
+F-002 — Off-Target Protein Panel Scanning 
+Feature ID 
+F-002 
+Priority 
+P0 — Critical Core Feature 
+Layer 
+Layer 3 — Safety Screening 
+Technology 
+DeepChem (GraphConv model), ChEMBL database, RDKit 
+Data Source 
+ChEMBL 33 (2.4M+ bioactivity data points), SIDER database, FDA 
+FAERS 
+ 
+5.2.1 Scientific Description 
+Off-target binding is the primary mechanism of drug side effects. When a drug molecule is 
+designed to bind Protein A (the intended target), its molecular shape and electrostatics may also 
+interact with Protein B, C, or D — proteins the drug was never meant to touch. These 
+unintended interactions produce unwanted biological effects that manifest as side effects in 
+patients. 
+The off-target panel in QuantaMed contains 8 clinically critical proteins selected for their known 
+association with serious adverse drug reactions. The panel was curated from FDA adverse 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+event data (FAERS) and the SIDER side effect database. For each candidate drug, a 
+DeepChem GraphConv model predicts the probability of binding affinity above 10µM (the 
+conventional threshold for clinically significant binding) at each panel protein. 
+5.2.2 Off-Target Panel Definition 
+Panel Protein 
+Biological Role 
+Clinical Risk if 
+Bound 
+Flagged For 
+hERG 
+(KCNH2) 
+Cardiac potassium 
+channel 
+QT interval 
+prolongation → 
+arrhythmia 
+All candidates 
+Androgen 
+Receptor (AR) 
+Androgen signaling 
+PCOS, 
+masculinization 
+(females) 
+Female patients 
+CYP1A2 
+Hepatic drug 
+metabolism 
+Drug-drug 
+interactions via 
+enzyme inhibition 
+All candidates 
+CYP2D6 
+Hepatic drug 
+metabolism 
+Accumulation in PM 
+phenotype patients 
+CYP2D6 PM 
+patients 
+CYP3A4 
+Major hepatic 
+metabolizer (50% 
+of drugs) 
+Broad DDI risk 
+All candidates 
+CYP2C9 
+Warfarin/NSAID 
+metabolism 
+Bleeding risk in co-
+medicated patients 
+Patients on 
+warfarin/NSAIDs 
+Muscarinic M1 
+Receptor 
+Cholinergic 
+signaling 
+Cognitive 
+impairment, dry 
+mouth 
+Elderly patients 
+Histamine H1 
+Receptor 
+Immune/sleep 
+regulation 
+Sedation, weight gain 
+All candidates 
+ 
+5.2.3 Functional Requirements 
+• 
+The system SHALL score each candidate drug against all 8 panel proteins using 
+DeepChem GraphConv or a pre-trained QSAR model. 
+• 
+The system SHALL produce a risk matrix with predicted binding probability (0.0–1.0) for 
+each drug-protein pair. 
+• 
+Scores above 0.6 SHALL trigger a HIGH off-target risk flag. Scores between 0.4–0.6 
+SHALL trigger MODERATE. Below 0.4 SHALL be LOW. 
+• 
+For female patients, the Androgen Receptor score SHALL be weighted 2× in the overall 
+safety score calculation. 
+• 
+The system SHALL generate a human-readable explanation for each HIGH flag, 
+specifying the mechanism and the predicted clinical consequence. 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+F-003 — Pharmacogenomics & CYP Compatibility Engine 
+Feature ID 
+F-003 
+Priority 
+P0 — Critical Core Feature 
+Layer 
+Layer 4 — Personalized Compatibility 
+Technology 
+PharmVar database lookup, custom Python risk modifier engine 
+Standards 
+CPIC (Clinical Pharmacogenomics Implementation Consortium) 
+guidelines 
+ 
+5.3.1 Scientific Description 
+The CYP450 enzyme system is responsible for the phase I metabolism of approximately 75% of 
+all marketed drugs. Genetic variants (alleles) in the genes encoding these enzymes determine 
+how quickly a patient metabolizes specific drugs. QuantaMed uses a patient's CYP phenotype 
+to apply individualized risk multipliers to both efficacy predictions and adverse event 
+probabilities. 
+The system implements CPIC guideline recommendations — the gold standard in clinical 
+pharmacogenomics — to translate genotype-to-phenotype mappings into actionable dosing and 
+drug selection guidance. CPIC guidelines are published by a consortium of academic medical 
+centers and have been endorsed by the FDA and multiple international regulatory bodies. 
+5.3.2 CYP Phenotype Risk Multiplier Table 
+CYP 
+Enzyme 
+Poor Metabolizer 
+Effect 
+Ultrarapid Metabolizer 
+Effect 
+Key Drugs 
+Affected 
+CYP2D6 
+Drug accumulation 
+(3–5× normal) 
+Drug under-exposure 
+(inadequate levels) 
+Codeine, 
+tramadol, many 
+antidepressants, 
+risperidone 
+CYP2C19 
+Proton pump inhibitor 
+accumulation; 
+clopidogrel non-
+activation 
+Rapid acid return; 
+clopidogrel over-activation 
+Omeprazole, 
+clopidogrel, 
+citalopram, 
+escitalopram 
+CYP2C9 
+Warfarin 
+accumulation 
+(bleeding risk); 
+NSAID toxicity 
+Reduced NSAID/warfarin 
+levels 
+Warfarin, 
+phenytoin, 
+losartan, 
+valproic acid 
+(partial) 
+CYP3A4 
+Statin myopathy risk; 
+immunosuppressant 
+toxicity 
+Reduced 
+statin/immunosuppressant 
+efficacy 
+Statins, 
+tacrolimus, 
+cyclosporine, 
+many 
+antiepileptics 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+CYP1A2 
+Clozapine/olanzapine 
+accumulation 
+Reduced antipsychotic 
+levels 
+Clozapine, 
+olanzapine, 
+theophylline, 
+caffeine 
+ 
+5.3.3 Functional Requirements 
+• 
+The system SHALL accept CYP2D6, CYP2C19, CYP2C9, CYP3A4, and CYP1A2 
+phenotype as input fields (Poor Metabolizer / Intermediate / Normal / Ultrarapid). 
+• 
+The system SHALL apply CPIC-defined risk multipliers to each drug candidate's efficacy 
+and safety scores. 
+• 
+For Gabi (CYP2C9 IM): valproic acid's safety score SHALL be penalized by 1.4× the 
+normal accumulation factor. 
+• 
+The system SHALL generate a CYP interaction alert if a candidate drug is a substrate, 
+inhibitor, or inducer of a CYP enzyme for which the patient has a non-normal phenotype. 
+• 
+Alert format SHALL follow: "[Drug] is a [substrate/inhibitor/inducer] of CYP[X]. Patient's 
+[phenotype] status increases [risk description] by approximately [X]×." 
+ 
+F-004 — Dose-Adjusted Drug-Drug Interaction (DDI) Engine 
+Feature ID 
+F-004 
+Priority 
+P0 — Critical Core Feature 
+Layer 
+Layer 4 — Personalized Compatibility 
+Technology 
+One-compartment PK model (Python), DDI rule database 
+Scientific Model 
+One-compartment pharmacokinetic model: C(t) = (F × Dose / Vd) × 
+e^(-ke × t) 
+ 
+5.4.1 Scientific Description 
+Pharmacokinetics (PK) is the study of what the body does to a drug — how it is absorbed, 
+distributed, metabolized, and eliminated. The simplest PK model, the one-compartment model, 
+treats the body as a single well-mixed compartment. Drug concentration at time t is given by: 
+C(t) = (F × Dose / Vd) × e^(-ke × t), where F is bioavailability, Vd is volume of distribution, and 
+ke is the elimination rate constant. 
+Drug-drug interactions at CYP enzymes can dramatically alter ke — an inhibitor drug reduces 
+ke for the substrate drug, causing accumulation. QuantaMed calculates predicted steady-state 
+plasma concentration for each candidate drug at the patient's prescribed dose, then applies DDI 
+severity scaling based on predicted concentration — not just a binary interaction flag. 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+5.4.2 Functional Requirements 
+• 
+The system SHALL compute predicted steady-state plasma concentration (Css) for each 
+drug candidate using published PK parameters (F, Vd, ke, t1/2) from DrugBank 
+database. 
+• 
+Css calculation SHALL incorporate the patient's CYP phenotype as a modifier to ke 
+(e.g., CYP2C9 IM reduces ke by 30% for CYP2C9 substrates). 
+• 
+DDI severity SHALL be displayed as CRITICAL / HIGH / MODERATE / LOW based on 
+Css thresholds rather than binary flags. 
+• 
+The system SHALL display: "At [dose]mg/day, predicted Css = [X] µg/mL. Therapeutic 
+range: [Y–Z]. CYP2C9 IM status elevates Css by approximately [N]%." 
+• 
+For Gabi: at 1000mg/day valproic acid with CYP2C9 IM status, the system SHALL flag 
+Css at or above 78 µg/mL as ELEVATED and note proximity to hepatotoxicity threshold 
+of 100 µg/mL. 
+ 
+F-005 — ADMET Prediction & Blood-Brain Barrier Scoring 
+Feature ID 
+F-005 
+Priority 
+P0 — Critical Core Feature 
+Layer 
+Layer 3 — Safety Screening 
+Technology 
+DeepChem pre-trained ADMET models, RDKit molecular 
+descriptors 
+ADMET Definition 
+Absorption, Distribution, Metabolism, Excretion, Toxicity 
+ 
+5.5.1 Why ADMET Matters 
+A drug candidate can have perfect binding affinity for its target protein and still fail completely as 
+a medicine if: (a) it cannot be absorbed from the gut after oral administration, (b) it cannot cross 
+the blood-brain barrier for CNS conditions, (c) it is metabolized too quickly to maintain effective 
+plasma levels, (d) it is eliminated so slowly that it accumulates to toxic concentrations, or (e) it is 
+directly toxic to the liver, kidneys, or cardiac tissue. ADMET prediction identifies these failure 
+modes computationally before any synthesis or animal testing. 
+For neurological and psychiatric drugs specifically, blood-brain barrier (BBB) penetration is the 
+single most critical ADMET property. The BBB is a selective membrane formed by tight 
+junctions between endothelial cells in brain capillaries. Many drugs that work perfectly in a test 
+tube cannot cross this barrier and therefore have zero CNS efficacy. A drug candidate for 
+epilepsy that cannot penetrate the BBB is useless, regardless of its Nav1.2 binding affinity. 
+5.5.2 Functional Requirements 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+• 
+The system SHALL predict BBB penetration probability (0.0–1.0) for each candidate 
+using DeepChem's pre-trained BBB model (trained on 2053 compounds from the BBB 
+dataset). 
+• 
+Candidates with BBB score below 0.50 SHALL be flagged "BBB PENETRATION: LOW 
+— CNS efficacy unlikely" and penalized heavily in overall ranking for 
+neurological/psychiatric indications. 
+• 
+The system SHALL predict aqueous solubility (logS), lipophilicity (logP), plasma protein 
+binding (%PPB), and half-life (t1/2) using RDKit-calculated molecular descriptors. 
+• 
+The system SHALL predict hepatotoxicity probability using DeepChem's Tox21 model 
+output on the "SR-HSE" (hepatic stress response element) assay. 
+• 
+All ADMET scores SHALL be displayed in a normalized radar chart for visual 
+comparison across candidates. 
+ 
+F-006 — Lipinski Rule-of-Five Manufacturability Scoring 
+Feature ID 
+F-006 
+Priority 
+P1 — High Priority 
+Layer 
+Layer 3 — Manufacturability Assessment 
+Technology 
+RDKit (molecular descriptor calculation) 
+Scientific Basis 
+Lipinski's Rule of Five (Ro5) — published 1997, Pfizer 
+ 
+5.6.1 Scientific Description 
+Lipinski's Rule of Five is a set of five molecular property criteria that predict whether a drug 
+candidate is likely to be orally bioavailable — a prerequisite for most practical drug formulations. 
+The rules, derived empirically from analysis of thousands of marketed drugs, specify that an 
+orally active drug should generally not violate more than one of the following: molecular weight ≤ 
+500 Da, logP (lipophilicity) ≤ 5, hydrogen bond donors ≤ 5, hydrogen bond acceptors ≤ 10, and 
+molar refractivity between 40 and 130. 
+QuantaMed incorporates Ro5 as its manufacturability proxy — the hackathon theme explicitly 
+requires manufacturability scoring, and Ro5 is the scientifically accepted, computationally 
+accessible first-pass filter used by every major pharmaceutical company. Candidates that 
+violate 2 or more rules are flagged as "Challenging to Manufacture/Formulate" and penalized in 
+the overall ranking. 
+5.6.2 Functional Requirements 
+• 
+The system SHALL calculate MW, logP, HBD, HBA, and TPSA for each candidate drug 
+using RDKit from the SMILES string. 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+• 
+Each property SHALL be displayed with a PASS/FAIL indicator relative to Lipinski 
+thresholds. 
+• 
+Manufacturability score SHALL be: 1.0 (0 violations) / 0.8 (1 violation) / 0.5 (2 violations) 
+/ 0.2 (3+ violations). 
+• 
+Display SHALL include: "Valproic acid: MW 144 Da ✓, logP 2.75 ✓, HBD 1 ✓, HBA 2 ✓ 
+— Manufacturability: EXCELLENT (0 violations)." 
+ 
+F-007 — TRIBE v2 Symptom-State Visualizer 
+Feature ID 
+F-007 
+Priority 
+P0 — Critical Demo Feature 
+Layer 
+Layer 1 (Patient Modeling) & Layer 6 (Visualization) 
+Technology 
+TRIBE v2 (Meta AI Demo Platform — aidemos.atmeta.com/tribev2) 
+Role in System 
+Primary visual storytelling tool — NOT a drug simulator 
+ 
+5.7.1 Role Clarification 
+TRIBE v2 is NOT used to simulate drug pharmacology. It is used as a patient symptom-state 
+visualizer — mapping the patient's clinical condition (symptom burden, medication effects, 
+behavioral state) to sensory and neural visual metaphors. The science of drug-protein 
+interaction happens in the quantum and ADMET layers. TRIBE v2 makes that science human 
+and emotional for judges, clinicians, and patients. 
+5.7.2 Mapping Strategy — Condition to Sensory Input 
+Patient State 
+Clinical Correlate 
+TRIBE v2 Sensory 
+Mapping 
+Visual 
+Output Goal 
+Pre-treatment 
+(seizing) 
+High seizure 
+frequency, high 
+stress 
+Dissonant audio, 
+chaotic visual stimuli 
+Chaotic, 
+overwhelming 
+brain activity 
+visualization 
+On valproic acid 
+(partial control) 
+Reduced seizures 
+but PCOS emerging 
+Calmer audio but 
+disrupted hormonal 
+rhythms 
+Partially 
+stabilized but 
+metabolically 
+stressed 
+state 
+On lamotrigine 
+(optimized) 
+Full seizure control, 
+clean side effect 
+profile 
+Nature sounds, 
+harmonic visual 
+input, stable rhythm 
+Calm, 
+integrated, 
+normalized 
+brain state 
+visualization 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+Side effect state 
+(PCOS) 
+Weight gain, 
+hormonal 
+dysregulation, mood 
+effects 
+Discordant low-
+frequency tones, 
+slow rhythm 
+disruption 
+Reward 
+pathway 
+dysregulation 
+— dimmed 
+nucleus 
+accumbens 
+ 
+5.7.3 Functional Requirements 
+• 
+The system SHALL display two TRIBE v2 side-by-side simulations: Gabi on valproic acid 
+vs. Gabi on lamotrigine. 
+• 
+Each simulation SHALL map clinical state variables (seizure score, side effect burden, 
+adherence) to specific sensory input parameters in TRIBE v2. 
+• 
+The visualization SHALL include narrative labels: "Brain State: Partial Seizure Control — 
+Hormonal Stress Detected" vs. "Brain State: Full Seizure Control — Metabolically 
+Stable." 
+• 
+TRIBE v2 output SHALL be embedded as an iframe or recorded screen capture in the 
+demo dashboard. 
+ 
+F-008 — Reinforcement Learning Treatment Decision Engine 
+Feature ID 
+F-008 
+Priority 
+P1 — High Priority 
+Layer 
+Layer 5 — RL Decision Engine 
+Technology 
+Python, NumPy — rule-based synthetic RL environment (no 
+external RL library required) 
+RL Type 
+Tabular Q-learning on discrete synthetic state space 
+ 
+5.8.1 Scientific Description 
+The RL engine models the treatment decision problem as a Markov Decision Process (MDP). 
+The state space encodes the patient's current clinical status. The action space contains three 
+decisions: CONTINUE current therapy, SWITCH to next-ranked candidate, or REDUCE dose. 
+The reward function balances therapeutic benefit (seizure reduction) against risk burden (side 
+effect severity), with a temporal discount factor that models how risk accumulates over months. 
+5.8.2 State Space Definition 
+State Variable 
+Range 
+Source 
+Clinical Meaning 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+seizure_frequency 
+0–10 per 
+month 
+Patient report / 
+EEG summary 
+Primary efficacy measure 
+side_effect_burden 
+0.0–1.0 
+ADMET score + 
+CYP modifier 
+Weighted composite of 
+predicted adverse effects 
+adherence_rate 
+0.0–1.0 
+Simulated 
+(default 0.85) 
+Proportion of doses taken 
+on schedule 
+time_on_therapy 
+0–24 
+months 
+Patient profile 
+Time-dependent risk 
+accumulation factor 
+hormonal_risk 
+0.0–1.0 
+Off-target AR 
+binding score × 
+gender modifier 
+Endocrine disruption risk 
+(female-specific) 
+hepatic_stress 
+0.0–1.0 
+Css / 
+hepatotoxicity 
+threshold 
+Liver burden from drug 
+accumulation 
+ 
+5.8.3 Reward Function 
+The reward at each timestep is computed as: R = w1 × efficacy_improvement − w2 × 
+side_effect_increase − w3 × adherence_penalty − w4 × temporal_risk_accumulation, where the 
+weights w1=0.4, w2=0.3, w3=0.15, w4=0.15 reflect the relative clinical importance of each 
+factor. The temporal_risk_accumulation term increases linearly with time_on_therapy for drugs 
+with known chronic toxicity profiles (like valproic acid's androgenic effects). 
+5.8.4 Functional Requirements 
+• 
+The RL engine SHALL simulate 12 months of therapy in discrete monthly timesteps. 
+• 
+At each timestep, the engine SHALL evaluate the current state and apply the policy to 
+select an action. 
+• 
+The engine SHALL output a trajectory plot: seizure frequency, side effect burden, and 
+cumulative reward over 12 months for each candidate drug. 
+• 
+For Gabi's case: valproic acid SHALL produce declining cumulative reward after month 6 
+(PCOS emerging). Lamotrigine SHALL produce rising or stable cumulative reward 
+across 12 months. 
+• 
+The engine SHALL display its recommendation in plain language: "SWITCH 
+RECOMMENDED: Valproic acid cumulative risk score exceeds threshold at month 6. 
+Lamotrigine maintains superior risk-benefit ratio throughout the simulation period." 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+F-009 — Drug Comparison Matrix 
+Feature ID 
+F-009 
+Priority 
+P1 — High Priority 
+Layer 
+Layer 6 — Visualization 
+Technology 
+React / Streamlit / HTML dashboard 
+Purpose 
+Side-by-side visual comparison of all candidate drugs across all 
+scoring dimensions 
+ 
+5.9.1 Matrix Structure 
+Scoring Dimension 
+Source 
+Feature 
+Display Format 
+Weight in 
+Final Score 
+Quantum Binding 
+Affinity 
+F-001 VQE 
+output 
+Score 0–100 + 
+color bar 
+25% 
+Overall Safety Score 
+F-002 off-target 
+panel 
+Score 0–100 + 
+risk badge 
+25% 
+Patient Genomic 
+Compatibility 
+F-003 CYP 
+engine 
+Multiplier + 
+adjusted score 
+20% 
+ADMET Profile 
+F-005 
+DeepChem 
+Radar chart + 
+composite score 
+15% 
+BBB Penetration 
+F-005 
+DeepChem 
+Percentage + 
+PASS/FAIL 
+10% 
+Manufacturability (Ro5) 
+F-006 RDKit 
+Violation count + 
+score 
+5% 
+ 
+5.9.2 Functional Requirements 
+• 
+Matrix SHALL display all candidate drugs as columns and all scoring dimensions as 
+rows. 
+• 
+Best-performing drug in each row SHALL be highlighted in green. Worst SHALL be 
+highlighted in amber or red. 
+• 
+Final composite score SHALL appear at the bottom of each column with a clear 
+RECOMMENDED / ACCEPTABLE / NOT RECOMMENDED badge. 
+• 
+Matrix SHALL be filterable: user can exclude candidates that fail any single criterion 
+(e.g., "Hide all candidates with BBB < 50%"). 
+• 
+For Gabi's demo: lamotrigine SHALL score highest overall despite similar binding affinity 
+to valproic acid, because of its significantly superior off-target and ADMET profiles. 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+F-010 — Risk Timeline Visualization 
+Feature ID 
+F-010 
+Priority 
+P1 — High Priority 
+Layer 
+Layer 6 — Visualization 
+Technology 
+Plotly (Python) or Chart.js 
+Data Source 
+RL engine trajectory output (F-008) 
+ 
+The risk timeline graph plots predicted interaction risk and clinical outcome trajectory over a 12-
+month period for each candidate drug, conditioned on the patient's profile. For Gabi, this graph 
+directly shows the divergence point — the moment around month 4–6 when valproic acid's 
+cumulative hormonal risk score crosses above the safety threshold while lamotrigine's remains 
+flat. This single graph is arguably the most impactful single visualization in the entire demo, 
+because it makes the temporal dimension of drug safety visible in a way that no existing clinical 
+tool can. 
+• 
+The graph SHALL display: cumulative risk score (Y-axis) over months 1–12 (X-axis) for 
+each candidate drug as a separate line. 
+• 
+The graph SHALL include threshold lines: "SAFETY THRESHOLD" (horizontal dashed 
+line) and "PCOS EMERGENCE WINDOW" (shaded region, months 3–6). 
+• 
+The graph SHALL display an annotation: "Valproic acid crosses risk threshold at month 
+[X]. Lamotrigine remains below threshold throughout simulation." 
+• 
+Adherence scenarios SHALL be toggle-able: 100% adherence vs. 70% adherence 
+(showing how missed doses affect the risk trajectory differently for each drug). 
+ 
+F-011 — Population Benchmark Comparison 
+Feature ID 
+F-011 
+Priority 
+P2 — Medium Priority 
+Layer 
+Layer 6 — Visualization 
+Data Source 
+FDA FAERS database (pre-loaded statistics for demo drugs), 
+SIDER 
+ 
+Population benchmarking contextualizes an individual patient's predicted risk against the 
+population of patients who have actually taken this drug. For Gabi, this means displaying: 
+"Predicted weight gain risk: 2.1× higher than population average for females under 30 on 
+valproic acid (source: FAERS, 12,847 reports)." This transforms abstract model scores into 
+clinically interpretable comparisons that clinicians and patients can immediately understand. 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+• 
+Pre-loaded FAERS statistics SHALL be available for valproic acid and lamotrigine 
+across the following adverse event categories: weight gain, hormonal disruption, hepatic 
+events, CNS effects, teratogenicity. 
+• 
+Each risk statistic SHALL display: absolute rate in population, relative rate vs. average, 
+confidence interval, and data volume (number of reports). 
+• 
+Female-specific risk statistics SHALL be displayed prominently for female patients with a 
+"⚠ Sex-Specific Risk" label. 
+ 
+F-012 — Exportable Clinical PDF Report 
+Feature ID 
+F-012 
+Priority 
+P1 — High Priority 
+Layer 
+Layer 6 — Reporting 
+Technology 
+ReportLab (Python PDF generation) 
+Output 
+One-page clinical summary formatted for handoff to physician 
+ 
+The PDF report is the artifact that bridges the computational world of QuantaMed to the real 
+clinical world. It is formatted as a structured clinical document that a neurologist can bring to a 
+treatment planning meeting. It contains: patient profile summary, top 3 ranked drug candidates 
+with composite scores, key risk flags in plain language, CYP interaction alerts, TRIBE v2 brain 
+state thumbnail, and QR code linking to the full interactive dashboard. 
+• 
+PDF SHALL be generated in under 5 seconds from dashboard output. 
+• 
+PDF SHALL include QuantaMed branding, patient ID, date, and a "Quantum-Enhanced 
+Analysis" badge. 
+• 
+ALL drug scores SHALL include a disclaimer: "This analysis is a computational decision 
+support tool. Clinical judgment of a licensed physician is required for all prescribing 
+decisions." 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+6. Complete Technical Stack 
+6.1 Backend / Computational Layer 
+Component 
+Library/Tool 
+Version 
+Role 
+Install Command 
+Quantum 
+Simulation 
+Qiskit + Qiskit-
+Nature 
+0.45+ 
+VQE protein binding 
+simulation 
+pip install qiskit 
+qiskit-nature 
+Quantum 
+Simulator 
+Qiskit Aer 
+0.13+ 
+Classical simulation 
+of quantum circuits 
+pip install qiskit-aer 
+Molecular ML 
+DeepChem 
+2.7+ 
+ADMET, BBB, off-
+target prediction 
+pip install deepchem 
+Cheminformatics 
+RDKit 
+2023.03+ 
+Lipinski Ro5, 
+SMILES parsing, 
+fingerprints 
+pip install rdkit 
+PK Modeling 
+NumPy + 
+SciPy 
+latest 
+One-compartment 
+PK equation, ODE 
+solving 
+pip install numpy 
+scipy 
+RL Engine 
+Pure Python + 
+NumPy 
+N/A 
+Tabular Q-learning 
+on synthetic state 
+space 
+No additional install 
+DDI Database 
+DrugBank API 
+/ Local 
+v5.1 
+PK parameters, 
+CYP substrate 
+tables 
+API key + local 
+cache 
+Bioactivity Data 
+ChEMBL 
+(REST API) 
+33 
+Off-target binding 
+IC50 data 
+pip install chembl-
+webresource-client 
+PDF Generation 
+ReportLab 
+4.0+ 
+Clinical PDF report 
+export 
+pip install reportlab 
+ 
+6.2 Frontend / Visualization Layer 
+Component 
+Technology 
+Role 
+Main 
+Dashboard 
+Streamlit (Python) or React.js 
+Primary interactive interface for drug comparison, 
+timeline, and report generation 
+Interactive 
+Charts 
+Plotly (Python/JS) 
+Risk timeline graph, ADMET radar chart, VQE 
+convergence plot 
+Molecular 
+Viewer 
+py3Dmol (embedded in 
+Streamlit) 
+Interactive 3D visualization of drug-protein 
+binding pose 
+TRIBE v2 
+Integration 
+iframe embed 
+(aidemos.atmeta.com/tribev2) 
+Patient symptom-state brain visualization 
+(before/after comparison) 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+Drug 
+Comparison 
+Matrix 
+Pandas + Streamlit AgGrid 
+Sortable, filterable side-by-side candidate 
+comparison table 
+CYP 
+Mechanism 
+Diagram 
+SVG animation (custom) or 
+Matplotlib 
+Visual explanation of CYP enzyme inhibition 
+mechanism 
+ 
+6.3 Data Sources 
+Data 
+Source 
+Type 
+Data Provided 
+Access Method 
+PubChem 
+Public API 
+SMILES strings, molecular 
+properties for all FDA drugs 
+REST API (free, 
+no key) 
+ChEMBL 
+33 
+Public Database / 
+API 
+2.4M+ bioactivity 
+measurements across drug-
+target pairs 
+REST API + 
+local SQLite 
+mirror 
+DrugBank 
+Licensed/Academic 
+API 
+PK parameters (Vd, ke, F, 
+t1/2), CYP substrate/inhibitor 
+tables 
+Free academic 
+registration 
+PharmVar 
+Public Database 
+CYP gene allele definitions 
+and phenotype mappings 
+Direct download 
+(free) 
+FDA 
+FAERS 
+Public Database 
+Adverse event reports — 
+population-level side effect 
+rates 
+OpenFDA REST 
+API (free) 
+SIDER 
+Public Database 
+Drug-side effect associations 
+from drug labels 
+Direct download 
+(free) 
+RCSB 
+Protein 
+Data Bank 
+Public Database 
+Protein 3D structures and 
+binding pocket coordinates 
+REST API (free) 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+7. Non-Functional Requirements 
+7.1 Performance 
+• 
+VQE quantum simulation (5-residue peptide, Aer simulator): SHALL complete in ≤ 30 
+seconds on a standard laptop (Intel i7, 16GB RAM). 
+• 
+Full pipeline execution (all 5 candidates, all scoring layers): SHALL complete in ≤ 3 
+minutes end-to-end. 
+• 
+Dashboard page load: SHALL render in ≤ 2 seconds after pipeline completion. 
+• 
+PDF report generation: SHALL complete in ≤ 5 seconds. 
+• 
+TRIBE v2 visualization: SHALL load in ≤ 10 seconds (dependent on network connectivity 
+to aidemos.atmeta.com). 
+ 
+7.2 Reliability 
+• 
+If VQE fails to converge, system SHALL fall back to a classical Hartree-Fock 
+approximation and display a "Classical Approximation Used" badge — the pipeline 
+SHALL NOT halt. 
+• 
+If DeepChem model prediction fails (model file missing), system SHALL use pre-
+computed lookup table for demo drugs and display a "Cached Prediction" badge. 
+• 
+If external API (PubChem, ChEMBL) is unavailable, system SHALL use locally cached 
+SMILES and bioactivity data for the 5 demo candidate drugs. 
+• 
+The system SHALL maintain demo functionality with zero internet connectivity for all 
+core features (using pre-cached data), with TRIBE v2 being the only internet-dependent 
+component. 
+ 
+7.3 Usability (Hackathon Demo Context) 
+• 
+The entire Gabi demo flow SHALL be completable in under 5 minutes from startup to 
+PDF report generation. 
+• 
+A judge with no pharmacology background SHALL be able to understand the Drug 
+Comparison Matrix result at a glance. 
+• 
+All technical scores SHALL have human-readable interpretations: never just a number, 
+always a label (EXCELLENT / GOOD / MODERATE RISK / HIGH RISK). 
+• 
+The TRIBE v2 before/after comparison SHALL be immediately emotionally intelligible 
+without explanation. 
+ 
+7.4 Scientific Integrity 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+• 
+Every scoring algorithm SHALL cite its source (published paper, database, or CPIC 
+guideline) in the UI tooltip. 
+• 
+No scoring component SHALL claim capabilities beyond what is computationally 
+demonstrated in the demo. 
+• 
+The quantum module SHALL be explicitly labeled "Quantum-Ready Module — 
+Simulated on Classical Hardware via Qiskit Aer." 
+• 
+The PDF report SHALL include a mandatory disclaimer: "For research and decision 
+support purposes only. Not for clinical use without physician review." 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+8. End-to-End Demo Flow — Gabi's Journey 
+This section defines the exact sequence of user interactions and system outputs for the primary 
+hackathon demonstration. Every team member must know this flow by heart. This is the story 
+we are telling. 
+ 
+Step 1 — Patient Profile Input (30 seconds) 
+The demo operator opens the QuantaMed dashboard. A "New Patient" panel is visible on the 
+left side. The operator enters Gabi's information: Age 24, Female, Diagnosis: Juvenile 
+Myoclonic Epilepsy, Current Drug: Valproic Acid 1000mg/day (9 months), CYP2D6 Poor 
+Metabolizer, CYP2C9 Intermediate Metabolizer, Hepatic Function: Mildly Elevated ALT. A 
+patient agent card appears in the TRIBE v2 panel, labeled "Gabi — Pre-Optimized Treatment." 
+The agent shows chaotic sensory stimulation patterns. 
+ 
+Step 2 — Quantum Binding Simulation (60–90 seconds) 
+The operator clicks "Run Quantum Analysis." A progress indicator shows: "Encoding Nav1.2 
+peptide fragment as HP lattice model... Building VQE ansatz circuit... Optimizing with 
+COBYLA... Convergence achieved." Two graphs appear: the VQE energy convergence plot 
+(showing the optimizer finding the minimum), and the binding affinity scores for all 5 candidates 
+as a bar chart. Valproic acid and lamotrigine both show strong binding (0.82 and 0.79 
+respectively). The operator notes: "They're equally good at targeting the right protein. The 
+difference is what they do to everything else." 
+ 
+Step 3 — Off-Target Safety Scan (30 seconds) 
+The off-target risk matrix populates automatically. Valproic acid's Androgen Receptor column 
+lights up RED (binding probability 0.71). A modal alert appears: "HIGH OFF-TARGET BINDING 
+DETECTED: Valproic acid shows predicted androgen receptor binding. For female patients 
+under 30, this is associated with 2.8× elevated PCOS risk. Risk accumulates over 3–6 months 
+of chronic exposure." Lamotrigine's entire row is green. The operator says: "This is the flag that 
+Gabi's prescribing physician never had." 
+ 
+Step 4 — CYP Genomic Compatibility (20 seconds) 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+The genomic compatibility panel shows Gabi's CYP phenotype. A warning appears under 
+valproic acid: "CYP2C9 Intermediate Metabolizer: Predicted Css = 78.4 µg/mL at 1000mg/day 
+— 31% above normal accumulation. Hepatotoxicity threshold: 100 µg/mL. Current trajectory: 
+CAUTION." Lamotrigine shows: "Not a primary CYP2C9 substrate — genomic risk: LOW." 
+ 
+Step 5 — Drug Comparison Matrix (20 seconds) 
+The full comparison matrix renders. Five drugs as columns, six scoring dimensions as rows. 
+Lamotrigine has the highest composite score (84/100). Valproic acid scores 61/100 — 
+competitive on efficacy but penalized heavily on safety and genomic compatibility. A green 
+"RECOMMENDED" badge appears under lamotrigine. A red "NOT RECOMMENDED FOR 
+THIS PATIENT" badge appears under valproic acid. The operator says: "Gabi has been on the 
+second-best option for nine months. We could have told her this on day one." 
+ 
+Step 6 — Risk Timeline & RL Engine (30 seconds) 
+The risk timeline graph animates. Two lines grow across 12 months. Valproic acid's risk score 
+crosses the safety threshold at month 5 — a red shaded zone labeled "PCOS EMERGENCE 
+WINDOW" highlights this crossing. Lamotrigine's line stays flat and green. The RL engine 
+displays its verdict: "SWITCH RECOMMENDED. Cumulative risk-benefit ratio favors lamotrigine 
+at all timepoints for this patient profile. Estimated efficacy equivalence: 94%. Estimated side 
+effect reduction: 67%." 
+ 
+Step 7 — TRIBE v2 Before/After Visualization (30 seconds) 
+Two TRIBE v2 frames appear side by side. Left panel, labeled "Gabi — Valproic Acid (Current)": 
+disrupted sensory patterns, amber and red tones, discordant audio cues if sound is on, label 
+"Reward Pathway: Dysregulated — Hormonal Stress Active." Right panel, labeled "Gabi — 
+Lamotrigine (Recommended)": calm nature sounds, green and blue tones, smooth rhythmic 
+patterns, label "Reward Pathway: Normalized — Metabolically Stable." The room goes quiet for 
+two seconds. That's the moment. 
+ 
+Step 8 — PDF Report Generation (10 seconds) 
+The operator clicks "Export Clinical Report." A PDF downloads in 4 seconds. It contains Gabi's 
+full profile, the top 3 ranked drugs with composite scores, the three critical risk flags in plain 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+language, and a recommendation statement. The bottom carries the disclaimer. The operator 
+says: "This is what Gabi's neurologist would receive in their inbox. It is built from quantum 
+simulation, population genomics, pharmacokinetics, and 12 months of simulated therapy — 
+delivered in under five minutes." 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+9. The Quantum Argument — Why VQE Here, Why 
+Now 
+Hackathon judges will ask: "Why quantum? Couldn't you do this classically?" This section 
+provides the complete, technically honest answer. 
+ 
+9.1 The Honest Answer 
+For the peptide sizes simulated in this demo (5–10 amino acids), classical computers can 
+simulate the quantum calculation with acceptable accuracy. We are not claiming quantum 
+advantage at this scale. What we are claiming — and what is scientifically true — is that the 
+VQE architecture we have built is the same architecture that will achieve quantum advantage at 
+scale, when run on real quantum hardware with fault-tolerant qubits. 
+The threshold for quantum advantage in molecular simulation is generally considered to be 50–
+100+ electrons — corresponding to peptide chains of 15–25 amino acids or small drug 
+molecules in complex with their binding pocket. Current quantum hardware (IBM Eagle: 127 
+qubits, IBM Osprey: 433 qubits) is approaching the noise threshold required to demonstrate this. 
+Our system is "quantum-ready" in the most meaningful sense: the algorithm, the problem 
+encoding, and the output interpretation are all quantum-native. The hardware is the only 
+limitation, and it is a temporary one. 
+ 
+9.2 Why This Framing is Scientifically Legitimate 
+Every major pharmaceutical company — Pfizer, Roche, Biogen, AstraZeneca — has active 
+quantum computing research programs specifically for molecular simulation. IBM, Google, and 
+IonQ have published peer-reviewed papers showing VQE applied to molecular systems. The 
+FDA has published guidance on quantum computing applications in drug development. 
+QuantaMed is building on a scientifically established foundation, not a speculative one. 
+In a hackathon context, this framing is not only legitimate — it is the correct framing. The goal is 
+to demonstrate a quantum-native architecture that solves a real problem. We are doing exactly 
+that. 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+10. Release Criteria & Success Metrics 
+10.1 Hackathon Demo Success Criteria 
+Criterion 
+Measurement 
+Target 
+Critical? 
+End-to-End Demo 
+Runs 
+Complete Gabi flow 
+from input to PDF 
+without crash 
+3 consecutive 
+successful runs 
+YES 
+VQE Convergence 
+Energy converges to 
+minimum within 
+iteration limit 
+≤ 200 iterations for 5-
+residue peptide 
+YES 
+Lamotrigine Ranks #1 
+Composite score 
+positions lamotrigine as 
+top candidate 
+Score ≥ 10 points 
+above valproic acid 
+YES 
+PCOS Risk Flag Active 
+Androgen receptor off-
+target binding flag fires 
+for valproic acid 
+Binding probability > 
+0.60 for AR 
+YES 
+TRIBE v2 Loads 
+Both patient states 
+visible in TRIBE v2 
+Both panels load within 
+10 seconds 
+YES 
+PDF Exports 
+Clinical report PDF 
+generates and opens 
+Within 5 seconds, no 
+formatting errors 
+YES 
+Demo Duration 
+Full story told within 
+time limit 
+Under 5 minutes for 
+standard demo 
+YES 
+Drug Comparison 
+Matrix 
+All 5 candidates visible 
+with scores 
+Color coding correct, 
+badges accurate 
+HIGH 
+Risk Timeline Graph 
+Valproic acid crosses 
+threshold at month 5–7 
+Correct visual 
+divergence point shown 
+HIGH 
+ 
+10.2 Judge Evaluation Criteria Alignment 
+Judging Criterion (Typical 
+Hackathon) 
+How QuantaMed Addresses It 
+Innovation / Novelty 
+Quantum VQE binding simulation integrated with clinical DDI 
+scoring — no existing tool does this combination 
+Technical Depth 
+Six interconnected simulation layers, each with published 
+scientific basis and quantitative outputs 
+Problem-Solution Fit 
+Direct alignment with hackathon theme: AI to propose/prioritize 
+drug candidates by efficacy, safety, manufacturability 
+Real-World Impact 
+Valproic acid-PCOS is a documented clinical tragedy affecting 
+thousands of women — system would have prevented Gabi's 
+harm 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+Presentation Quality 
+TRIBE v2 before/after is emotionally resonant; Drug Comparison 
+Matrix is immediately intelligible; PDF is tangible deliverable 
+Completeness of Demo 
+Full end-to-end flow with real computation, real data, and a real 
+patient story 
+Scalability Vision 
+Architecture is explicitly quantum-ready and designed for real 
+QPU execution; business case for 12-year drug pipeline 
+compression is articulated 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+11. Development Timeline & Build Order 
+11.1 Recommended Build Sequence 
+The following sequence is optimized for hackathon execution: build the things that work first, 
+add complexity in layers, and ensure the demo is demoable at every stage (so a crash never 
+leaves you with nothing to show). 
+ 
+Phase 
+Duration 
+Tasks 
+Demoable 
+After? 
+Phase 0 — 
+Environment 
+1 hour 
+Install Qiskit, DeepChem, RDKit, Streamlit. Verify all 
+imports succeed. Cache SMILES strings for 5 demo 
+drugs. Cache pre-computed scores as fallback. 
+NO 
+Phase 1 — 
+Quantum 
+Core 
+3 hours 
+Build VQE protein folding module. HP lattice encoding 
+for 5-residue Nav1.2 fragment. Run for valproic acid 
+and lamotrigine. Display convergence plot. 
+YES (quantum 
+module only) 
+Phase 2 — 
+Safety 
+Layers 
+2 hours 
+Build off-target panel scanner using pre-computed 
+ChEMBL data. Implement Lipinski Ro5 scoring with 
+RDKit. Implement BBB prediction with DeepChem. 
+YES (quantum 
++ safety) 
+Phase 3 — 
+Patient 
+Engine 
+2 hours 
+Build CYP phenotype modifier. Build one-compartment 
+PK model for dose-adjusted DDI. Wire patient profile 
+inputs. 
+YES (quantum 
++ safety + 
+patient) 
+Phase 4 — 
+RL & 
+Timeline 
+2 hours 
+Build synthetic RL state machine. Generate 12-month 
+trajectory plots with Plotly. Implement recommendation 
+output. 
+YES (full 
+backend) 
+Phase 5 — 
+Dashboard 
+UI 
+2 hours 
+Build Streamlit or React dashboard. Drug comparison 
+matrix with color coding. Connect all modules. Add 
+TRIBE v2 iframes. 
+YES (full demo) 
+Phase 6 — 
+PDF & 
+Polish 
+1 hour 
+Implement ReportLab PDF export. Add disclaimers, 
+branding, QR code. Final end-to-end test × 3. 
+YES (complete) 
+ 
+11.2 Critical Path Dependencies 
+• 
+Phase 1 (VQE) must be complete before Phase 3 (patient engine) can wire VQE output 
+as input. 
+• 
+Phase 2 (safety layers) runs in parallel with Phase 3 — these are independent modules. 
+• 
+Phase 4 (RL) depends on Phase 3 patient profile being finalized. 
+• 
+Phase 5 (dashboard) requires all backend modules to have defined output schemas — 
+even if computation is mocked. 
+• 
+Phase 6 (PDF) is the last phase and has no dependencies other than Phase 5 being 
+stable. 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+ 
+11.3 Risk Mitigation 
+Risk: VQE takes too long to run live. Mitigation: Pre-compute and cache VQE results for all 5 
+demo drugs. Display pre-computed results with the label "VQE Analysis Complete — Results 
+Cached for Demo Speed." This is standard practice in demo contexts. 
+Risk: DeepChem installation fails. Mitigation: Pre-compute all ADMET and BBB scores for 
+demo drugs and store as JSON lookup tables. The demo will use cached scores transparently. 
+Risk: TRIBE v2 is down during demo. Mitigation: Record a 60-second screen capture of the 
+TRIBE v2 before/after comparison during preparation. Play the recording as a video if the live 
+site is unavailable. 
+Risk: Dashboard crashes mid-demo. Mitigation: Maintain a PowerPoint backup with 
+screenshots of every major output. Never demo without this backup prepared. 
+ 
+ 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+12. Appendix 
+12.1 Glossary 
+Term 
+Definition 
+ADMET 
+Absorption, Distribution, Metabolism, Excretion, Toxicity — the five 
+pharmacokinetic properties that determine whether a drug works safely in the 
+human body 
+Ansatz 
+In VQE, a parameterized quantum circuit that approximates the target quantum 
+state through variational optimization 
+BBB 
+Blood-Brain Barrier — selective membrane separating blood from brain tissue; 
+must be penetrated for CNS drugs to work 
+ChEMBL 
+European database of bioactivity data for drug-like molecules (2.4M+ compounds) 
+COBYLA 
+Constrained Optimization BY Linear Approximations — classical optimizer used in 
+VQE 
+CPIC 
+Clinical Pharmacogenomics Implementation Consortium — international 
+organization publishing clinical guidelines for pharmacogenomics 
+CYP450 
+Cytochrome P450 enzyme family — responsible for metabolizing ~75% of 
+marketed drugs; genetic variants cause variable drug response 
+DDI 
+Drug-Drug Interaction — alteration of a drug's effect due to the presence of 
+another drug 
+DeepChem 
+Open-source Python library for deep learning in drug discovery and molecular 
+biology 
+FAERS 
+FDA Adverse Event Reporting System — database of adverse drug reactions 
+reported to the FDA 
+GraphConv 
+Graph Convolutional Neural Network — ML architecture that operates on 
+molecular graphs for property prediction 
+hERG 
+Human Ether-a-go-go Related Gene — cardiac potassium channel; off-target 
+binding causes QT prolongation and arrhythmia 
+HP Model 
+Hydrophobic-Polar lattice model — simplified protein folding representation 
+encoding residues as H (hydrophobic) or P (polar) 
+JME 
+Juvenile Myoclonic Epilepsy — common epilepsy syndrome; valproic acid and 
+lamotrigine are both indicated treatments 
+Lipinski Ro5 
+Rule of Five — five molecular property criteria predicting oral bioavailability of 
+drug candidates 
+MDP 
+Markov Decision Process — mathematical framework for sequential decision-
+making; used in RL formulation 
+Nav1.2 
+Voltage-gated sodium channel alpha subunit 1.2 — primary target of many 
+antiepileptic drugs including valproic acid and lamotrigine 
+PCOS 
+Polycystic Ovarian Syndrome — hormonal disorder associated with valproic acid 
+use in females; mechanism involves androgenic pathway disruption 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+PK 
+Pharmacokinetics — the study of how the body processes a drug (absorption, 
+distribution, metabolism, excretion) 
+QUBO 
+Quadratic Unconstrained Binary Optimization — mathematical problem 
+formulation amenable to quantum annealing and VQE 
+RDKit 
+Open-source cheminformatics library for molecular property calculation and drug-
+likeness scoring 
+SMILES 
+Simplified Molecular Input Line Entry System — text representation of a chemical 
+structure 
+SNP 
+Single Nucleotide Polymorphism — single-letter DNA variation between 
+individuals; CYP SNPs determine metabolizer phenotype 
+TRIBE v2 
+Meta AI multi-agent simulation platform (aidemos.atmeta.com/tribev2); used in 
+QuantaMed as symptom-state visualizer 
+VQE 
+Variational Quantum Eigensolver — hybrid quantum-classical algorithm for finding 
+the minimum energy state of a molecular system 
+ 
+12.2 Key Scientific References 
+10. Kandala, A. et al. (2017). "Hardware-efficient variational quantum eigensolver for small 
+molecules and quantum magnets." Nature, 549, 242–246. 
+11. Robert, A. et al. (2021). "Resource-efficient quantum algorithm for protein folding." npj 
+Quantum Information, 7(38). 
+12. Lipinski, C.A. et al. (1997). "Experimental and computational approaches to estimate 
+solubility and permeability in drug discovery." Advanced Drug Delivery Reviews, 23, 3–
+25. 
+13. CPIC Guideline for CYP2D6, CYP2C19, CYP2C9. (2023). Clinical Pharmacogenetics 
+Implementation Consortium. 
+14. Mikkonen, K. et al. (2004). "Valproate-induced hyperandrogenism during pubertal 
+maturation in girls with epilepsy." Annals of Neurology, 54(4), 444–450. [Gabi's PCOS 
+mechanism] 
+15. Ramsundar, B. et al. (2019). "Deep Learning for the Life Sciences." O'Reilly Media. 
+[DeepChem reference] 
+16. Wishart, D.S. et al. (2023). "DrugBank 5.0: a major update to the DrugBank database for 
+2018." Nucleic Acids Research, 46(D1), D1074–D1082. 
+17. Mendez, D. et al. (2019). "ChEMBL: towards direct deposition of bioassay data." Nucleic 
+Acids Research, 47(D1), D930–D940. 
+ 
+12.3 Boilerplate Requirements 
+• 
+All patient data used in demonstrations is synthetic and anonymized. Real patient 
+records are never stored or transmitted. 
+QuantaMed — Quantum-Enhanced Precision Drug Discovery Platform    |    Product Requirements Document 
+v1.0 
+CONFIDENTIAL — QuantaMed Hackathon Edition — April 2026     
+• 
+All scientific claims are accompanied by citations to peer-reviewed literature or validated 
+databases. 
+• 
+The quantum module is labeled as a simulation using Qiskit Aer and does not claim real 
+quantum hardware execution. 
+• 
+All predictive outputs include uncertainty estimates or confidence labels where 
+applicable. 
+• 
+The clinical PDF report includes a mandatory disclaimer on every page that outputs are 
+for research/decision-support purposes only. 
+• 
+The system complies with GDPR Article 17 (right to erasure) — all patient profile data 
+can be cleared from the session with one action. 
+ 
+ 
+QuantaMed — Built for Gabi. Designed for Everyone. 
+Every year, thousands of patients are prescribed drugs that don't fit their biology. We built 
+QuantaMed because no one should have to be Gabi. 
+Version 1.0  |  Hackathon Edition  |  April 2026  |  QuantaMed Team 

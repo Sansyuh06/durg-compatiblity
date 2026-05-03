@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.venv/
+venv/
+.next/
+node_modules/
+*.log
+*.lock
+.DS_Store
+dist/
+build/
+uv.lock
+tsconfig.tsbuildinfo
