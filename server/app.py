@@ -60,6 +60,9 @@ from server.patient_schema import (
 from server.scoring_engine import (
     run_full_analysis,
     pipeline_pk,
+    pipeline_ddi,
+    compare_drugs_for_patient,
+    match_clinical_trials,
 )
 from server.kaggle_data import (
     get_drug_properties,
@@ -67,6 +70,9 @@ from server.kaggle_data import (
     get_tox21_profile,
     get_faers_signals,
     lookup_protein_target,
+)
+from server.domain.legal_compliance import (
+    generate_legal_compliance_report,
 )
 
 
@@ -383,7 +389,7 @@ async def quantamed_pk(
 ) -> JSONResponse:
     """Dose/genotype-adjusted PK curve (one-compartment steady-state)."""
     try:
-        payload = compute_pk_curve(
+        raw = compute_pk_curve(
             drug_id=drug,
             daily_dose_mg=daily_dose_mg,
             doses_per_day=doses_per_day,
@@ -392,6 +398,27 @@ async def quantamed_pk(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    # Reshape for Next.js frontend PKCurve interface
+    dr = raw["derived"]
+    drug_info = raw["drug"]
+    t_range = drug_info.get("therapeutic_range_ug_ml") or [0, 0]
+    half_life_base = drug_info.get("half_life_h_base", 15.0)
+    ke = dr.get("ke_h_inv", 0.0462)
+    t_half_adjusted = (0.693 / ke) if ke > 0 else half_life_base
+
+    payload = {
+        **raw,  # keep full original payload for legacy dashboards
+        "drug_id": drug_info["drug_id"],
+        "drug_name": drug_info["label"],
+        "derived": {
+            **dr,
+            "t_half_h": half_life_base,
+            "t_half_adjusted_h": round(t_half_adjusted, 2),
+            "therapeutic_min": t_range[0] if t_range else 0,
+            "therapeutic_max": t_range[1] if t_range else 0,
+        },
+    }
     return JSONResponse(payload)
 
 
@@ -737,6 +764,209 @@ async def protein_examples() -> JSONResponse:
     return JSONResponse(get_example_sequences())
 
 
+# ---------------------------------------------------------------------------
+# New Hackathon Feature Endpoints
+# ---------------------------------------------------------------------------
+
+BASE_DIR = os.path.dirname(__file__)
+
+
+class CompareRequest(BaseModel):
+    patient: dict[str, Any]
+    drug_ids: list[str]
+
+
+class AgentRunRequest(BaseModel):
+    task_id: str = "easy"
+    model: str = "claude-3-5-haiku-20241022"
+    max_steps: int = 8
+    anthropic_api_key: Optional[str] = None
+
+
+@app.post("/api/foldables/ddi")
+async def foldables_ddi(
+    body: PatientInput,
+    drug: str = Query(..., description="Candidate drug ID"),
+) -> JSONResponse:
+    """Real DDI check: candidate vs patient's current medications."""
+    try:
+        profile = build_patient_from_dict(body.patient)
+        result = pipeline_ddi(profile, drug)
+        return JSONResponse(result)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/foldables/compare")
+async def foldables_compare(body: CompareRequest) -> JSONResponse:
+    """Side-by-side 9-pipeline drug comparison."""
+    if len(body.drug_ids) < 2 or len(body.drug_ids) > 8:
+        raise HTTPException(status_code=400, detail="Provide 2-8 drug IDs")
+    try:
+        profile = build_patient_from_dict(body.patient)
+        result = compare_drugs_for_patient(profile, body.drug_ids)
+        return JSONResponse(result)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+class LegalAdviceRequest(BaseModel):
+    drug_id: str
+
+
+@app.post("/api/legal-advice")
+async def get_legal_advice(body: LegalAdviceRequest) -> JSONResponse:
+    """Generate legally compliant background research and advice for a drug."""
+    try:
+        report = generate_legal_compliance_report(body.drug_id)
+        return JSONResponse(report)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/foldables/trials")
+async def foldables_trials(body: PatientInput) -> JSONResponse:
+    """Clinical trial eligibility matching."""
+    try:
+        profile = build_patient_from_dict(body.patient)
+        result = match_clinical_trials(profile)
+        return JSONResponse(result)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/foldables/trials/demo")
+async def foldables_trials_demo() -> JSONResponse:
+    """Demo trial match using Gabi preset."""
+    profile = build_patient_from_dict(GABI_PRESET)
+    result = match_clinical_trials(profile)
+    return JSONResponse(result)
+
+
+@app.post("/api/agent/run")
+async def agent_run(body: AgentRunRequest) -> JSONResponse:
+    """Run an autonomous AI agent on a triage environment task."""
+    api_key = body.anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=400, detail="Anthropic API key required")
+
+    env = DrugTriageEnv(body.task_id)
+    obs = env.reset()
+    obs_dict = obs.model_dump()
+    transcript: list[dict[str, Any]] = []
+
+    system_prompt = (
+        "You are an FDA pharmacovigilance analyst. You are investigating adverse "
+        "event signals for a drug. At each step, respond with a JSON object: "
+        '{"action_type": "<one of: search_faers, fetch_label, analyze_signal, '
+        'lookup_mechanism, check_literature, submit>", '
+        '"parameters": {}, "reasoning": "<brief explanation>"}\n'
+        f"Drug: {obs_dict['drug_name']}\n"
+        f"Available actions: {obs_dict['available_actions']}"
+    )
+
+    messages: list[dict[str, str]] = [
+        {"role": "user", "content": json.dumps(obs_dict)}
+    ]
+
+    fallback_actions = ["search_faers", "fetch_label", "analyze_signal",
+                        "check_literature"]
+    fallback_idx = 0
+
+    for step_num in range(1, body.max_steps + 1):
+        action_type = None
+        parameters: dict[str, Any] = {}
+        reasoning = ""
+        try:
+            api_data = json.dumps({
+                "model": body.model,
+                "max_tokens": 512,
+                "system": system_prompt,
+                "messages": messages,
+            }).encode("utf-8")
+            req_obj = urllib.request.Request(
+                "https://api.anthropic.com/v1/messages",
+                data=api_data,
+                headers={
+                    "Content-Type": "application/json",
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                },
+            )
+            with urllib.request.urlopen(req_obj, timeout=30) as response:
+                resp = json.loads(response.read().decode())
+            content_text = resp["content"][0]["text"]
+            import re as _re
+            json_match = _re.search(r'\{[^{}]*\}', content_text, _re.DOTALL)
+            if json_match:
+                parsed = json.loads(json_match.group())
+                action_type = parsed.get("action_type", "search_faers")
+                parameters = parsed.get("parameters", {})
+                reasoning = parsed.get("reasoning", "")
+        except Exception:
+            pass
+
+        if not action_type:
+            if fallback_idx < len(fallback_actions):
+                action_type = fallback_actions[fallback_idx]
+                fallback_idx += 1
+                reasoning = "Fallback action (API parse failure)"
+            else:
+                action_type = "submit"
+                parameters = {
+                    "drug_name": obs_dict.get("drug_name", "unknown"),
+                    "primary_signal": "adverse events",
+                    "regulatory_action": "monitor",
+                }
+                reasoning = "Fallback submit (max retries)"
+
+        action = DrugAction(
+            action_type=cast(Any, action_type),
+            parameters=parameters,
+        )
+        obs, reward, done, info = env.step(action)
+        obs_dict = obs.model_dump()
+        rwd_dict = reward.model_dump()
+
+        transcript.append({
+            "step": step_num,
+            "action_type": action_type,
+            "parameters": parameters,
+            "reasoning": reasoning,
+            "reward": rwd_dict.get("value", 0),
+            "done": done,
+        })
+
+        messages.append({"role": "assistant", "content": json.dumps({
+            "action_type": action_type,
+            "parameters": parameters,
+            "reasoning": reasoning,
+        })})
+        messages.append({"role": "user", "content": json.dumps(obs_dict)})
+
+        if done:
+            break
+
+    final_reward = transcript[-1]["reward"] if transcript else 0
+    return JSONResponse({
+        "transcript": transcript,
+        "final_score": final_reward,
+        "final_message": reward.message if hasattr(reward, 'message') else "",
+        "steps_taken": len(transcript),
+        "task_id": body.task_id,
+    })
+
+
+@app.get("/mission-control", response_class=FileResponse)
+@app.get("/mission-control/", response_class=FileResponse)
+async def mission_control_dashboard() -> FileResponse:
+    """Serve the Mission Control standalone dashboard."""
+    return FileResponse(
+        os.path.join(BASE_DIR, "quantamed", "mission_control.html"),
+        media_type="text/html",
+    )
+
+
 frontend_out_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "out")
 if os.path.exists(frontend_out_dir):
     app.mount(
@@ -964,7 +1194,7 @@ try:
                     dynamics_result = analyze_protein_dynamics(sequence, n_frames=50, duration_ns=10.0)
                     protein_info += f"\n**Protein Dynamics Analysis:**\n"
                     protein_info += f"- RMSF Analysis: {len(dynamics_result['rmsf']['residue_ids'])} residues analyzed\n"
-                    protein_info += f"- Mean RMSF: {dynamics_result['rmsf']['mean_rmsf']:.2f} Å\n"
+                    protein_info += f"- Mean RMSF: {dynamics_result['rmsf']['mean']:.2f} Å\n"
                     protein_info += f"- Flexible regions: {len(dynamics_result['rmsf']['flexible_regions'])}\n"
                     protein_info += f"- RMSD converged: {'Yes' if dynamics_result['rmsd']['converged'] else 'No'}\n"
                     protein_info += f"- Conformational clusters: {dynamics_result['pca']['n_clusters']}\n"

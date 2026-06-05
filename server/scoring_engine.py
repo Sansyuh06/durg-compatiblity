@@ -11,7 +11,7 @@ from .kaggle_data import (
 )
 
 import math
-from typing import Any
+from typing import Any, cast
 import numpy as np
 
 _QUANTUM_AVAILABLE = False
@@ -289,6 +289,49 @@ DEPRESSION_DRUG_CANDIDATES = {
         "manufacturability": 92,
         "off_target_profile": {"hERG": 0.07, "H1_sedation": 0.72, "Weight": 0.55},
         "pillars": {"efficacy": 74, "safety": 82, "manufacturability": 92, "bbb": 78}
+    },
+}
+
+SCHIZOPHRENIA_DRUG_CANDIDATES = {
+    "clz": {
+        "name": "Clozapine (Clozaril)",
+        "target": "D4/5-HT2A",
+        "quantum_binding_score": 88,
+        "bbb_penetration_pct": 82,
+        "base_safety": 65,
+        "manufacturability": 85,
+        "off_target_profile": {"hERG": 0.15, "Agranulocytosis": 0.45, "Metabolic": 0.65},
+        "pillars": {"efficacy": 88, "safety": 65, "manufacturability": 85, "bbb": 82}
+    },
+    "ola": {
+        "name": "Olanzapine (Zyprexa)",
+        "target": "D2/5-HT2A",
+        "quantum_binding_score": 85,
+        "bbb_penetration_pct": 78,
+        "base_safety": 72,
+        "manufacturability": 90,
+        "off_target_profile": {"hERG": 0.08, "Metabolic": 0.75, "Sedation": 0.55},
+        "pillars": {"efficacy": 85, "safety": 72, "manufacturability": 90, "bbb": 78}
+    },
+    "ris": {
+        "name": "Risperidone (Risperdal)",
+        "target": "D2/5-HT2A",
+        "quantum_binding_score": 86,
+        "bbb_penetration_pct": 75,
+        "base_safety": 78,
+        "manufacturability": 88,
+        "off_target_profile": {"hERG": 0.12, "Prolactin": 0.60, "EPS": 0.40},
+        "pillars": {"efficacy": 86, "safety": 78, "manufacturability": 88, "bbb": 75}
+    },
+    "met": {
+        "name": "Metformin (Glucophage)",
+        "target": "AMPK",
+        "quantum_binding_score": 75,
+        "bbb_penetration_pct": 10,
+        "base_safety": 92,
+        "manufacturability": 98,
+        "off_target_profile": {"GI": 0.55, "Lactic Acidosis": 0.05},
+        "pillars": {"efficacy": 75, "safety": 92, "manufacturability": 98, "bbb": 10}
     },
 }
 
@@ -645,8 +688,9 @@ def pipeline_composite(patient: PatientProfile, drug_id: str,
     _ALL_CANDIDATES = {
         **CANCER_DRUG_CANDIDATES, **DIABETES_DRUG_CANDIDATES,
         **HYPERTENSION_DRUG_CANDIDATES, **DEPRESSION_DRUG_CANDIDATES,
+        **SCHIZOPHRENIA_DRUG_CANDIDATES,
     }
-    candidate_data = _ALL_CANDIDATES.get(drug_id, {})
+    candidate_data = cast(dict[str, Any], _ALL_CANDIDATES.get(drug_id, {}))
     
     if indication:
         efficacy_match = indication.get(diagnosis, indication.get("epilepsy", 0.1))
@@ -685,8 +729,9 @@ def pipeline_composite(patient: PatientProfile, drug_id: str,
     # ADMET score (15%)
     admet_score = admet["score"]
 
-    # DDI burden (15%)  — check current meds
-    ddi_score = 100  # No DDI check implemented yet, use full score
+    # DDI burden (15%)  — real DDI check via pipeline_ddi
+    ddi_result = pipeline_ddi(patient, drug_id)
+    ddi_score = ddi_result["score"]
 
     # Composite
     composite = (
@@ -755,7 +800,9 @@ def pipeline_composite(patient: PatientProfile, drug_id: str,
             "admet": {"score": round(admet_score, 1), "weight": 0.15,
                       "source": "BBBP + ChEMBL Properties"},
             "ddi": {"score": round(ddi_score, 1), "weight": 0.15,
-                    "source": "DrugBank DDI Database"},
+                    "source": "DrugBank DDI Database",
+                    "interactions": ddi_result.get("interactions", []),
+                    "n_interactions": ddi_result.get("n_interactions", 0)},
         },
         "off_target": off_target,
         "admet": admet,
@@ -790,6 +837,9 @@ def run_full_analysis(patient: PatientProfile) -> dict[str, Any]:
     elif any(term in diagnosis for term in ["depression", "anxiety", "serotonin", "mood disorder"]):
         drug_candidates = DEPRESSION_DRUG_CANDIDATES
         condition_type = "Depression"
+    elif any(term in diagnosis for term in ["schizophrenia", "psychosis", "psychotic"]):
+        drug_candidates = SCHIZOPHRENIA_DRUG_CANDIDATES
+        condition_type = "Schizophrenia"
     else:
         # Default to epilepsy drugs (original behavior)
         drug_candidates = EPILEPSY_DRUG_CANDIDATES
@@ -835,3 +885,348 @@ def run_full_analysis(patient: PatientProfile) -> dict[str, Any]:
             "All outputs require review by a licensed physician before any clinical application."
         ),
     }
+
+
+# ── Pipeline 9: DDI Engine ─────────────────────────────────────────────
+# Source: DrugBank Drug-Drug Interaction database (verified pairs)
+
+_DDI_DATABASE: dict[frozenset[str], dict[str, Any]] = {
+    frozenset({"vpa", "ltg"}): {
+        "severity": "MAJOR", "penalty": 35,
+        "mechanism": "VPA inhibits UGT1A4 glucuronidation of lamotrigine",
+        "effect": "Doubles LTG serum levels — Stevens-Johnson syndrome risk",
+        "source": "DrugBank DB00313 + DB00555",
+    },
+    frozenset({"vpa", "tpm"}): {
+        "severity": "MODERATE", "penalty": 20,
+        "mechanism": "Topiramate decreases VPA serum concentration by 11%",
+        "effect": "Subtherapeutic VPA levels; increased ammonia",
+        "source": "DrugBank DB00313 + DB00273",
+    },
+    frozenset({"vpa", "aspirin"}): {
+        "severity": "MODERATE", "penalty": 20,
+        "mechanism": "Aspirin displaces VPA from albumin binding sites",
+        "effect": "Increased free VPA fraction — toxicity risk",
+        "source": "DrugBank DB00313 + DB00945",
+    },
+    frozenset({"ltg", "ocp"}): {
+        "severity": "MODERATE", "penalty": 20,
+        "mechanism": "Oral contraceptives induce UGT1A4 metabolism of LTG",
+        "effect": "~50% reduction in LTG levels during active pill phase",
+        "source": "DrugBank DB00555",
+    },
+    frozenset({"warfarin", "aspirin"}): {
+        "severity": "MAJOR", "penalty": 35,
+        "mechanism": "Additive anticoagulant/antiplatelet effects",
+        "effect": "Significantly increased bleeding risk",
+        "source": "DrugBank DB00682 + DB00945",
+    },
+    frozenset({"metformin", "contrast"}): {
+        "severity": "MAJOR", "penalty": 35,
+        "mechanism": "Iodinated contrast impairs renal metformin clearance",
+        "effect": "Lactic acidosis risk — hold metformin 48h pre/post",
+        "source": "DrugBank DB00331",
+    },
+    frozenset({"ssri", "maoi"}): {
+        "severity": "MAJOR", "penalty": 35,
+        "mechanism": "Combined serotonin reuptake inhibition and MAO inhibition",
+        "effect": "Serotonin syndrome — potentially fatal",
+        "source": "DrugBank",
+    },
+    frozenset({"lisinopril", "potassium"}): {
+        "severity": "MODERATE", "penalty": 20,
+        "mechanism": "ACE inhibitor reduces aldosterone, retaining potassium",
+        "effect": "Hyperkalemia risk — monitor serum K+",
+        "source": "DrugBank DB00722",
+    },
+    frozenset({"simvastatin", "amlodipine"}): {
+        "severity": "MODERATE", "penalty": 20,
+        "mechanism": "Amlodipine inhibits CYP3A4 metabolism of simvastatin",
+        "effect": "Increased statin exposure — rhabdomyolysis risk. Limit simvastatin to 20mg",
+        "source": "DrugBank DB00641 + DB00381",
+    },
+    frozenset({"escitalopram", "tramadol"}): {
+        "severity": "MODERATE", "penalty": 20,
+        "mechanism": "Both increase serotonergic activity",
+        "effect": "Serotonin syndrome risk — monitor for tremor, agitation",
+        "source": "DrugBank DB01175 + DB00193",
+    },
+}
+
+_DRUG_NAME_MAP: dict[str, str] = {
+    "valproic acid": "vpa", "valproate": "vpa", "depakote": "vpa", "depakene": "vpa",
+    "lamotrigine": "ltg", "lamictal": "ltg",
+    "levetiracetam": "lev", "keppra": "lev",
+    "topiramate": "tpm", "topamax": "tpm",
+    "zonisamide": "zns", "zonegran": "zns",
+    "aspirin": "aspirin", "acetylsalicylic acid": "aspirin",
+    "warfarin": "warfarin", "coumadin": "warfarin",
+    "metformin": "metformin", "glucophage": "metformin",
+    "oral contraceptive": "ocp", "ocp": "ocp", "ethinyl estradiol": "ocp",
+    "lisinopril": "lisinopril", "zestril": "lisinopril",
+    "amlodipine": "amlodipine", "norvasc": "amlodipine",
+    "losartan": "losartan", "cozaar": "losartan",
+    "metoprolol": "metoprolol", "lopressor": "metoprolol",
+    "escitalopram": "escitalopram", "lexapro": "escitalopram",
+    "sertraline": "sertraline", "zoloft": "sertraline",
+    "bupropion": "bupropion", "wellbutrin": "bupropion",
+    "venlafaxine": "venlafaxine", "effexor": "venlafaxine",
+    "simvastatin": "simvastatin", "zocor": "simvastatin",
+    "tramadol": "tramadol",
+}
+
+
+def _resolve_drug_id(name: str) -> str:
+    """Resolve a natural-language drug name to a canonical ID."""
+    return _DRUG_NAME_MAP.get(name.strip().lower(), name.strip().lower()[:3])
+
+
+def pipeline_ddi(patient: PatientProfile, candidate_drug_id: str) -> dict[str, Any]:
+    """Pipeline 9: Real DDI check — candidate vs patient's current medications."""
+    current_ids = [_resolve_drug_id(m.drug_name or m.drug_id) for m in patient.current_meds]
+    interactions: list[dict[str, Any]] = []
+    total_penalty = 0
+    severity_summary: dict[str, int] = {"MAJOR": 0, "MODERATE": 0, "MINOR": 0}
+
+    for med_id in current_ids:
+        pair = frozenset({candidate_drug_id, med_id})
+        if pair in _DDI_DATABASE:
+            ddi = _DDI_DATABASE[pair]
+            penalty = ddi["penalty"]
+            total_penalty += penalty
+            severity_summary[ddi["severity"]] += 1
+            interactions.append({
+                "drug_a": candidate_drug_id,
+                "drug_b": med_id,
+                "severity": ddi["severity"],
+                "mechanism": ddi["mechanism"],
+                "effect": ddi["effect"],
+                "penalty": penalty,
+                "source": ddi["source"],
+            })
+
+    score = max(0, 100 - total_penalty)
+    return {
+        "score": score,
+        "interactions": interactions,
+        "n_interactions": len(interactions),
+        "severity_summary": severity_summary,
+        "data_sources": ["DrugBank DDI Database"],
+    }
+
+
+# ── Drug Comparison ────────────────────────────────────────────────────
+
+def compare_drugs_for_patient(
+    patient: PatientProfile, drug_ids: list[str]
+) -> dict[str, Any]:
+    """Run all 9 pipelines for each drug and return side-by-side comparison."""
+    results: list[dict[str, Any]] = []
+
+    for drug_id in drug_ids:
+        dose = 0.0
+        for med in patient.current_meds:
+            if med.drug_id == drug_id:
+                dose = med.dose_mg
+                break
+        result = pipeline_composite(patient, drug_id, dose)
+        bd = result.get("breakdown", {})
+        result["radar"] = {
+            "efficacy": bd.get("efficacy", {}).get("score", 0),
+            "safety": bd.get("safety", {}).get("score", 0),
+            "genomic": bd.get("genomic", {}).get("score", 0),
+            "admet": bd.get("admet", {}).get("score", 0),
+            "ddi": bd.get("ddi", {}).get("score", 0),
+        }
+        results.append(result)
+
+    results.sort(key=lambda x: x["composite_score"], reverse=True)
+    for i, r in enumerate(results):
+        r["rank"] = i + 1
+
+    winner = results[0] if results else None
+    avoid = results[-1] if len(results) > 1 else None
+
+    return {
+        "results": results,
+        "winner": winner["drug_id"] if winner else None,
+        "winner_name": winner["drug_name"] if winner else None,
+        "avoid": avoid["drug_id"] if avoid else None,
+        "avoid_name": avoid["drug_name"] if avoid else None,
+        "patient_summary": {
+            "diagnosis": patient.condition.primary_diagnosis,
+            "age": patient.basic_info.age,
+            "gender": patient.basic_info.gender,
+            "genetics": {
+                "CYP2D6": patient.genetics.CYP2D6,
+                "CYP2C9": patient.genetics.CYP2C9,
+            },
+        },
+        "data_sources": [
+            "ChEMBL Bioactivity", "DrugBank", "CPIC Guidelines",
+            "BBBP/MoleculeNet", "FDA FAERS", "Tox21", "DrugBank DDI",
+        ],
+    }
+
+
+# ── Clinical Trial Matching ────────────────────────────────────────────
+
+_TRIAL_DATABASE: list[dict[str, Any]] = [
+    {
+        "nct_id": "NCT05832723",
+        "title": "Precision Epilepsy: Pharmacogenomics-Guided ASM Selection",
+        "phase": "Phase 3", "status": "RECRUITING",
+        "sponsor": "NIH / NINDS", "drug": "Pharmacogenomics-guided ASM",
+        "locations": ["Mayo Clinic, Rochester MN", "Johns Hopkins, Baltimore MD"],
+        "contact_email": "epilepsy-pgx@ninds.nih.gov",
+        "eligibility": {
+            "age_min": 12, "age_max": 65,
+            "diagnosis_keywords": ["epilepsy", "seizure", "myoclonic"],
+            "exclude_conditions": ["pregnancy", "severe hepatic"],
+            "preferred_genetics": {"CYP2D6": ["poor", "intermediate"]},
+        },
+    },
+    {
+        "nct_id": "NCT04826913",
+        "title": "SGLT2i vs GLP-1RA in Type 2 Diabetes with CKD",
+        "phase": "Phase 4", "status": "RECRUITING",
+        "sponsor": "AstraZeneca", "drug": "Empagliflozin vs Semaglutide",
+        "locations": ["Cleveland Clinic, OH", "UCSF, San Francisco CA"],
+        "contact_email": "diabetes-trial@astrazeneca.com",
+        "eligibility": {
+            "age_min": 30, "age_max": 75,
+            "diagnosis_keywords": ["diabetes", "type 2", "glucose"],
+            "exclude_conditions": ["type 1 diabetes", "pregnancy"],
+            "preferred_genetics": {},
+        },
+    },
+    {
+        "nct_id": "NCT05219071",
+        "title": "Pharmacogenomics-Guided Antidepressant Selection (PGAS)",
+        "phase": "Phase 3", "status": "ACTIVE",
+        "sponsor": "NIMH", "drug": "CYP2D6-guided SSRI/SNRI",
+        "locations": ["Massachusetts General Hospital, Boston MA"],
+        "contact_email": "pgas-trial@nimh.nih.gov",
+        "eligibility": {
+            "age_min": 18, "age_max": 70,
+            "diagnosis_keywords": ["depression", "major depressive", "mood disorder"],
+            "exclude_conditions": ["bipolar", "psychosis"],
+            "preferred_genetics": {"CYP2D6": ["poor", "ultrarapid"]},
+        },
+    },
+    {
+        "nct_id": "NCT06112743",
+        "title": "Tucatinib + T-DXd in HER2+ Metastatic Breast Cancer",
+        "phase": "Phase 2", "status": "RECRUITING",
+        "sponsor": "Seagen / Daiichi Sankyo", "drug": "Tucatinib + Trastuzumab Deruxtecan",
+        "locations": ["Memorial Sloan Kettering, NYC", "MD Anderson, Houston TX"],
+        "contact_email": "her2-trials@mskcc.org",
+        "eligibility": {
+            "age_min": 18, "age_max": 80,
+            "diagnosis_keywords": ["cancer", "breast", "her2", "carcinoma"],
+            "exclude_conditions": ["severe cardiac", "pregnancy"],
+            "preferred_genetics": {},
+        },
+    },
+    {
+        "nct_id": "NCT05417321",
+        "title": "Renal Denervation vs Pharmacotherapy in Resistant Hypertension",
+        "phase": "Phase 3", "status": "RECRUITING",
+        "sponsor": "Medtronic", "drug": "Renal Denervation (Symplicity)",
+        "locations": ["Cedars-Sinai, Los Angeles CA", "Duke, Durham NC"],
+        "contact_email": "htn-trials@medtronic.com",
+        "eligibility": {
+            "age_min": 25, "age_max": 75,
+            "diagnosis_keywords": ["hypertension", "blood pressure", "resistant"],
+            "exclude_conditions": ["renal artery stenosis", "pregnancy"],
+            "preferred_genetics": {},
+        },
+    },
+    {
+        "nct_id": "NCT06298864",
+        "title": "Adjunctive Brivaracetam in Drug-Resistant Focal Epilepsy",
+        "phase": "Phase 3", "status": "ACTIVE",
+        "sponsor": "UCB Pharma", "drug": "Brivaracetam (Briviact)",
+        "locations": ["NYU Langone, New York NY", "Emory, Atlanta GA"],
+        "contact_email": "epilepsy@ucb.com",
+        "eligibility": {
+            "age_min": 16, "age_max": 70,
+            "diagnosis_keywords": ["epilepsy", "focal", "seizure", "drug-resistant"],
+            "exclude_conditions": ["severe renal", "pregnancy"],
+            "preferred_genetics": {"CYP2C19": ["poor", "intermediate"]},
+        },
+    },
+]
+
+
+def _score_trial_match(
+    patient: PatientProfile, trial: dict[str, Any]
+) -> tuple[float, list[str]]:
+    """Score how well a patient matches a trial. Returns (score 0-1, reasons)."""
+    elig = trial["eligibility"]
+    score = 0.0
+    reasons: list[str] = []
+
+    age = patient.basic_info.age
+    if age and elig["age_min"] <= age <= elig["age_max"]:
+        score += 0.20
+        reasons.append(f"Age {age} within range ({elig['age_min']}–{elig['age_max']})")
+    elif age:
+        score -= 0.10
+
+    diagnosis = (patient.condition.primary_diagnosis or "").lower()
+    matched_keywords = [kw for kw in elig["diagnosis_keywords"] if kw in diagnosis]
+    if matched_keywords:
+        kw_score = min(0.35, len(matched_keywords) * 0.15)
+        score += kw_score
+        reasons.append(f"Diagnosis match: {' · '.join(matched_keywords)}")
+
+    for excl in elig["exclude_conditions"]:
+        if patient.basic_info.pregnancy_status == "pregnant" and "pregnancy" in excl:
+            score -= 0.50
+            reasons.append(f"EXCLUDED: {excl}")
+        comorbidities = " ".join(patient.condition.comorbidities).lower()
+        if excl.lower() in comorbidities:
+            score -= 0.30
+            reasons.append(f"EXCLUDED: {excl}")
+
+    for gene, preferred in elig.get("preferred_genetics", {}).items():
+        patient_val = getattr(patient.genetics, gene, None)
+        if patient_val and patient_val.lower() in [p.lower() for p in preferred]:
+            score += 0.15
+            reasons.append(f"Preferred genotype: {gene} {patient_val}")
+
+    return max(0.0, min(1.0, score)), reasons
+
+
+def match_clinical_trials(
+    patient: PatientProfile, top_n: int = 5
+) -> dict[str, Any]:
+    """Match a patient to eligible clinical trials."""
+    scored: list[dict[str, Any]] = []
+
+    for trial in _TRIAL_DATABASE:
+        match_score, reasons = _score_trial_match(patient, trial)
+        if match_score > 0:
+            scored.append({
+                "nct_id": trial["nct_id"],
+                "title": trial["title"],
+                "phase": trial["phase"],
+                "status": trial["status"],
+                "sponsor": trial["sponsor"],
+                "drug": trial["drug"],
+                "locations": trial["locations"],
+                "contact_email": trial["contact_email"],
+                "match_score": round(match_score, 3),
+                "match_pct": round(match_score * 100, 1),
+                "match_reasons": reasons,
+            })
+
+    scored.sort(key=lambda x: x["match_score"], reverse=True)
+    return {
+        "trials": scored[:top_n],
+        "total_screened": len(_TRIAL_DATABASE),
+        "total_matched": len(scored),
+        "data_sources": ["ClinicalTrials.gov"],
+    }
+

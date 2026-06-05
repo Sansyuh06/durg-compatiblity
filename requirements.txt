@@ -10,16 +10,16 @@ openenv-core>=0.2.3
 numpy>=1.24.0
 scikit-learn>=1.3.0
 fpdf2>=2.7.0
-# Qiskit 0.46.3 uses legacy APIs (BasicAer, PauliSumOp, QuantumInstance).
+# Cirq is used for quantum simulation logic instead of Qiskit.
 # The protein folding module gracefully falls back to cached results if
-# Qiskit is unavailable or the API surface has changed (Qiskit 1.x).
-qiskit==0.46.3
+# Cirq is unavailable or the API surface changes.
+cirq>=1.4.0
 # TRIBE v2 (Meta fMRI prediction model) is cloned locally in tribev2/.
 # Its heavy dependencies (torch>=2.5.1, x_transformers, moviepy, etc.)
 # are NOT listed here — the dashboard runs in "Sensory Simulation Mode"
 # To run TRIBE v2 inference: pip install -e tribev2/
 # Optional: pip install -e tribev2/ to enable TRIBE v2 inference
-# Optional: Quantum ML extras (requires compatible Qiskit version)
+# Optional: Quantum ML extras (requires compatible Cirq version)
 # pennylane>=0.38.0
-# pennylane-qiskit
+# pennylane-cirq
 rdkit

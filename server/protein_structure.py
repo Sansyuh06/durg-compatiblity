@@ -919,6 +919,6 @@ def get_example_sequences() -> dict[str, dict[str, str]]:
             "name": protein_info.get("name", "Unknown Protein"),
             "fasta": fasta_text,
             "description": f"{len(sequence)}-residue fragment",
-            "length": len(sequence)
+            "length": str(len(sequence))
         }
     return examples

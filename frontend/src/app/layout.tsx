@@ -1,35 +1,25 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, IBM_Plex_Mono, Caveat, Permanent_Marker } from "next/font/google";
+import { JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 
-const ibmSans = IBM_Plex_Sans({
+const mono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-ibm-sans",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-jb-mono",
 });
 
-const ibmMono = IBM_Plex_Mono({
+const serif = Instrument_Serif({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-ibm-mono",
+  weight: "400",
+  variable: "--font-instrument",
 });
 
 export const metadata: Metadata = {
-  title: "Foldables — Pharmacovigilance Signal Triage",
-  description: "AI-powered adverse event signal detection and regulatory assessment for FDA FAERS — Metformin, Rofecoxib, Isotretinoin.",
+  title: "Foldables — Precision Drug Triage",
+  description:
+    "AI-powered pharmacovigilance signal detection, drug-drug interaction analysis, and personalized medicine — powered by 9 computational pipelines across ChEMBL, DrugBank, CPIC, FAERS, and Tox21.",
 };
-
-const caveat = Caveat({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-caveat",
-});
-
-const marker = Permanent_Marker({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-marker",
-});
 
 export default function RootLayout({
   children,
@@ -37,9 +27,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${ibmSans.variable} ${ibmMono.variable} ${caveat.variable} ${marker.variable}`}>
+    <html lang="en" className={`${mono.variable} ${serif.variable}`}>
       <body className="min-h-full flex flex-col antialiased">
-        {children}
+        <Navbar />
+        <main className="flex-1 pt-14">{children}</main>
       </body>
     </html>
   );

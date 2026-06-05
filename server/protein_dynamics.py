@@ -20,8 +20,8 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 import numpy as np
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA  # type: ignore[import-untyped]
+from sklearn.cluster import KMeans  # type: ignore[import-untyped]
 
 
 @dataclass
@@ -125,8 +125,8 @@ def calculate_rmsf(trajectory: MDTrajectory) -> RMSFResult:
     std_rmsf = float(np.std(residue_rmsf))
     threshold = mean_rmsf + 0.5 * std_rmsf
     
-    flexible_regions = []
-    rigid_regions = []
+    flexible_regions: list[tuple[int, int]] = []
+    rigid_regions: list[tuple[int, int]] = []
     
     in_flexible = False
     region_start = 0

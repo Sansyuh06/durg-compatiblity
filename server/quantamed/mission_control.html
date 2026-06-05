@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QuantaMed — Mission Control</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#080A0F;color:#E6EDF3;font-family:'JetBrains Mono',monospace;min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;background-image:radial-gradient(rgba(74,250,154,.03) 1px,transparent 1px);background-size:32px 32px;z-index:0}
+  .container{max-width:1200px;margin:0 auto;padding:24px;position:relative;z-index:1}
+  h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:4px}
+  .subtitle{font-size:11px;color:rgba(255,255,255,.3);margin-bottom:32px;letter-spacing:.08em;text-transform:uppercase}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;margin-bottom:24px}
+  .card{background:#0D1117;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:20px;position:relative}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(74,250,154,.4) 40%,rgba(74,250,154,.4) 60%,transparent);border-radius:8px 8px 0 0}
+  .card h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:8px}
+  .card p{font-size:11px;color:rgba(255,255,255,.3);line-height:1.6;margin-bottom:12px}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;font-size:11px;font-family:'JetBrains Mono',monospace;border:none;border-radius:6px;cursor:pointer;transition:all .2s}
+  .btn-primary{background:#4AFA9A;color:#080A0F;font-weight:600}
+  .btn-primary:hover{background:#3de88a}
+  .btn-secondary{background:transparent;color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1)}
+  .btn-secondary:hover{color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.2)}
+  .output{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:6px;padding:12px;margin-top:12px;font-size:10px;color:rgba(255,255,255,.4);max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;display:none}
+  .output.visible{display:block}
+  .tag{display:inline-block;font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:4px;border:1px solid rgba(74,250,154,.3);color:#4AFA9A;background:rgba(74,250,154,.06)}
+  .loading{color:#4AFA9A;font-size:11px}
+  select,input[type=text],input[type=number],input[type=password]{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:4px;padding:6px 10px;font-size:11px;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace;outline:none;width:100%}
+  select:focus,input:focus{border-color:rgba(74,250,154,.3)}
+  label{display:block;font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .nav{display:flex;gap:16px;align-items:center;margin-bottom:32px;border-bottom:1px solid rgba(255,255,255,.05);padding-bottom:16px}
+  .nav a{font-size:11px;color:rgba(255,255,255,.3);text-decoration:none;letter-spacing:.05em}
+  .nav a:hover{color:rgba(255,255,255,.6)}
+  .stat{text-align:center;padding:12px}
+  .stat-value{font-size:24px;font-weight:700;color:#4AFA9A}
+  .stat-label{font-size:9px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="nav">
+    <span style="font-family:Syne;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.15em;font-size:13px">FOLDABLES</span>
+    <a href="/">Frontend</a>
+    <a href="/gradio">Gradio</a>
+    <a href="/health">Health</a>
+    <a href="/docs">API Docs</a>
+  </div>
+
+  <h1>Mission Control</h1>
+  <p class="subtitle">All endpoints · One dashboard</p>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+    <div class="card stat"><div class="stat-value">9</div><div class="stat-label">Pipelines</div></div>
+    <div class="card stat"><div class="stat-value">6</div><div class="stat-label">Data Sources</div></div>
+    <div class="card stat"><div class="stat-value">10+</div><div class="stat-label">DDI Pairs</div></div>
+    <div class="card stat"><div class="stat-value">6</div><div class="stat-label">NCT Trials</div></div>
+  </div>
+
+  <div class="grid">
+    <!-- Patient Analysis -->
+    <div class="card">
+      <h3>🧬 Patient Analysis</h3>
+      <p>Run full 9-pipeline analysis on demo patient (Gabi).</p>
+      <button class="btn btn-primary" onclick="runDemo()">Analyze Demo Patient</button>
+      <div id="demo-out" class="output"></div>
+    </div>
+
+    <!-- Compare -->
+    <div class="card">
+      <h3>⚖ Drug Comparison</h3>
+      <p>Compare VPA, LTG, LEV side-by-side across all pipelines.</p>
+      <button class="btn btn-primary" onclick="runCompare()">Compare 3 Drugs</button>
+      <div id="compare-out" class="output"></div>
+    </div>
+
+    <!-- DDI -->
+    <div class="card">
+      <h3>💊 DDI Check</h3>
+      <p>Check Lamotrigine interactions vs patient's current meds.</p>
+      <div class="form-row">
+        <div><label>Candidate</label><select id="ddi-drug"><option value="ltg">Lamotrigine</option><option value="tpm">Topiramate</option><option value="aspirin">Aspirin</option></select></div>
+      </div>
+      <button class="btn btn-primary" onclick="runDDI()">Check DDI</button>
+      <div id="ddi-out" class="output"></div>
+    </div>
+
+    <!-- Trials -->
+    <div class="card">
+      <h3>🏥 Trial Matching</h3>
+      <p>Match Gabi to eligible clinical trials.</p>
+      <button class="btn btn-primary" onclick="runTrials()">Match Trials</button>
+      <div id="trials-out" class="output"></div>
+    </div>
+
+    <!-- Agent -->
+    <div class="card">
+      <h3>🤖 Agent Runner</h3>
+      <p>Run Claude agent on FDA triage task.</p>
+      <div class="form-row">
+        <div><label>Task</label><select id="agent-task"><option value="easy">Easy</option><option value="medium">Medium</option></select></div>
+        <div><label>API Key</label><input type="password" id="agent-key" placeholder="sk-ant-..."></div>
+      </div>
+      <button class="btn btn-primary" onclick="runAgent()">Run Agent</button>
+      <div id="agent-out" class="output"></div>
+    </div>
+
+    <!-- PK -->
+    <div class="card">
+      <h3>📈 PK Curve</h3>
+      <p>Generate pharmacokinetic concentration curve.</p>
+      <div class="form-row">
+        <div><label>Drug</label><select id="pk-drug"><option value="vpa">VPA</option><option value="ltg">LTG</option><option value="lev">LEV</option></select></div>
+        <div><label>Daily Dose (mg)</label><input type="number" id="pk-dose" value="1000"></div>
+      </div>
+      <button class="btn btn-primary" onclick="runPK()">Generate PK</button>
+      <div id="pk-out" class="output"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE = '';
+const GABI = {"basic_info":{"age":24,"gender":"female","weight_kg":58,"height_cm":165},"condition":{"primary_diagnosis":"epilepsy","subtype":"Juvenile Myoclonic Epilepsy","severity":"moderate"},"genetics":{"CYP2D6":"Poor","CYP2C9":"Intermediate","CYP2C19":"Normal","CYP3A4":"Normal"},"current_meds":[{"drug_id":"vpa","drug_name":"Valproic Acid","dose_mg":1000,"frequency":"BID"}],"labs":{"ALT":42,"AST":38,"eGFR":95}};
+
+function show(id, data) {
+  const el = document.getElementById(id);
+  el.textContent = JSON.stringify(data, null, 2);
+  el.classList.add('visible');
+}
+
+async function post(path, body) {
+  const r = await fetch(BASE + path, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  return r.json();
+}
+
+async function runDemo() {
+  show('demo-out', '⏳ Running...');
+  const d = await post('/api/quantamed/analyze-uploaded', GABI);
+  show('demo-out', d);
+}
+
+async function runCompare() {
+  show('compare-out', '⏳ Running...');
+  const d = await post('/api/foldables/compare', {patient:GABI, drug_ids:['vpa','ltg','lev']});
+  show('compare-out', d);
+}
+
+async function runDDI() {
+  const drug = document.getElementById('ddi-drug').value;
+  show('ddi-out', '⏳ Running...');
+  const d = await post('/api/foldables/ddi?drug='+drug, {patient:GABI});
+  show('ddi-out', d);
+}
+
+async function runTrials() {
+  show('trials-out', '⏳ Running...');
+  const r = await fetch(BASE + '/api/foldables/trials/demo');
+  show('trials-out', await r.json());
+}
+
+async function runAgent() {
+  const key = document.getElementById('agent-key').value;
+  const task = document.getElementById('agent-task').value;
+  if(!key){show('agent-out','❌ Enter API key');return}
+  show('agent-out', '⏳ Running agent...');
+  const d = await post('/api/agent/run', {task_id:task, anthropic_api_key:key, max_steps:8});
+  show('agent-out', d);
+}
+
+async function runPK() {
+  const drug = document.getElementById('pk-drug').value;
+  const dose = document.getElementById('pk-dose').value;
+  show('pk-out', '⏳ Running...');
+  const r = await fetch(BASE + `/api/quantamed/pk?drug=${drug}&daily_dose_mg=${dose}&doses_per_day=2&cyp2c9=normal`);
+  show('pk-out', await r.json());
+}
+</script>
+</body>
+</html>

@@ -414,12 +414,28 @@ class Patient:
         for key, value in genetics_data_raw.items():
             genetics_data[key.lower()] = value
         
+        def _to_metabolizer_status(value: str) -> MetabolizerStatus:
+            """Safely convert a string to MetabolizerStatus, normalizing case."""
+            normalized = (value or "normal").strip().lower()
+            alias_map = {
+                "pm": "poor", "poor_metabolizer": "poor",
+                "im": "intermediate", "intermediate_metabolizer": "intermediate",
+                "nm": "normal", "em": "normal", "extensive": "normal", "normal_metabolizer": "normal",
+                "um": "ultrarapid", "ultrarapid_metabolizer": "ultrarapid",
+                "rm": "rapid", "rapid_metabolizer": "rapid",
+            }
+            normalized = alias_map.get(normalized, normalized)
+            try:
+                return MetabolizerStatus(normalized)
+            except ValueError:
+                return MetabolizerStatus.NORMAL
+
         genetics = GeneticProfile(
-            cyp2d6=MetabolizerStatus(genetics_data.get("cyp2d6", "normal")),
-            cyp2c9=MetabolizerStatus(genetics_data.get("cyp2c9", "normal")),
-            cyp2c19=MetabolizerStatus(genetics_data.get("cyp2c19", "normal")),
-            cyp3a4=MetabolizerStatus(genetics_data.get("cyp3a4", "normal")),
-            cyp1a2=MetabolizerStatus(genetics_data.get("cyp1a2", "normal")),
+            cyp2d6=_to_metabolizer_status(genetics_data.get("cyp2d6", "normal")),
+            cyp2c9=_to_metabolizer_status(genetics_data.get("cyp2c9", "normal")),
+            cyp2c19=_to_metabolizer_status(genetics_data.get("cyp2c19", "normal")),
+            cyp3a4=_to_metabolizer_status(genetics_data.get("cyp3a4", "normal")),
+            cyp1a2=_to_metabolizer_status(genetics_data.get("cyp1a2", "normal")),
             slco1b1=genetics_data.get("slco1b1"),
             vkorc1=genetics_data.get("vkorc1"),
             hla_b5701=genetics_data.get("hla_b5701")

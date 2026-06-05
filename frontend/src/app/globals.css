@@ -1,16 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'IBM Plex Sans', sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
-}
+  --font-sans: 'JetBrains Mono', 'IBM Plex Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
 
-@font-face {
-  font-family: 'Dirty Enough';
-  src: url('/fonts/DirtyEnough-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
+  --color-bg: #080A0F;
+  --color-surface: #0D1117;
+  --color-surface-2: #161B22;
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-accent: #4AFA9A;
+  --color-accent-dim: rgba(74, 250, 154, 0.12);
+  --color-text: #E6EDF3;
+  --color-text-muted: rgba(255, 255, 255, 0.50);
+  --color-text-dim: rgba(255, 255, 255, 0.25);
 }
 
 @layer base {
@@ -19,139 +21,151 @@
   html { font-size: 14px; -webkit-font-smoothing: antialiased; }
 
   body {
-    background-color: #03060f;
-    color: #e8f0fe;
-    font-family: 'IBM Plex Sans', sans-serif;
+    background-color: #030712; /* Tailwind gray-950 */
+    color: var(--color-text);
+    font-family: var(--font-sans);
     font-weight: 400;
-    line-height: 1.55;
+    line-height: 1.6;
     min-height: 100vh;
     overflow-x: hidden;
+    position: relative;
   }
 
-  /* Subtle dot-grid texture on body */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
+    z-index: -1;
+    background: radial-gradient(circle at 50% 0%, rgba(74, 250, 154, 0.15), transparent 60%),
+                radial-gradient(circle at 0% 100%, rgba(56, 189, 248, 0.1), transparent 50%);
     pointer-events: none;
-    z-index: 0;
-    background-image: radial-gradient(
-      rgba(0, 212, 230, 0.06) 1px,
-      transparent 1px
-    );
-    background-size: 32px 32px;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, #000 70%, transparent 110%);
+    pointer-events: none;
   }
 
   ::selection {
-    background: rgba(0, 212, 230, 0.2);
-    color: #e8f0fe;
+    background: rgba(74, 250, 154, 0.15);
+    color: #fff;
   }
 
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: rgba(0, 212, 230, 0.15);
+    background: rgba(74, 250, 154, 0.12);
     border-radius: 2px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 212, 230, 0.3);
+    background: rgba(74, 250, 154, 0.25);
   }
 }
 
-/* Panel card */
+/* ── Panel card (21st.dev Glassmorphism) ──────────────────────────────────── */
 .panel {
-  background: #060d1a;
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 6px;
+  background: rgba(13, 17, 23, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 
-/* Top accent line on panels */
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 1px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
 .panel-accent::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(0,212,230,0.6) 40%,
-    rgba(0,212,230,0.6) 60%,
-    transparent
-  );
-  border-radius: 6px 6px 0 0;
+  background: linear-gradient(90deg, transparent, rgba(74,250,154,0.4) 40%, rgba(74,250,154,0.4) 60%, transparent);
+  border-radius: 8px 8px 0 0;
 }
 
-/* Monospace tag */
+/* ── Tag chips ───────────────────────────────────── */
 .tag {
   display: inline-block;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 2px 8px;
-  border-radius: 3px;
+  border-radius: 4px;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.03);
   color: #7090b0;
 }
+.tag-cyan  { border-color: rgba(74,250,154,0.3);  color: #4AFA9A; background: rgba(74,250,154,0.06); }
+.tag-green { border-color: rgba(74,250,154,0.3);  color: #4AFA9A; background: rgba(74,250,154,0.06); }
+.tag-amber { border-color: rgba(251,191,36,0.3);  color: #FBBF24; background: rgba(251,191,36,0.06); }
+.tag-red   { border-color: rgba(239,68,68,0.3);   color: #EF4444; background: rgba(239,68,68,0.06); }
 
-.tag-cyan  { border-color: rgba(0,212,230,0.3);  color: #00d4e6; background: rgba(0,212,230,0.06); }
-.tag-green { border-color: rgba(0,212,160,0.3);  color: #00d4a0; background: rgba(0,212,160,0.06); }
-.tag-amber { border-color: rgba(232,160,32,0.3); color: #e8a020; background: rgba(232,160,32,0.06); }
-.tag-red   { border-color: rgba(224,64,96,0.3);  color: #e04060; background: rgba(224,64,96,0.06); }
-
-/* EEG baseline animation */
-@keyframes eeg-pulse {
-  0%   { stroke-dashoffset: 100; opacity: 0.4; }
-  50%  { opacity: 0.9; }
-  100% { stroke-dashoffset: 0;   opacity: 0.4; }
-}
-
-/* Score glow */
+/* ── Animations ──────────────────────────────────── */
 @keyframes score-reveal {
   from { transform: scale(0.85); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
 }
 
-/* Subtle shimmer on active action button */
 @keyframes shimmer {
   0%   { background-position: -200% center; }
   100% { background-position:  200% center; }
 }
 
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74,250,154,0.15); }
+  50%      { box-shadow: 0 0 20px 4px rgba(74,250,154,0.1); }
+}
+
+@keyframes float-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float-up {
+  animation: float-up 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
 .action-btn-active {
-  background: linear-gradient(
-    110deg,
-    #0a1628 33%,
-    rgba(0,212,230,0.08) 50%,
-    #0a1628 67%
-  );
+  background: linear-gradient(110deg, #0a1628 33%, rgba(74,250,154,0.06) 50%, #0a1628 67%);
   background-size: 200% 100%;
   animation: shimmer 3s infinite;
 }
 
-/* Scan line (decorative, on feed panel header) */
-@keyframes scan {
-  0%   { transform: translateY(-100%); }
-  100% { transform: translateY(200%); }
-}
-
-.scan-line::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,212,230,0.4), transparent);
-  animation: scan 4s linear infinite;
-  pointer-events: none;
-}
-
-/* Status indicator */
+/* ── Status ──────────────────────────────────────── */
 @keyframes status-blink {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.25; }
 }
 .status-active { animation: status-blink 1.4s ease infinite; }
+
+/* ── Stat counter ────────────────────────────────── */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-count-up {
+  animation: count-up 0.8s cubic-bezier(0.23, 1, 0.32, 1) both;
+}

@@ -2387,12 +2387,24 @@ function startManualIntake() {
     </div>
     <!-- TRIBE v2 3D Brain Twin - THREE VIEWS -->
     <div class="card" style="margin-top:24px;padding:0;overflow:hidden;border: 1px solid var(--border-default);border-radius:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:rgba(0,10,30,0.6);border-bottom:1px solid rgba(0,212,255,0.12);">
-        <div style="font-family: 'IBM Plex Sans', sans-serif;font-size:16px;font-weight:700;color:var(--white);letter-spacing:2px;">🧠 TRIBE v2 — 3D Neural Activation Brain Twin (Multi-View)</div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <button id="brainStateVPA" onclick="setBrainState('vpa')" style="background:rgba(255,82,82,0.2);border: 1px solid var(--border-default);color:#ff5252;font-family: 'IBM Plex Mono', monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">⚡ VPA STATE</button>
-          <button id="brainStateLTG" onclick="setBrainState('ltg')" style="background:rgba(0,230,118,0.2);border: 1px solid var(--border-default);color:#00e676;font-family: 'IBM Plex Mono', monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">🌿 LTG STATE</button>
-          <button id="brainStateCompare" onclick="setBrainState('compare')" style="background:rgba(0,212,255,0.15);border: 1px solid var(--border-default);color:#00d4ff;font-family: 'IBM Plex Mono', monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">⚖ COMPARE</button>
+      <div style="display:flex;flex-direction:column;padding:16px 24px;background:rgba(0,10,30,0.6);border-bottom:1px solid rgba(0,212,255,0.12);">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-family: 'IBM Plex Sans', sans-serif;font-size:16px;font-weight:700;color:var(--white);letter-spacing:2px;">🧠 TRIBE v2 — 3D Neural Activation Brain Twin (Multi-View)</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--text2); margin-right:8px;">SYMPTOM MAP:</div>
+            <button id="sympAnxiety" onclick="highlightSymptom('anxiety')" style="background:transparent;border: 1px dashed var(--border-default);color:var(--text);font-family: 'IBM Plex Mono', monospace;font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all 0.2s;">😟 Anxiety</button>
+            <button id="sympSeizure" onclick="highlightSymptom('seizure')" style="background:transparent;border: 1px dashed var(--border-default);color:var(--text);font-family: 'IBM Plex Mono', monospace;font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all 0.2s;">⚡ Seizure</button>
+            <button id="sympSleep" onclick="highlightSymptom('sleep')" style="background:transparent;border: 1px dashed var(--border-default);color:var(--text);font-family: 'IBM Plex Mono', monospace;font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all 0.2s;">💤 Sleep</button>
+            <button id="sympCognitive" onclick="highlightSymptom('cognitive')" style="background:transparent;border: 1px dashed var(--border-default);color:var(--text);font-family: 'IBM Plex Mono', monospace;font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all 0.2s;">🧠 Cognitive</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button id="brainStateVPA" onclick="setBrainState('vpa')" style="background:rgba(255,82,82,0.2);border: 1px solid var(--border-default);color:#ff5252;font-family: 'IBM Plex Mono', monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">⚡ VPA STATE</button>
+            <button id="brainStateLTG" onclick="setBrainState('ltg')" style="background:rgba(0,230,118,0.2);border: 1px solid var(--border-default);color:#00e676;font-family: 'IBM Plex Mono', monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">🌿 LTG STATE</button>
+            <button id="brainStateCompare" onclick="setBrainState('compare')" style="background:rgba(0,212,255,0.15);border: 1px solid var(--border-default);color:#00d4ff;font-family: 'IBM Plex Mono', monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.2s;">⚖ COMPARE</button>
+          </div>
+          <div id="sympExplanation" style="font-family:'IBM Plex Sans', sans-serif; font-size:12px; color:var(--cyan); font-weight:600; display:none; background:rgba(0,212,230,0.1); padding:6px 12px; border-radius:4px; border:1px solid rgba(0,212,230,0.3);">😟 Anxiety: Hyperactivation in Amygdala, Insula & Prefrontal Cortex</div>
         </div>
       </div>
       <!-- Three Brain Views Container -->
@@ -3864,6 +3876,48 @@ function initRL(){
 // ══════════════════════════════════════════════════════════
 let _tribe3D = null;
 let _currentBrainState = 'vpa'; // 'vpa' | 'ltg' | 'compare'
+let _activeSymptom = null;
+
+function highlightSymptom(symp) {
+  const isSame = _activeSymptom === symp;
+  _activeSymptom = isSame ? null : symp;
+  
+  // reset all styles
+  const btnIds = ['sympAnxiety', 'sympSeizure', 'sympSleep', 'sympCognitive'];
+  btnIds.forEach(id => {
+    const btn = document.getElementById(id);
+    if(btn) {
+      btn.style.background = 'transparent';
+      btn.style.border = '1px dashed var(--border-default)';
+      btn.style.color = 'var(--text)';
+    }
+  });
+
+  const expDiv = document.getElementById('sympExplanation');
+
+  if (_activeSymptom) {
+    const sympToId = {
+      'anxiety': 'sympAnxiety',
+      'seizure': 'sympSeizure',
+      'sleep': 'sympSleep',
+      'cognitive': 'sympCognitive'
+    };
+    const btn = document.getElementById(sympToId[symp]);
+    if(btn) {
+      btn.style.background = 'rgba(0,212,230,0.15)';
+      btn.style.border = '1px solid var(--cyan)';
+      btn.style.color = 'var(--cyan)';
+    }
+    
+    expDiv.style.display = 'block';
+    if(symp === 'anxiety') expDiv.innerHTML = '😟 <b>Anxiety:</b> Hyperactivation mapped to Amygdala, Insula & Prefrontal Cortex';
+    if(symp === 'seizure') expDiv.innerHTML = '⚡ <b>Seizure Frequency:</b> Dysregulation in Motor Cortex, Hippocampus & Thalamus';
+    if(symp === 'sleep') expDiv.innerHTML = '💤 <b>Sleep Disturbance:</b> Disruption in Hypothalamus & Cingulate networks';
+    if(symp === 'cognitive') expDiv.innerHTML = '🧠 <b>Cognitive Impairment:</b> Prefrontal, Parietal & Temporal Lobe synchronization loss';
+  } else {
+    expDiv.style.display = 'none';
+  }
+}
 
 function setBrainState(state) {
   _currentBrainState = state;
@@ -4156,12 +4210,33 @@ function initThreeBrain() {
           const dot=vnx*rd[0]+vny*rd[1]+vnz*rd[2];
           const s=reg[6]*0.15; // Tighter localized patches
           const g=Math.exp(-Math.pow(1-dot,2)/(2*s*s));
+          
+          let r4 = reg[4];
+          let r5 = reg[5];
+          
+          // Apply Symptom Mapping Highlights
+          if (typeof _activeSymptom !== 'undefined' && _activeSymptom) {
+            let boost = false;
+            if (_activeSymptom === 'anxiety' && (reg[0].includes('Amygdala') || reg[0].includes('Insula') || reg[0] === 'Prefrontal')) boost = true;
+            if (_activeSymptom === 'seizure' && (reg[0].includes('Motor') || reg[0].includes('Hippocampus') || reg[0] === 'Thalamus')) boost = true;
+            if (_activeSymptom === 'sleep' && (reg[0] === 'Hypothalamus' || reg[0] === 'Cingulate')) boost = true;
+            if (_activeSymptom === 'cognitive' && (reg[0] === 'Prefrontal' || reg[0].includes('Parietal') || reg[0].includes('Temporal'))) boost = true;
+            
+            if (boost) {
+              r4 = 1.0;
+              r5 = 0.8;
+            } else {
+              r4 *= 0.15; // Dim non-involved regions
+              r5 *= 0.15;
+            }
+          }
+
           // VPA: strong chaotic flicker
           const flicV=Math.sin(t*4.3+ri*2.1)*0.07+Math.sin(t*9.2+ri*0.9)*0.04;
-          const actV=Math.max(0,Math.min(1,reg[4]+flicV))*g;
+          const actV=Math.max(0,Math.min(1,r4+flicV))*g;
           // LTG: minimal baseline
           const flicL=Math.sin(t*1.1+ri)*0.012;
-          const actL=Math.max(0,Math.min(1,reg[5]+flicL))*g;
+          const actL=Math.max(0,Math.min(1,r5+flicL))*g;
           if (actV>maxVPA) maxVPA=actV;
           if (actL>maxLTG) maxLTG=actL;
         }

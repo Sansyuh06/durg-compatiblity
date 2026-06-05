@@ -219,10 +219,11 @@ async def generate_patient_report(
         )
         
         if format == "pdf":
+            is_pdf = report_bytes[:4] == b"%PDF"
             return Response(
                 content=report_bytes,
-                media_type="application/pdf",
-                headers={"Content-Disposition": f"attachment; filename=patient_{session_id}_report.pdf"}
+                media_type="application/pdf" if is_pdf else "text/plain",
+                headers={"Content-Disposition": f"attachment; filename=patient_{session_id}_report.{'pdf' if is_pdf else 'txt'}"}
             )
         else:
             return Response(

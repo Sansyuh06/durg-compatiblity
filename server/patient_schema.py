@@ -388,7 +388,7 @@ def _normalize_flat_patient_schema(data: dict[str, Any]) -> dict[str, Any]:
     if data.get("basic_info") is not None:
         return data
     
-    normalized = {}
+    normalized: dict[str, Any] = {}
     
     # Basic info normalization
     age = data.get("age", 0)
@@ -477,7 +477,6 @@ def _normalize_flat_patient_schema(data: dict[str, Any]) -> dict[str, Any]:
         "CYP2C9": _extract_phenotype_status(genetics_raw.get("CYP2C9", genetics_raw.get("cyp2c9", "normal"))),
         "CYP2C19": _extract_phenotype_status(genetics_raw.get("CYP2C19", genetics_raw.get("cyp2c19", "normal"))),
         "CYP3A4": _extract_phenotype_status(genetics_raw.get("CYP3A4", genetics_raw.get("cyp3a4", "normal"))),
-        "CYP1A2": _extract_phenotype_status(genetics_raw.get("CYP1A2", genetics_raw.get("cyp1a2", "normal"))),
     }
     
     # Labs normalization
