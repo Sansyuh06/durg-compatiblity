@@ -395,8 +395,8 @@ export default function Home() {
   };
 
   const handleReset = async () => {
-    setLoading(true); setSubmitFormOpen(false); clearFeed(); setCurrentScore(null);
-    setBreakdown(null); setRewardMessage(""); setIsDone(false);
+    setLoading(true); setSubmitFormOpen(false); setFeed([]); setCurrentScore(null);
+    setBreakdown(null); setIsDone(false);
 
     try {
       const obs = await hitApi('/reset', { task_id: currentTask });
@@ -905,7 +905,7 @@ export default function Home() {
                 EP {stats.episodes} · ACT {stats.actions} · BEST {stats.bestScore !== null ? stats.bestScore.toFixed(2) : '—'}
               </div>
               {feed.length > 0 && (
-                <button onClick={clearFeed} className="font-mono text-[9px] text-[#3a5070] hover:text-[#e8f0fe] bg-transparent border-none cursor-pointer">
+                <button onClick={() => setFeed([])} className="font-mono text-[9px] text-[#3a5070] hover:text-[#e8f0fe] transition-colors border border-[#3a5070]/30 hover:border-[#e8f0fe]/50 rounded-[3px] px-2 py-0.5 ml-auto">
                   CLEAR
                 </button>
               )}
@@ -939,8 +939,10 @@ export default function Home() {
               </div>
             )}
 
-            {feed.map((item, idx) => (
-              <div key={item.id}>
+            {feed.map((rawItem, idx) => {
+              const item = rawItem as any;
+              return (
+              <div key={String(item.id)}>
                 {idx > 0 && (
                   <div className="h-[20px] w-full relative flex justify-center">
                     <div className="w-[1px] h-full bg-gradient-to-b from-[rgba(0,212,230,0.15)] to-[rgba(0,212,230,0.08)] relative">
@@ -1054,7 +1056,7 @@ export default function Home() {
 
                 </motion.div>
               </div>
-            ))}
+            )})}
             <div ref={feedEndRef} className="h-4"></div>
           </div>
         </div>
