@@ -1399,7 +1399,14 @@ except ImportError:
 # Entry-point
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Mount Next.js Frontend
+# ---------------------------------------------------------------------------
 
+frontend_out = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "out")
+if os.path.exists(frontend_out):
+    # This must be mounted last so API routes take precedence
+    app.mount("/", StaticFiles(directory=frontend_out, html=True), name="frontend")
 
 
 def main() -> None:
